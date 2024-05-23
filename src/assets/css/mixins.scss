@@ -1,0 +1,43 @@
+@mixin bg-gradient($isActive) {
+  &:active{
+    transform: scale(0.9);
+  }
+
+  --border: 3px;
+  --padding: 0.75rem;
+  --overlay: rgba(255, 255, 255, 0.9);
+  --color: theme('colors.neutral.900');
+  --duration: 3s;
+
+  color: var(--color);
+  position: relative;
+
+  padding: var(--padding);
+  border: var(--border) solid transparent;
+
+  @if $isActive{
+    @include gradient-background;
+  }
+  &:active, &.active {
+    @include gradient-background;
+  }
+}
+@mixin gradient-background{
+  background:
+          linear-gradient(
+                          to bottom,
+                          var(--overlay),
+                          var(--overlay)
+          )
+          padding-box,
+          conic-gradient(
+                          from var(--bg-angle),
+                          theme('colors.danger.500'),
+                          theme('colors.warning.500'),
+                          theme('colors.info.500'),
+                          theme('colors.success.500'),
+                          theme('colors.danger.500')
+          )
+          border-box;
+  animation: spin var(--duration) infinite linear;
+}

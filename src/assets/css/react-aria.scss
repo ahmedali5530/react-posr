@@ -1,0 +1,94 @@
+.react-aria-ModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    height: var(--visual-viewport-height, 100vh);
+
+    background: rgba(0 0 0 / .5);
+
+    overflow: auto;
+}
+
+
+@keyframes modal-blur {
+    from {
+        transform: scale(0);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+.react-aria-Modal{
+    &[data-entering] {
+        animation: modal-blur 150ms;
+    }
+
+    &[data-exiting] {
+        animation: modal-blur 150ms reverse ease-in;
+    }
+}
+.react-aria-Dialog{
+    @apply shadow-2xl;
+
+    .static-content {
+        position: sticky;
+        top: 0;
+        background: white;
+    }
+
+    &.modal-full {
+        width: 100vw;
+        height: 100vh;
+        @apply rounded-none border-none shadow-none overflow-hidden;
+
+        .modal-container {
+            height: calc(100vh - 75px);
+        }
+    }
+
+    &.modal-bottom-sheet {
+        width: 100vw;
+        height: calc(100vh - 50%);
+        @apply rounded-none border-none;
+        bottom: 0;
+        position: fixed;
+        background-color: white;
+    }
+
+    &.modal-sm {
+        width: 30vw;
+    }
+    &.modal-md{
+        width: 50vw;
+    }
+    &.modal-lg{
+        width: 70vw;
+    }
+}
+
+@media (max-width: 1024px) {
+    .modal-md{
+        width: 75vw;
+    }
+    .modal-lg{
+        width: 90vw;
+    }
+    .modal-sm {
+        width: 50vw;
+    }
+}
+@media (max-width: 768px) {
+    .modal-sm, .modal-md, .modal-lg {
+        width: 100vw;
+    }
+}

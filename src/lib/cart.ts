@@ -1,0 +1,38 @@
+import { CartModifierGroup, MenuItem } from "@/api/model/cart_item.ts";
+import { Order } from "@/api/model/order.ts";
+import { OrderItem } from "@/api/model/order_item.ts";
+
+export const calculateCartItemPrice = (item: MenuItem) => {
+
+  let price =  item.dish.price * item.quantity;
+  price += item?.selectedGroups?.reduce((prev, modifier) =>
+    prev + modifier?.selectedModifiers.reduce((mPrev, mItem) => calculateCartItemPrice(mItem) + mPrev, 0)
+  , 0);
+
+  return price;
+}
+
+const calculateOrderItemPrice = (item: OrderItem) => {
+  let price = item.price * item.quantity;
+  if(item?.modifiers) {
+    price += item?.modifiers?.reduce((prev, modifier: CartModifierGroup) =>
+      prev + modifier?.selectedModifiers?.reduce((smPrev, smG) => smPrev + calculateCartItemPrice(smG), 0)
+    , 0);
+  }
+
+  return price;
+}
+
+export const useOrderTotal = (order?: Order) => {
+  let price = 0;
+  if(!order){
+    return price;
+  }
+
+  for(const item of order.items){
+    price += calculateOrderItemPrice(item);
+  }
+
+  // TODO: calculate tax, service charges, discounts etc...
+  return price;
+}

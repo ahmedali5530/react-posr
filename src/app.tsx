@@ -1,0 +1,27 @@
+import { Index } from "./screens";
+import './assets/css/app.scss';
+import 'react-indiana-drag-scroll/dist/style.css'
+import { connect } from "@/api/db/db.ts";
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query'
+import { Toaster } from "sonner";
+import React from "react";
+import i18n from "@/lib/i18n";
+
+// connect to surrealDB via websocket
+connect();
+const queryClient = new QueryClient();
+
+// Wrapper for app
+function App() {
+  return (
+      <QueryClientProvider client={queryClient}>
+        <Index/>
+        <Toaster richColors position="top-right" closeButton={true} />
+      </QueryClientProvider>
+  );
+}
+
+export default App
