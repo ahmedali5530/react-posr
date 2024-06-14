@@ -23,7 +23,7 @@ export const AdminModifierGroups = () => {
     }),
     columnHelper.accessor("modifiers", {
       header: 'Modifiers',
-      cell: info => info.getValue().map(item => item.modifier.name).join(', '),
+      cell: info => info.getValue().map((item, index) => <span className="tag mr-2" key={index}>{item.modifier.name}</span>),
       enableSorting: false
     }),
     columnHelper.accessor("priority", {

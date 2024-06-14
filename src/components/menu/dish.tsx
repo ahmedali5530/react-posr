@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAtom } from "jotai/index";
 import { appState } from "@/store/jotai.ts";
 import { MenuDishModifiers } from "@/components/menu/modifiers.tsx";
-import { MenuItem } from "@/api/model/cart_item.ts";
+import { CartModifierGroup, MenuItem, MenuItemType } from "@/api/model/cart_item.ts";
 import { nanoid } from "nanoid";
 import { images } from "@/components/menu/image.ts";
 import { Tables } from "@/api/db/tables.ts";
@@ -13,7 +13,7 @@ import { DishModifierGroup } from "@/api/model/dish_modifier_group.ts";
 
 
 interface Props {
-  onClick: (item: MenuItem) => void
+  onClick: (item: MenuItem, groups?: CartModifierGroup[]) => void
   item: Dish
   level: number
   isModifier?: boolean
@@ -67,7 +67,8 @@ export const MenuDish = ({ onClick, item, level, isModifier }: Props) => {
               seat: state.seat,
               id: nanoid(),
               level: level,
-              selectedGroups: []
+              selectedGroups: [],
+              newOrOld: MenuItemType.new,
             })
           }
         }}
@@ -109,11 +110,11 @@ export const MenuDish = ({ onClick, item, level, isModifier }: Props) => {
               price: m.price,
               id: m.id,
               quantity: 1,
-              level: level
+              level: level,
+              newOrOld: MenuItemType.new
             }))]
           }))]}
           onClose={(payload) => {
-            setModifiersModal(false);
             if(payload.length > 0) {
               onClick({
                 dish: item,
@@ -122,9 +123,11 @@ export const MenuDish = ({ onClick, item, level, isModifier }: Props) => {
                 selectedGroups: payload,
                 id: nanoid(),
                 isModifier,
-                level: level
-              });
+                level: level,
+                newOrOld: MenuItemType.new
+              }, payload);
             }
+            setModifiersModal(false);
           }}
           level={level + 1}
         />

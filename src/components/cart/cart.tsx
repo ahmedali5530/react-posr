@@ -28,7 +28,7 @@ export const MenuCart = () => {
         ) : (
           <Seats/>
         )}
-        <div className="flex flex-col gap-1 h-[calc(100vh_-_216px_-_110px)] overflow-auto">
+        <div className="flex flex-col gap-1 h-[calc(100vh_-_216px_-_50px)] overflow-auto">
           {state.seat && cartItems.length === 0 && state.seats.length > 0 && (
             <div className="items-center flex justify-center h-[100px]">
               <Button variant="danger" size="lg" icon={faTrash} onClick={() => {

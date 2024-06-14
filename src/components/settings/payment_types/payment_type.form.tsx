@@ -4,13 +4,14 @@ import { Button } from "@/components/common/input/button.tsx";
 import { Controller, useForm } from "react-hook-form";
 import { useDB } from "@/api/db/db.ts";
 import { Tables } from "@/api/db/tables.ts";
-import { Category } from "@/api/model/category.ts";
 import { toast } from 'sonner';
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect } from "react";
 import { PaymentType } from "@/api/model/payment_type.ts";
 import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
+import useApi, { SettingsData } from "@/api/db/use.api.ts";
+import { Tax } from "@/api/model/tax.ts";
 
 interface Props {
   open: boolean
@@ -24,7 +25,11 @@ const validationSchema = yup.object({
   type: yup.object({
     label: yup.string(),
     value: yup.string()
-  }).required('This is required')
+  }).required('This is required'),
+  tax: yup.object({
+    label: yup.string(),
+    value: yup.string()
+  }).nullable()
 });
 
 export const PaymentTypeForm = ({
@@ -35,7 +40,8 @@ export const PaymentTypeForm = ({
     reset({
       name: null,
       type: null,
-      priority: null
+      priority: null,
+      tax: null
     });
   }
 
@@ -48,12 +54,23 @@ export const PaymentTypeForm = ({
         type: {
           label: data.type,
           value: data.type
+        },
+        tax: {
+          label: `${data?.tax?.name} ${data?.tax?.rate}%`,
+          value: data?.tax?.id
         }
       });
     }
   }, [data]);
 
   const db = useDB();
+
+  const {
+    data: taxes,
+    fetch: fetchTaxes
+  } = useApi<SettingsData<Tax>>(Tables.taxes, [], ['priority asc'], 0, 99999, [], {
+    enabled: false
+  });
 
   const { register, control, handleSubmit, formState: {errors}, reset } = useForm({
     resolver: yupResolver(validationSchema)
@@ -63,11 +80,16 @@ export const PaymentTypeForm = ({
     'Cash', 'Card', 'Points'
   ];
 
+  console.log(errors)
+
   const onSubmit = async (values: any) => {
     const vals = {...values};
 
     vals.priority = parseInt(vals.priority);
     vals.type = values.type.value;
+    if(values.tax){
+      vals.tax = values.tax.value;
+    }
 
     try {
       if(vals.id){
@@ -87,6 +109,12 @@ export const PaymentTypeForm = ({
       console.log(e)
     }
   }
+
+  useEffect(() => {
+    if(open){
+      fetchTaxes();
+    }
+  }, [open]);
 
   return (
     <>
@@ -132,6 +160,27 @@ export const PaymentTypeForm = ({
                   />
                 )}
                 name="type"
+                control={control}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3 mb-3">
+            <div className="flex-1">
+              <label htmlFor="">Tax</label>
+              <Controller
+                render={({ field }) => (
+                  <ReactSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={taxes?.data?.map(item => ({
+                      label: `${item.name} ${item.rate}%`,
+                      value: item.id
+                    }))}
+                    isClearable
+                  />
+                )}
+                name="tax"
                 control={control}
               />
             </div>

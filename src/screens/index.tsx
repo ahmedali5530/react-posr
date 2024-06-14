@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { Orders } from "@/screens/orders.tsx";
 import { Summary } from "@/screens/summary.tsx";
 import { Closing } from "@/screens/closing.tsx";
-import { Kitchen } from "@/screens/kitchen.tsx";
+import { KitchenScreen } from "@/screens/kitchen.tsx";
 import { Delivery } from "@/screens/delivery.tsx";
 import { Admin } from "@/screens/admin";
 import { Reports } from "@/screens/reports.tsx";
@@ -23,7 +23,7 @@ export const Index = () => {
       "Summary": <Summary/>,
       "Closing": <Closing/>,
       "Reports": <Reports/>,
-      "Kitchen": <Kitchen/>,
+      "Kitchen": <KitchenScreen/>,
       "Delivery": <Delivery/>,
       "Admin": <Admin/>
     };

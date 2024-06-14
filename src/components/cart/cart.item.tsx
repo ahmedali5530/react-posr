@@ -21,14 +21,11 @@ export const CartItem = ({ item, index }: Props) => {
     <>
       <div
         className={cn(
-          "px-3 py-2 flex rounded-2xl gap-3 cursor-pointer items-start pressable",
+          "px-3 py-2 flex rounded-2xl gap-3 cursor-pointer items-start",
           item.isSelected ? 'bg-neutral-300' : (
             item.isHold ? 'bg-warning-100' : 'bg-neutral-100'
           ),
         )}
-        style={{
-          '--scale': 0.98
-        } as any}
         onClick={() => {
           setState(prev => ({
             ...prev,
@@ -43,7 +40,7 @@ export const CartItem = ({ item, index }: Props) => {
         }}
       >
         <div className="flex flex-col items-start gap-3">
-          <div className="flex gap-1 items-center">
+          <div className="flex gap-2 items-center">
             <Button
               flat
               iconButton
@@ -59,7 +56,9 @@ export const CartItem = ({ item, index }: Props) => {
                 }))
               }}
             ><FontAwesomeIcon icon={faPlus}/></Button>
-            <div className="text-center w-[24px]">{item.quantity}</div>
+            <Button flat className="min-w-[56px]">
+              {item.quantity}
+            </Button>
             {item.quantity <= 1 ? (
               <Button
                 flat
@@ -142,7 +141,7 @@ export const CartItem = ({ item, index }: Props) => {
   );
 }
 
-const CartItemName = ({ item }: Omit<Props, "index">) => {
+export const CartItemName = ({ item }: Omit<Props, "index">) => {
   return (
     <>
       <div className={
@@ -155,7 +154,7 @@ const CartItemName = ({ item }: Omit<Props, "index">) => {
       </div>
       {item?.selectedGroups?.map(group =>
         <div className="border-[3px] border-l-warning-500 border-r-0 border-y-0 mb-2" key={group.out?.id}>
-          {group.selectedModifiers.map(modifier => (
+          {group?.selectedModifiers?.map(modifier => (
             <React.Fragment key={modifier.id}>
               {CartItemName({ item: modifier })}
             </React.Fragment>

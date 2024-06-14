@@ -1,10 +1,8 @@
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
-import { PaymentType } from "@/api/model/payment_type.ts";
 import { Tables } from "@/api/db/tables.ts";
-import React, { useState } from "react";
+import React from "react";
 import { Tax } from "@/api/model/tax.ts";
 import { Button } from "@/components/common/input/button.tsx";
-import ScrollContainer from "react-indiana-drag-scroll";
 
 interface Props {
   tax?: Tax
@@ -20,21 +18,28 @@ export const OrderPaymentTax = ({
   } = useApi<SettingsData<Tax>>(Tables.taxes, [], ['priority asc'], 0, 99999);
 
   return (
-    <>
-      <ScrollContainer className="gap-5 flex overflow-x-auto mb-5">
-        {taxes?.data?.map(item => (
-          <Button
-            className="min-w-[150px]"
-            variant="primary"
-            active={item.id === tax?.id}
-            key={item.id}
-            onClick={() => setTax(item)}
-            size="lg"
-          >
-            {item.name} {item.rate}%
-          </Button>
-        ))}
-      </ScrollContainer>
-    </>
+    <div className="flex flex-wrap gap-5">
+      <Button
+        className="min-w-[150px]"
+        variant="danger"
+        active={tax === undefined}
+        onClick={() => setTax(undefined)}
+        size="lg"
+      >
+        No Tax
+      </Button>
+      {taxes?.data?.map(item => (
+        <Button
+          className="min-w-[150px]"
+          variant="primary"
+          active={item.id === tax?.id}
+          key={item.id}
+          onClick={() => setTax(item)}
+          size="lg"
+        >
+          {item.name} {item.rate}%
+        </Button>
+      ))}
+    </div>
   );
 }

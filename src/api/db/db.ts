@@ -24,6 +24,13 @@ export const connect = async () => {
 
 export const useDB = () => {
   const query = async (sql: string, parameters?: any) => {
+    // log sql in dev mode
+    if(import.meta.env.DEV) {
+      console.group('DB Debug')
+      console.info(sql.trim(), parameters);
+      console.groupEnd()
+    }
+
     try {
       // Perform a custom advanced query
       return await db.query(sql, parameters);
@@ -54,7 +61,7 @@ export const useDB = () => {
     }
   }
 
-  const insert = async (thing: Tables|string, data: any) => {
+  const insert = async(thing: Tables|string, data: any) => {
     try{
       return await db.insert(thing, data);
     }catch(e){
@@ -69,6 +76,16 @@ export const useDB = () => {
       return await db.update(thing, data);
     }catch(e){
       console.error('ERROR while updating', e);
+      toast.error(e);
+      throw e;
+    }
+  }
+
+  const patch = async (thing: Tables|string, data: any) => {
+    try{
+      return await db.patch(thing, data);
+    }catch(e){
+      console.error('ERROR while patching', e);
       toast.error(e);
       throw e;
     }
@@ -101,6 +118,7 @@ export const useDB = () => {
     delete: del,
     insert, create: insert,
     update,
+    patch,
     merge,
     live
   }

@@ -3,18 +3,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCopy, faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faPause, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { Dropdown, DropdownItem } from "@/components/common/react-aria/dropdown.tsx";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useAtom } from "jotai/index";
 import { appState } from "@/store/jotai.ts";
 import { nanoid } from "nanoid";
+import { MenuItemType } from "@/api/model/cart_item.ts";
 
 export const CartActions = () => {
   const [state, setState] = useAtom(appState);
   const [selected, setSelected] = useState(false);
-
-  const holdOrFire = useMemo(() => {
-    return 1;
-  }, [state.cart]);
 
   const onClickSeatItem = (seat: string) => {
     if( seat === 'new' ) {
@@ -51,18 +48,26 @@ export const CartActions = () => {
 
   const copySelectedCartItems = () => {
     const prevItems = [...state.cart];
+    const newItems = [];
+    prevItems.forEach(item => {
+      if( item.isSelected ) {
+        item.isSelected = false;
+        if(item.newOrOld === MenuItemType.new){
+          item.id = nanoid();
+          newItems.push(item);
+        }
+      }
+    });
+
     setState(prev => ({
       ...prev,
       cart: [
-        ...state.cart.map(item => {
-          if( item.isSelected ) {
-            item.id = nanoid();
-            item.isSelected = false;
-
-            return item
-          }
-        }), // selected items
-        ...prevItems.filter(item => !item.isSelected), // previous items
+        ...prevItems.map(item => ({
+          ...item,
+          isSelected: false,
+          id: item.newOrOld === MenuItemType.old ? item.id : nanoid()
+        })),
+        ...newItems,
       ]
     }))
   }

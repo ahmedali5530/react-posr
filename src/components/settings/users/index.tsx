@@ -27,6 +27,10 @@ export const AdminUsers = () => {
     columnHelper.accessor("login", {
       header: 'Login'
     }),
+    columnHelper.accessor("roles", {
+      header: 'Roles',
+      cell: info => info.getValue().map((item, index) => <span className="tag mr-2" key={index}>{item}</span>)
+    }),
     columnHelper.accessor("id", {
       id: "actions",
       header: "Actions",

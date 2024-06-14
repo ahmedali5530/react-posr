@@ -17,6 +17,7 @@ export interface Table extends ID, Name, Priority {
   width?: number
   x?: number
   y?: number
+  rounded?: string
 
   floor?: Floor
 

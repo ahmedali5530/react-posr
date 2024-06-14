@@ -1,5 +1,4 @@
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
-import { OrderType } from "@/api/model/order_type.ts";
 import { Tables } from "@/api/db/tables.ts";
 import { useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -8,11 +7,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { PaymentType } from "@/api/model/payment_type.ts";
 import { TableComponent } from "@/components/common/table/table.tsx";
-import { OrderTypeForm } from "@/components/settings/order_types/order_type.form.tsx";
 import { PaymentTypeForm } from "@/components/settings/payment_types/payment_type.form.tsx";
 
 export const AdminPaymentTypes = () => {
-  const loadHook = useApi<SettingsData<PaymentType>>(Tables.payment_types);
+  const loadHook = useApi<SettingsData<PaymentType>>(Tables.payment_types, [], ['priority asc'], 0, 10, ['tax', 'discounts']);
 
   const [data, setData] = useState<PaymentType>();
   const [formModal, setFormModal] = useState(false);
@@ -25,6 +23,10 @@ export const AdminPaymentTypes = () => {
     }),
     columnHelper.accessor("type", {
       header: 'Type'
+    }),
+    columnHelper.accessor("tax", {
+      header: 'Tax',
+      cell: info => info.getValue() && <span className="tag">{info.getValue()?.name} {info.getValue()?.rate}%</span>
     }),
     columnHelper.accessor("priority", {
       header: 'Priority'

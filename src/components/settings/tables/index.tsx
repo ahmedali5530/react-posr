@@ -8,9 +8,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faPencil, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { TableComponent } from "@/components/common/table/table.tsx";
 import { TableForm } from "@/components/settings/tables/table.form.tsx";
+import { useDB } from "@/api/db/db.ts";
 
 export const AdminTables = () => {
   const loadHook = useApi<SettingsData<Table>>(Tables.tables, [], [], 0, 10, ['floor', 'categories', 'payment_types', 'order_types']);
+  const db = useDB();
 
   const [data, setData] = useState<Table>();
   const [formModal, setFormModal] = useState(false);
@@ -32,8 +34,26 @@ export const AdminTables = () => {
       header: 'Floor',
       cell: info => info.getValue()?.name
     }),
+    columnHelper.accessor('payment_types', {
+      header: 'Payment types',
+      cell: info => info.getValue()?.map((paymentType, index) => <span className="tag mr-2" key={index}>{paymentType.name}</span>),
+      enableColumnFilter: false,
+      enableSorting: false
+    }),
+    columnHelper.accessor('order_types', {
+      header: 'Order types',
+      cell: info => info.getValue()?.map((orderType, index) => <span className="tag mr-2" key={index}>{orderType.name}</span>),
+      enableColumnFilter: false,
+      enableSorting: false
+    }),
     columnHelper.accessor("priority", {
       header: 'Priority'
+    }),
+    columnHelper.accessor("is_locked", {
+      header: 'Locked',
+      cell: info => info.getValue() ? <FontAwesomeIcon icon={faCheck} className="text-success-500" onClick={() => releaseTable(info.row.original.id)} /> : null,
+      enableColumnFilter: false,
+      enableSorting: false
     }),
     columnHelper.accessor("id", {
       id: "actions",
@@ -55,6 +75,14 @@ export const AdminTables = () => {
       },
     }),
   ];
+
+  const releaseTable = async (id: string) => {
+    await db.merge(id, {
+      is_locked: false
+    });
+
+    loadHook.fetchData();
+  }
 
   return (
     <>

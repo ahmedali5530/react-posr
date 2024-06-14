@@ -66,29 +66,41 @@
     }
 
     &.modal-sm {
-        width: 30vw;
+        width: 35vw;
     }
     &.modal-md{
-        width: 50vw;
+        width: 60vw;
     }
     &.modal-lg{
-        width: 70vw;
+        width: 75vw;
     }
 }
 
 @media (max-width: 1024px) {
-    .modal-md{
-        width: 75vw;
-    }
-    .modal-lg{
-        width: 90vw;
-    }
-    .modal-sm {
-        width: 50vw;
+    .react-aria-Dialog {
+        &.modal-md {
+            width: 80vw;
+        }
+
+        &.modal-lg {
+            width: 90vw;
+        }
+
+        &.modal-sm {
+            width: 60vw;
+        }
     }
 }
 @media (max-width: 768px) {
-    .modal-sm, .modal-md, .modal-lg {
-        width: 100vw;
+    .react-aria-Dialog {
+        &.modal-sm, &.modal-md, &.modal-lg {
+            width: 100vw;
+        }
+    }
+}
+
+.react-aria-CalendarCell{
+    &[data-disabled="true"]{
+        @apply text-neutral-500;
     }
 }

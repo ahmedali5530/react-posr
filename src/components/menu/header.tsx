@@ -11,6 +11,7 @@ import { DialogTrigger } from "react-aria-components";
 import { Popover } from "@/components/common/react-aria/popover.tsx";
 import { Dropdown, DropdownItem } from "@/components/common/react-aria/dropdown.tsx";
 import { useDB } from "@/api/db/db.ts";
+import { MenuItemType } from "@/api/model/cart_item.ts";
 
 export const MenuHeader = () => {
   const db = useDB();
@@ -34,21 +35,20 @@ export const MenuHeader = () => {
     }
   }, [state.orders, state?.order?.id]);
 
-  // release table lock
-  useEffect(() => {
-    return () => {
-      db.merge(state.table.id, {
-        is_locked: false,
-        locked_at: null,
-        locked_by: null
-      });
+  const reset = async () => {
+    await db.merge(state.table.id, {
+      is_locked: false,
+      locked_at: null,
+      locked_by: null
+    });
 
-      setState(prev => ({
-        ...prev,
-        orderType: undefined,
-      }))
-    }
-  }, []);
+    setState(prev => ({
+      ...prev,
+      orderType: undefined,
+      showFloor: true,
+      persons: '1'
+    }));
+  }
 
   const onOrderClick = (key: string) => {
     if(key === 'new'){
@@ -82,7 +82,8 @@ export const MenuHeader = () => {
             quantity: item.quantity,
             seat: item.seat,
             id: item.id,
-            selectedGroups: item.modifiers || []
+            selectedGroups: item.modifiers || [],
+            newOrOld: MenuItemType.old,
           }))
         ],
         seats: Array.from(seats.values()),
@@ -94,10 +95,7 @@ export const MenuHeader = () => {
     <>
       <div className="flex justify-between items-center w-full">
         <div className="flex items-center gap-2">
-          <Button variant="primary" icon={faArrowLeft} onClick={() => setState(prev => ({
-            ...prev,
-            showFloor: true
-          }))} size="lg">{state?.floor?.name}</Button>
+          <Button variant="primary" icon={faArrowLeft} onClick={reset} size="lg">{state?.floor?.name}</Button>
           {state.orders.length > 0 ? (
             <Dropdown
               label={state?.order?.order ? 'Order# ' + state?.order?.order?.invoice_number : 'New Order'} btnSize="lg" btnFlat={true}
@@ -113,7 +111,7 @@ export const MenuHeader = () => {
               <DropdownItem id="new" key="new" className="min-w-[50px]">New Order</DropdownItem>
             </Dropdown>
           ) : (
-            <Button variant="primary" flat>New Order</Button>
+            <Button variant="primary" flat size="lg">New Order</Button>
           )}
 
           <button type="button"
@@ -144,8 +142,8 @@ export const MenuHeader = () => {
               size="lg"
               className={cn(
                 "flex-1",
-                index === 0 && '!rounded-l-full',
-                index === setting.order_types.length - 1 && ' !rounded-r-full'
+                index === 0 && '!rounded-l-lg',
+                index === setting.order_types.length - 1 && ' !rounded-r-lg'
               )}
               active={item.id === state?.orderType?.id}
               onClick={() => {
@@ -155,6 +153,7 @@ export const MenuHeader = () => {
                 }))
               }}
               key={index}
+              flat
             >
               {item.name}
             </Button>

@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect } from "react";
-import { Discount } from "@/api/model/discount.ts";
+import { Discount, DiscountType } from "@/api/model/discount.ts";
 import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
 
 interface Props {
@@ -23,7 +23,9 @@ const validationSchema = yup.object({
     label: yup.string(),
     value: yup.string()
   }).default(undefined).required('This is required'),
-  rate: yup.number().required("This is required"),
+  min_rate: yup.number().required("This is required"),
+  max_rate: yup.number().required("This is required"),
+  max_cap: yup.number().nullable(),
   priority: yup.number().required("This is required").typeError('This should be a number'),
 });
 
@@ -34,7 +36,9 @@ export const DiscountForm = ({
     onClose();
     reset({
       name: null,
-      rate: null,
+      min_rate: null,
+      max_rate: null,
+      max_cap: null,
       type: null,
       priority: null
     });
@@ -45,8 +49,10 @@ export const DiscountForm = ({
       reset({
         ...data,
         name: data.name,
-        rate: data.rate,
-        type: { label: data.type, value: data.type },
+        min_rate: data.min_rate,
+        max_rate: data.max_rate,
+        max_cap: data.max_cap,
+        type: { label: data?.type, value: data?.type },
         priority: data.priority
       });
     }
@@ -54,7 +60,7 @@ export const DiscountForm = ({
 
   const db = useDB();
 
-  const { register, control, handleSubmit, formState: { errors }, reset } = useForm({
+  const { register, control, handleSubmit, formState: { errors }, reset, watch } = useForm({
     resolver: yupResolver(validationSchema)
   });
 
@@ -114,17 +120,48 @@ export const DiscountForm = ({
               />
               <InputError error={errors?.type?.message}/>
             </div>
+            {watch('type')?.value === DiscountType.Percent && (
+              <div className="flex-1">
+                <Controller
+                  render={({ field }) => (
+                    <Input
+                      label="Max Discount Cap"
+                      value={field.value}
+                      onChange={field.onChange}
+                      error={errors?.max_cap?.message}
+                    />
+                  )}
+                  name="max_cap"
+                  control={control}
+                />
+              </div>
+            )}
             <div className="flex-1">
               <Controller
                 render={({ field }) => (
                   <Input
-                    label="Rate"
+                    label="Min Rate"
                     value={field.value}
                     onChange={field.onChange}
-                    error={errors?.rate?.message}
+                    error={errors?.min_rate?.message}
                   />
                 )}
-                name="rate"
+                name="min_rate"
+                control={control}
+              />
+            </div>
+
+            <div className="flex-1">
+              <Controller
+                render={({ field }) => (
+                  <Input
+                    label="Max Rate"
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={errors?.max_rate?.message}
+                  />
+                )}
+                name="max_rate"
                 control={control}
               />
             </div>

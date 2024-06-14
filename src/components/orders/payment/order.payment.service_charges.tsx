@@ -9,10 +9,10 @@ interface Props {
 export const OrderPaymentServiceCharges = ({
   serviceCharge, setServiceCharge
 }: Props) => {
-  const serviceCharges = [5, 12];
+  const serviceCharges = [12];
 
   return (
-    <div className="gap-5 flex flex-col mb-5">
+    <div className="gap-5 flex flex-wrap mb-5">
       <Button
         className="min-w-[150px]"
         variant="danger"
@@ -20,7 +20,7 @@ export const OrderPaymentServiceCharges = ({
         onClick={() => setServiceCharge(0)}
         size="lg"
       >
-        0%
+        No Service charge
       </Button>
 
       {serviceCharges.map(item => (

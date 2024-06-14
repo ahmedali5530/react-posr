@@ -1,5 +1,5 @@
 import { Button } from "@/components/common/input/button.tsx";
-import { faCancel, faCheck, faPause } from "@fortawesome/free-solid-svg-icons";
+import { faCancel, faCheck, faCreditCard } from "@fortawesome/free-solid-svg-icons";
 import React, { useMemo, useState } from "react";
 import { useAtom } from "jotai/index";
 import { appPage, appState } from "@/store/jotai.ts";
@@ -7,8 +7,9 @@ import { calculateCartItemPrice } from "@/lib/cart.ts";
 import { useDB } from "@/api/db/db.ts";
 import { DateTime } from "luxon";
 import { Tables } from "@/api/db/tables.ts";
-import { OrderItem } from "@/api/model/order_item.ts";
-import { OrderStatus } from "@/api/model/order.ts";
+import { Order, OrderStatus } from "@/api/model/order.ts";
+import { OrderPayment } from "@/components/orders/order.payment.tsx";
+import { withCurrency } from "@/lib/utils.ts";
 
 export const Payment = () => {
   const db = useDB();
@@ -32,12 +33,12 @@ export const Payment = () => {
 
     let invoiceNumber = 1;
 
-    if(isNewOrder) {
+    if( isNewOrder ) {
       const invoiceNumberResult: any = await nextInvoiceNumber();
       if( invoiceNumberResult[0].length > 0 ) {
         invoiceNumber = invoiceNumberResult[0][0].invoice_number + 1;
       }
-    }else{
+    } else {
       invoiceNumber = state?.order?.order?.invoice_number;
     }
 
@@ -45,7 +46,6 @@ export const Payment = () => {
     const items = [];
     for ( const item of state.cart ) {
       const itemData: any = {
-        created_at: DateTime.now().toISO(),
         tax: 0,
         item: item.dish.id,
         price: item.dish.price,
@@ -57,22 +57,36 @@ export const Payment = () => {
         modifiers: item.selectedGroups,
         seat: item.seat,
         is_suspended: item.isHold,
-        level: item.level
+        level: item.level,
+        category: item.category
       };
 
-      if(item.id.includes('order_item:')) {
+      if( item.id.includes('order_item:') ) {
         itemData.updated_at = DateTime.now().toISO();
 
-        await db.update(item.id, itemData);
+        await db.merge(item.id, itemData);
         items.push(item.id);
-      }else {
+      } else {
+        itemData.created_at = DateTime.now().toISO();
+
         const record = await db.create(Tables.order_items, itemData);
         items.push(record[0].id);
+
+        // add in kitchens
+        const kitchen: any = await db.query(`SELECT * from ${Tables.kitchens} where items ?= "${item.dish.id}"`);
+        if(kitchen[0].length > 0){
+          for(const k of kitchen[0]){
+            await db.create(Tables.order_items_kitchen, {
+              created_at: DateTime.now().toISO(),
+              kitchen: k.id,
+              order_item: record[0].id
+            });
+          }
+        }
       }
     }
 
-    const data = {
-      created_at: DateTime.now().toISO(),
+    const data: any = {
       floor: state?.floor?.id,
       covers: parseInt(state?.persons),
       tax: null,
@@ -89,26 +103,41 @@ export const Payment = () => {
       user: page?.user?.id,
     };
 
-    if(isNewOrder) {
-      const order = await db.create(Tables.orders, data);
+    let orderObj: any[];
+    if( isNewOrder ) {
+      data.created_at = DateTime.now().toISO();
+      orderObj = await db.create(Tables.orders, data);
 
       // add order back in items
-      for(const item of items){
+      for ( const item of items ) {
         await db.merge(item, {
-          order: order[0].id
+          order: orderObj[0].id
         });
       }
-    }else{
-      const order = await db.update(state?.order?.id, data);
+    } else {
+      data.updated_at = DateTime.now().toISO();
+
+      orderObj = await db.merge(state?.order?.id, data);
 
       // add order back in items
-      for(const item of items){
+      for ( const item of items ) {
         await db.merge(item, {
-          order: order[0].id
+          order: orderObj[0].id
         });
       }
     }
 
+    setLoading(false);
+
+    return orderObj;
+  }
+
+  const createOrderAndBack = async () => {
+    await createOrder();
+    await reset();
+  }
+
+  const reset = async () => {
     // release table
     await db.merge(state?.table?.id, {
       is_locked: false,
@@ -129,48 +158,58 @@ export const Payment = () => {
         order: undefined
       }
     }));
+  }
 
-    setLoading(false);
+  const [payment, setPayment] = useState(false);
+  const [order, setOrder] = useState<Order>();
+  const openPayment = async () => {
+    const result = await createOrder();
+
+    if(result[0]){
+      const freshOrder = await db.query(`SELECT * FROM ${result[0].id} FETCH items, items.item, item.item.modifiers, table, user, order_type, customer, discount, tax`);
+      setOrder(freshOrder[0][0]);
+      setPayment(true);
+    }
   }
 
   return (
-    <div className="font-bold">
-      <div className="p-3">
-        <div className="flex justify-between items-center">
-          <span>Sub Total</span>
-          <span>{total}</span>
+    <>
+      <div className="font-bold">
+        <div className="p-3">
+          <div className="flex justify-between items-center">
+            <span>Sub Total ({state.cart.length})</span>
+            <span>{withCurrency(total)}</span>
+          </div>
         </div>
-        <div className="flex justify-between items-center text-warning-500">
-          <span>Discount</span>
-          <span>0</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span>Service charges</span>
-          <span>0</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span>Tax</span>
-          <span>0</span>
-        </div>
-      </div>
         <div className="h-[2px] separator"></div>
-      <div className="p-3">
-        <div className="flex justify-between items-center text-success-500 text-3xl">
-          <span>Total</span>
-          <span>{total}</span>
-        </div>
-        <div className="flex gap-3 mt-3">
-          <Button variant="success" className="flex-1" size="lg" icon={faCheck} onClick={createOrder}
-                  disabled={isLoading} isLoading={isLoading}>Done</Button>
-          <Button variant="danger" className="flex-1" size="lg" icon={faCancel} onClick={() => setState(prev => ({
-            ...prev,
-            seats: [],
-            cart: [],
-            seat: undefined
-          }))} disabled={isLoading}>Cancel</Button>
-          <Button variant="warning" className="flex-1" size="lg" icon={faPause} disabled={isLoading}>Hold</Button>
+        <div className="p-3">
+          <div className="flex justify-between items-center text-success-500 text-3xl">
+            <span>Total</span>
+            <span>{withCurrency(total)}</span>
+          </div>
+          <div className="flex gap-3 mt-3">
+            <Button variant="success" className="flex-1" size="lg" icon={faCheck} onClick={createOrderAndBack}
+                    disabled={isLoading || state.cart.length === 0} isLoading={isLoading}>To kitchen</Button>
+            <Button variant="warning" filled className="flex-1" size="lg" icon={faCreditCard} onClick={openPayment}
+                    disabled={isLoading || state.cart.length === 0} isLoading={isLoading}>Pay Now</Button>
+            <Button variant="danger" className="flex-1" size="lg" icon={faCancel} onClick={() => setState(prev => ({
+              ...prev,
+              seats: [],
+              cart: [],
+              seat: undefined
+            }))} disabled={isLoading}>Cancel</Button>
+          </div>
         </div>
       </div>
-    </div>
+      {payment && (
+        <OrderPayment
+          order={order}
+          onClose={async () => {
+            await reset();
+            setPayment(false);
+          }}
+        />
+      )}
+    </>
   )
 }

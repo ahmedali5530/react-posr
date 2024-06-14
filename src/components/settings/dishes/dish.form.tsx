@@ -9,7 +9,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Tables } from "@/api/db/tables.ts";
 import { Category } from "@/api/model/category.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faExclamationCircle, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { CategoryForm } from "@/components/settings/categories/category.form.tsx";
 import * as yup from 'yup';
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -17,8 +17,6 @@ import { toast } from "sonner";
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { ModifierGroup } from "@/api/model/modifier_group.ts";
 import { Switch } from "@/components/common/input/switch.tsx";
-import { Popover } from "@/components/common/react-aria/popover.tsx";
-import { DialogTrigger } from "react-aria-components";
 import _ from "lodash";
 import { ModifierGroupForm } from "@/components/settings/modifier_groups/modifier_group.form.tsx";
 
@@ -32,7 +30,7 @@ const validationSchema = yup.object({
   name: yup.string().required("This is required"),
   number: yup.string().required("This is required"),
   priority: yup.number().required("This is required").typeError('This should be a number'),
-  position: yup.number().required("This is required").typeError('This should be a number'),
+  // position: yup.number().required("This is required").typeError('This should be a number'),
   price: yup.number().required("This is required").typeError('This should be a number'),
   cost: yup.number().required("This is required").typeError('This should be a number'),
   categories: yup.array(yup.object({
@@ -46,7 +44,7 @@ const validationSchema = yup.object({
     }).required('This is required'),
     has_required_modifiers: yup.boolean(),
     required_modifiers: yup.number().when('has_required_modifiers', (has_required_modifiers, schema) => {
-      if(has_required_modifiers[0]){
+      if( has_required_modifiers[0] ) {
         return schema.min(1, 'This must be greater then 0').required('This is required');
       }
 
@@ -66,7 +64,6 @@ export const DishForm = ({
       name: '',
       number: '',
       priority: 0,
-      position: 0,
       price: 0,
       cost: 0,
       categories: [],
@@ -112,9 +109,11 @@ export const DishForm = ({
   }, [open]);
 
   const getModifierGroups = async (id) => {
-    const record: any = await db.query(`SELECT * from ${Tables.dish_modifier_groups} where in = ${id} fetch out, out.modifiers, out.modifiers.modifier`);
+    const record: any = await db.query(`SELECT *
+                                        from ${Tables.dish_modifier_groups}
+                                        where in = ${id} fetch out, out.modifiers, out.modifiers.modifier`);
     let i = 0;
-    for(const rec of record[0]){
+    for ( const rec of record[0] ) {
       append({
         modifier_group: {
           label: rec.out.name,
@@ -150,7 +149,7 @@ export const DishForm = ({
     try {
       const data = {
         ...values,
-        position: parseInt(values.position),
+        // position: parseInt(values.position),
         priority: parseInt(values.priority),
         price: parseFloat(values.price),
         cost: parseFloat(values.cost),
@@ -176,11 +175,11 @@ export const DishForm = ({
         menuId = record[0].id;
       }
 
-      if(data.modifier_groups){
+      if( data.modifier_groups ) {
         // delete graph edges and create again
         await db.query(`DELETE ${menuId}->${Tables.dish_modifier_groups} where in = ${menuId}`);
 
-        for(const modifierGroup of data.modifier_groups){
+        for ( const modifierGroup of data.modifier_groups ) {
           await db.query(`RELATE ${menuId}->${Tables.dish_modifier_groups}->${modifierGroup.modifier_group.value} set has_required_modifiers = ${modifierGroup.has_required_modifiers}, should_auto_open = ${modifierGroup.should_auto_open}, required_modifiers = ${modifierGroup.required_modifiers}`);
         }
       }
@@ -349,7 +348,7 @@ export const DishForm = ({
                         />
                       )}
                     />
-                    <InputError error={_.get(errors, ['modifier_groups', index, 'modifier_group', 'message'])} />
+                    <InputError error={_.get(errors, ['modifier_groups', index, 'modifier_group', 'message'])}/>
                   </div>
                   <div className="flex-1 self-end">
                     <Controller

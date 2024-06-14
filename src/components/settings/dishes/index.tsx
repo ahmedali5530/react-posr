@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Dish } from "@/api/model/dish.ts";
 import { Tables } from "@/api/db/tables.ts";
 import { Button } from "@/components/common/input/button.tsx";
@@ -38,7 +38,7 @@ export const AdminDishes = () => {
     }),
     columnHelper.accessor("categories", {
       header: 'Categories',
-      cell: info => info.getValue().map(item => item.name).join(', ')
+      cell: info => info.getValue().map((item, index) => <span className="tag mr-2" key={index}>{item.name}</span>)
     }),
     columnHelper.accessor("id", {
       id: "actions",

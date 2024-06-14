@@ -8,7 +8,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   selectable?: boolean;
   hasError?: boolean;
   label?: ReactNode;
-  error?: ReactNode;
+  error?: any;
 }
 
 export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {

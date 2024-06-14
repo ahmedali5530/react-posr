@@ -15,7 +15,6 @@ import { Category } from "@/api/model/category.ts";
 import { PaymentType } from "@/api/model/payment_type.ts";
 import { OrderType } from "@/api/model/order_type.ts";
 import { Floor } from "@/api/model/floor.ts";
-import { Checkbox } from "@/components/common/input/checkbox.tsx";
 import { Switch } from "@/components/common/input/switch.tsx";
 
 interface Props {
@@ -46,7 +45,7 @@ const validationSchema = yup.object({
     label: yup.string(),
     value: yup.string()
   })),
-  ask_for_covers: yup.boolean().default(true)
+  ask_for_covers: yup.boolean().default(true),
 });
 
 export const TableForm = ({
@@ -64,7 +63,7 @@ export const TableForm = ({
       categories: [],
       order_types: [],
       payment_types: [],
-      ask_for_covers: false
+      ask_for_covers: false,
     });
   }
 

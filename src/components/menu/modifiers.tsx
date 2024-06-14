@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils.ts";
 import { MenuDish } from "@/components/menu/dish.tsx";
 import { Swiper, SwiperSlide } from "swiper/react";
 import _ from "lodash";
-import { MenuItem, CartModifierGroup } from "@/api/model/cart_item.ts";
+import { CartModifierGroup, MenuItem, MenuItemType } from "@/api/model/cart_item.ts";
 import { useAtom } from "jotai";
 import { appState } from "@/store/jotai.ts";
 import { nanoid } from "nanoid";
@@ -85,7 +85,7 @@ export const MenuDishModifiers = (props: Props) => {
     }
   }, [props.dish, group, state.seat, props.level, props.editing]);
 
-  const onModifierClick = (d: MenuItem) => {
+  const onModifierClick = (d: MenuItem, selectedGroups?: CartModifierGroup[]) => {
     const newGroups = [...groups];
     newGroups.map(grp => {
       if(grp.out.id === group.out.id){
@@ -94,8 +94,8 @@ export const MenuDishModifiers = (props: Props) => {
           (!grp.has_required_modifiers)
         ) {
           const newGroup = {...group};
-          delete newGroup.selectedModifiers;
-          grp.selectedModifiers.push(buildModifiersObj(d.dish));
+          // delete newGroup.selectedModifiers;
+          grp.selectedModifiers.push(buildModifiersObj(d.dish, selectedGroups));
         }
       }
     });
@@ -103,15 +103,16 @@ export const MenuDishModifiers = (props: Props) => {
     setGroups(newGroups);
   }
 
-  const buildModifiersObj = (dish: Dish) => {
+  const buildModifiersObj = (dish: Dish, groups?: CartModifierGroup[]): MenuItem => {
     return {
       dish: dish,
       seat: state.seat,
       id: nanoid(),
       quantity: 1,
       level: props.level,
-      selectedGroups: [],
-      isModifier: true
+      selectedGroups: groups,
+      isModifier: true,
+      newOrOld: MenuItemType.new
     }
   }
 
@@ -119,10 +120,10 @@ export const MenuDishModifiers = (props: Props) => {
     if( grp.has_required_modifiers && grp.selectedModifiers.length < grp.required_modifiers ) {
       return 'bg-danger-200';
     } else if( grp.has_required_modifiers && grp.selectedModifiers.length === grp.required_modifiers) {
-      return 'bg-success-200';
+      return ''; //'bg-success-200';
     }
 
-    return 'bg-neutral-200';
+    return 'bg-white';
   }
 
   useEffect(() => {
@@ -172,13 +173,15 @@ export const MenuDishModifiers = (props: Props) => {
     >
       {props.dish && (
         <div className="grid grid-cols-7 gap-3">
-          <div className="col-span-1 flex flex-col rounded-xl bg-white p-3">
+          <div className="col-span-1 flex flex-col rounded-3xl bg-neutral-100">
             <ScrollContainer className="modifiers-swiper">
-              {groups.map(item => (
+              {groups.map((item, index) => (
                 <span
                   className={
                     cn(
-                      'flex flex-col items-center justify-center p-1 cursor-pointer shadow-3xl rounded-3xl min-h-[56px]',
+                      'flex flex-col items-center justify-center p-1 cursor-pointer min-h-[56px]',
+                      index === 0 && 'rounded-t-3xl',
+                      index + 1 === groups.length && 'rounded-b-3xl',
                       group?.out?.id === item.out.id ? 'bg-gradient' : requireClass(item)
                     )
                   }

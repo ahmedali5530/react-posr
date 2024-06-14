@@ -34,3 +34,12 @@ export const formatNumber = (amount: string | number) => {
     useGrouping: false
   }).format(Number(amount));
 }
+
+export const transformValue = {
+  input: (value) =>
+    value === null || isNaN(value) || value === 0 ? "" : value.toString(),
+  output: (e) => {
+    const output = parseInt(e.target.value);
+    return isNaN(output) ? 0 : output;
+  }
+}

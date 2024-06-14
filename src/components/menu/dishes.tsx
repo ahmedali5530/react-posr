@@ -6,7 +6,7 @@ import { appState } from "@/store/jotai.ts";
 import { useEffect, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
 import { MenuDish } from "@/components/menu/dish.tsx";
-import { MenuItem } from "@/api/model/cart_item.ts";
+import { CartModifierGroup, MenuItem } from "@/api/model/cart_item.ts";
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Dish } from "@/api/model/dish.ts";
 import { Tables } from "@/api/db/tables.ts";
@@ -34,11 +34,15 @@ export const MenuDishes = () => {
 
   const slides = Math.ceil(dishes?.length / (ITEMS_PER_SLIDE));
 
-  const onClick = (item: MenuItem) => {
+  const onClick = (item: MenuItem, selectedGroups?: CartModifierGroup[]) => {
     setState(prev => ({
       ...prev,
       cart: [
-        item,
+        {
+          ...item,
+          category: state.category?.name,
+          selectedGroups
+        },
         ...prev.cart,
       ]
     }));

@@ -173,6 +173,8 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
   --radius: theme('borderRadius.lg');
   --scale: 0.9;
   --font-size: 14px;
+  --padding: 0.5rem 0.75rem;
+  --height: 40px;
 
   @apply inline-flex justify-center items-center px-3 py-2 align-middle h-[40px]
   active:shadow-none bg-white uppercase font-bold border-2;
@@ -192,8 +194,8 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
   &.xl{
     @apply min-h-[54px] text-xl;
   }
-  &:disabled {
-    @apply cursor-not-allowed;
+  &:disabled, &.disabled {
+    @apply cursor-not-allowed pointer-events-none select-none opacity-50;
   }
   &.btn-flat {
     border: none;
@@ -206,6 +208,8 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
     background: var(--background);
     color: var(--color);
     border-color: var(--border);
+    padding: var(--padding);
+    height: var(--height);
   }
 
   //&.btn-neutral {
@@ -233,7 +237,7 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
   }
   &.btn-primary {
     @apply border-neutral-900 text-neutral-900 focus:outline-none focus:border-neutral-900
-    hover:bg-neutral-900 hover:text-warning-500;
+    hover:bg-neutral-200;
     &:disabled {
       @apply bg-neutral-200;
     }
@@ -845,8 +849,16 @@ table th {
   }
 }
 .bg-grid{
-  background-size: 15px 15px;
+  background-size: 20px 20px;
   background-image:
           linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px),
           linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px);
+}
+.tag{
+  @apply bg-neutral-200/50 p-1 rounded-lg px-2 shadow;
+}
+.kitchen-order-modifier-group{
+  &:before{
+    content: '';
+  }
 }

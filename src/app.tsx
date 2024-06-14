@@ -12,6 +12,8 @@ import i18n from "@/lib/i18n";
 
 // connect to surrealDB via websocket
 connect();
+
+// react query client wrapper
 const queryClient = new QueryClient();
 
 // Wrapper for app

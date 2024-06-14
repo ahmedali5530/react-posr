@@ -1,6 +1,7 @@
 import { ID } from "@/api/model/common.ts";
 import { Dish } from "@/api/model/dish.ts";
-import { ModifierGroup } from "@/api/model/modifier_group.ts";
+import { DishModifierGroup } from "@/api/model/dish_modifier_group.ts";
+import { MenuItemType } from "@/api/model/cart_item.ts";
 
 export interface OrderItem extends ID {
   comments?: string
@@ -9,7 +10,7 @@ export interface OrderItem extends ID {
   deleted_at?: string
   discount?: number
   item: Dish
-  modifiers: any[]
+  modifiers: OrderItemModifier[]
   position: number
   price: number
   quantity: number
@@ -18,4 +19,20 @@ export interface OrderItem extends ID {
   seat?: string
   is_suspended?: boolean
   level?: number
+  category?: string
+}
+
+export interface OrderItemModifier extends ID, DishModifierGroup{
+  modifiers?: OrderItemModifierItem[]
+  selectedModifiers?: ({
+    selectedGroups?: OrderItemModifier[]
+  } & OrderItemModifierItem) []
+}
+
+export interface OrderItemModifierItem extends ID {
+  dish: Dish
+  level: number
+  newOrOld: MenuItemType
+  price: number
+  quantity: number
 }

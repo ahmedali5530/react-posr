@@ -19,10 +19,17 @@ export const AdminDiscounts = () => {
 
   const columns: any = [
     columnHelper.accessor("name", {
-      header: 'Name'
+      header: 'Name',
+
     }),
-    columnHelper.accessor("rate", {
-      header: 'Rate'
+    columnHelper.accessor("min_rate", {
+      header: 'Min Rate'
+    }),
+    columnHelper.accessor("max_rate", {
+      header: 'Max Rate'
+    }),
+    columnHelper.accessor("max_cap", {
+      header: 'Max Discount Cap'
     }),
     columnHelper.accessor("type", {
       header: 'Type'

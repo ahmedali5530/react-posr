@@ -1,10 +1,8 @@
 import { atomWithStorage } from "jotai/utils";
+import {atom} from 'jotai';
 import { Dish } from "@/api/model/dish.ts";
 import { Table } from "@/api/model/table.ts";
 import { Category } from "@/api/model/category.ts";
-import { Tax } from "@/api/model/tax.ts";
-import { PaymentType } from "@/api/model/payment_type.ts";
-import { Printer } from "@/api/model/printer.ts";
 import { ModifierGroup } from "@/api/model/modifier_group.ts";
 import { ModifierGroupDish } from "@/api/model/modifier_group_dish.ts";
 import { Floor } from "@/api/model/floor.ts";
@@ -14,6 +12,7 @@ import { MenuItem } from "@/api/model/cart_item.ts";
 import { OrderType } from "@/api/model/order_type.ts";
 import { User } from "@/api/model/user.ts";
 import { LabelValue } from "@/api/model/common.ts";
+import { DateValue } from "react-aria-components";
 
 export interface AppStateInterface {
   loggedIn: boolean
@@ -72,12 +71,13 @@ export interface AppSettingsInterface {
     users: LabelValue[]
     floors: LabelValue[]
     statuses: LabelValue[]
-    orderTypes: LabelValue[]
-  }
+    orderTypes: LabelValue[],
+  },
+
 }
 
 export const appSettings = atomWithStorage<AppSettingsInterface>(
-  "app-settings",
+  'app-settings',
   {
     order_types: [],
     categories: [],
@@ -87,7 +87,7 @@ export const appSettings = atomWithStorage<AppSettingsInterface>(
       users: [],
       floors: [],
       statuses: [],
-      orderTypes: []
-    }
+      orderTypes: [],
+    },
   }
 );
