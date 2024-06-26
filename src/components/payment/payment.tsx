@@ -58,7 +58,8 @@ export const Payment = () => {
         seat: item.seat,
         is_suspended: item.isHold,
         level: item.level,
-        category: item.category
+        category: item.category,
+        is_addition: !isNewOrder
       };
 
       if( item.id.includes('order_item:') ) {

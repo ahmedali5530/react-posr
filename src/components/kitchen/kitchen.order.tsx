@@ -55,7 +55,7 @@ export const KitchenOrder = ({
       <div className="p-3">
         {order.items.map(item => (
           <div className="flex flex-col" key={item.id}>
-            <OrderItemName item={item.order_item} />
+            <OrderItemName item={item.order_item} showQuantity />
           </div>
         ))}
       </div>

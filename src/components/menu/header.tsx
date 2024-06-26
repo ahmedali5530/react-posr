@@ -12,6 +12,7 @@ import { Popover } from "@/components/common/react-aria/popover.tsx";
 import { Dropdown, DropdownItem } from "@/components/common/react-aria/dropdown.tsx";
 import { useDB } from "@/api/db/db.ts";
 import { MenuItemType } from "@/api/model/cart_item.ts";
+import { Payment } from "@/components/payment/payment.tsx";
 
 export const MenuHeader = () => {
   const db = useDB();
@@ -19,6 +20,7 @@ export const MenuHeader = () => {
   const [state, setState] = useAtom(appState);
   const [setting] = useAtom(appSettings);
   const [customerModal, setCustomerModal] = useState(false);
+  const [confirmCartAction, setConfirmCartAction] = useState(false);
 
   useEffect(() => {
     if( !state.orderType ) {
@@ -36,6 +38,11 @@ export const MenuHeader = () => {
   }, [state.orders, state?.order?.id]);
 
   const reset = async () => {
+    if(state.order.id === 'new' && state.cart.length > 0){
+      setConfirmCartAction(true);
+      return false;
+    }
+
     await db.merge(state.table.id, {
       is_locked: false,
       locked_at: null,
@@ -73,7 +80,7 @@ export const MenuHeader = () => {
         ...prev,
         order: {
           order,
-          id: order.id
+          id: order.id,
         },
         cart: [
           ...order.items.map(item => ({
@@ -82,7 +89,7 @@ export const MenuHeader = () => {
             quantity: item.quantity,
             seat: item.seat,
             id: item.id,
-            selectedGroups: item.modifiers || [],
+            selectedGroups: item.modifiers || [] as any,
             newOrOld: MenuItemType.old,
           }))
         ],
@@ -160,9 +167,14 @@ export const MenuHeader = () => {
           ))}
         </div>
       </div>
-      <Modal open={customerModal} onClose={() => {
-        setCustomerModal(false)
-      }} title={state?.customer?.name || 'Select a customer'} size="md">
+      <Modal
+        open={customerModal}
+        onClose={() => {
+          setCustomerModal(false)
+        }}
+        title={state?.customer?.name || 'Select a customer'}
+        size="md"
+      >
         <div className="grid grid-cols-4 items-end gap-3">
           <Input
             label="Name"
@@ -201,6 +213,22 @@ export const MenuHeader = () => {
           <Button type="button" variant="primary" flat onClick={() => setCustomerModal(false)}>Attach</Button>
         </div>
       </Modal>
+
+      {confirmCartAction && (
+        <Modal
+          open={confirmCartAction}
+          onClose={() => {
+            setConfirmCartAction(false)
+          }}
+          title="Please confirm"
+          size="sm"
+        >
+          <div className="alert alert-danger">
+            There {state.cart.length > 1 ? 'are' : 'is'} {state.cart.length} item{state.cart.length > 1 ? 's' : ''} in cart, choose an action
+          </div>
+          <Payment />
+        </Modal>
+      )}
     </>
   )
 }

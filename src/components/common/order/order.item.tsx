@@ -1,22 +1,23 @@
-import { cn } from "@/lib/utils.ts";
+import { cn, formatNumber } from "@/lib/utils.ts";
 import React from "react";
 import { OrderItem, OrderItemModifier } from "@/api/model/order_item.ts";
 
 export const OrderItemName = ({
-  item, showGroups
+  item, showGroups, showQuantity, showPrice
 }: {
   item: OrderItem,
   showGroups?: boolean
+  showQuantity?: boolean
+  showPrice?: boolean
 }) => {
   return (
-    <>
-      <div className={
-        cn("pl-x flex justify-between", 'text-lg')
-      } style={{
+    <div className="hover:bg-neutral-200">
+      <div className="pl-x flex text-lg gap-2" style={{
         '--padding': (item.level * 0.875) + 'rem'
       } as any}>
-        <span>{item.item.name}</span>
-        <span>{item.quantity}</span>
+        <span className="flex-1">{item.item.name}</span>
+        {showQuantity && <span className="flex-0 w-[50px] text-right">{formatNumber(item.quantity)}</span>}
+        {showPrice && <span className="flex-0 w-[70px] text-right">{formatNumber(item.price)}</span>}
       </div>
       {item?.modifiers?.length > 0 && (
         <div className="pl-3 flex flex-col">
@@ -25,7 +26,7 @@ export const OrderItemName = ({
           ))}
         </div>
       )}
-    </>
+    </div>
   )
 }
 

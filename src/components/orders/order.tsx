@@ -8,6 +8,7 @@ import ScrollContainer from "react-indiana-drag-scroll";
 import { OrderHeader } from "@/components/orders/order.header.tsx";
 import { OrderTimes } from "@/components/orders/order.times.tsx";
 import { faBars, faCreditCard, faPrint } from "@fortawesome/free-solid-svg-icons";
+import { OrderItemName } from "@/components/common/order/order.item.tsx";
 
 interface Props {
   order: OrderModel
@@ -33,11 +34,7 @@ export const Order = ({
         <ScrollContainer>
           <div className="overflow-auto max-h-[450px]">
             {order.items.map(item => (
-              <div className="flex gap-3 hover:bg-neutral-100" key={item.id}>
-                <div className="flex-1 whitespace-break-spaces">{item.item.name}</div>
-                <div className="text-right w-[50px] flex-shrink-0">{item.quantity}</div>
-                <div className="text-right w-[80px] flex-shrink-0">{item.price}</div>
-              </div>
+              <OrderItemName item={item} showPrice showQuantity key={item.id} />
             ))}
           </div>
         </ScrollContainer>

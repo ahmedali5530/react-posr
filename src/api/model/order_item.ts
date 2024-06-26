@@ -20,6 +20,7 @@ export interface OrderItem extends ID {
   is_suspended?: boolean
   level?: number
   category?: string
+  is_addition?: boolean
 }
 
 export interface OrderItemModifier extends ID, DishModifierGroup{
