@@ -16,7 +16,7 @@ export const calculateCartItemPrice = (item: MenuItem) => {
 export const calculateOrderItemPrice = (item: OrderItem) => {
   let price = item.price * item.quantity;
   if(item?.modifiers) {
-    price += item?.modifiers?.reduce((prev, modifier: CartModifierGroup) =>
+    price += item?.modifiers?.reduce((prev, modifier) =>
       prev + modifier?.selectedModifiers?.reduce((smPrev, smG) => smPrev + calculateCartItemPrice(smG), 0)
     , 0);
   }

@@ -32,7 +32,7 @@ export const Order = ({
         <OrderTimes order={order}/>
         <div className="separator h-[2px]" style={{ '--size': '10px', '--space': '5px' } as CSSProperties}></div>
         <ScrollContainer>
-          <div className="overflow-auto max-h-[450px]">
+          <div className="overflow-auto max-h-[400px]">
             {order.items.map(item => (
               <OrderItemName item={item} showPrice showQuantity key={item.id} />
             ))}

@@ -153,7 +153,7 @@ export const TableComponent: FC<TableComponentProps> = ({
   const handleColumnFilter = (values: any) => {
     if( values.value && values.value.trim() !== '' ) {
       handleFilterChange([
-        `string::startsWith(string::lowercase($this[$column]), $value)`
+        `string::lowercase($this[$column]) ~ $value`
       ]);
       handleParameterChange({
         'column': values.column.value,

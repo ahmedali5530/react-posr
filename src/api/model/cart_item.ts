@@ -34,6 +34,6 @@ export interface MenuItem {
 
 export interface CartModifierGroup extends DishModifierGroup {
   selected_quantity?: number
-  selectedModifiers: MenuItem[]
-  modifiers: MenuItem[]
+  selectedModifiers?: MenuItem[]
+  modifiers?: MenuItem[]
 }
