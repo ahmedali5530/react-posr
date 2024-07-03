@@ -1,4 +1,4 @@
-export const DB_REST_API = 'http://localhost:8000';
+export const DB_REST_API = import.meta.env.VITE_DB_WEBDOCKET;
 export const DB_REST_USER = 'root';
 export const DB_REST_PASS = 'root';
 export const DB_REST_DB = 'posr'; // database name
