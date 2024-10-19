@@ -15,6 +15,9 @@ import { useDB } from "@/api/db/db.ts";
 import { DateTime } from "luxon";
 import { Order, OrderStatus } from "@/api/model/order.ts";
 import { toast } from "sonner";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChair, faTable } from "@fortawesome/free-solid-svg-icons";
+import { StringRecordId } from "surrealdb";
 
 
 export const FloorLayout = () => {
@@ -93,11 +96,14 @@ export const FloorLayout = () => {
   }, [state.floor]);
 
   const tableOrders = useCallback((tableId: string) => {
-    return orders?.data?.filter(item => item.table.id === tableId)
+    return orders?.data?.filter(item => item.table.id.toString() === tableId.toString())
   }, [orders]);
 
   const tableOrder = useCallback((tableId: string) => {
-    return orders?.data?.find(item => item.table.id === tableId)
+
+    return orders?.data?.find(item =>
+      item.table.id.toString() === tableId.toString()
+    )
   }, [orders]);
 
   const onClick = async (item: Table) => {
@@ -107,6 +113,17 @@ export const FloorLayout = () => {
 
     if( !item.is_block && !item.is_locked ) {
       const order = tableOrder(item.id);
+      let cart = state.cart;
+      if(order && state.switchTable){
+        // update new table in order
+        await db.merge(order.id, {
+          table: new StringRecordId(item?.id.toString()),
+        });
+        cart = [];
+      }
+      if(order){
+        cart = [];
+      }
 
       setState(prev => ({
         ...prev,
@@ -115,12 +132,13 @@ export const FloorLayout = () => {
         showPersons: tableOrder(item.id) ? false : item.ask_for_covers,
         persons: tableOrder(item.id) ? tableOrder(item.id)?.covers?.toString() : '1',
         orders: tableOrders(item.id),
-        cart: [],
+        cart: cart,
         seat: undefined,
         order: {
           order: order,
           id: order ? order.id : 'new'
-        }
+        },
+        switchTable: false // turn off switch table flag
       }));
 
       setSettings(prev => ({
@@ -130,9 +148,9 @@ export const FloorLayout = () => {
         payment_types: item.payment_types?.length > 0 ? item.payment_types : paymentTypes?.data
       }));
 
-      db.merge(item.id, {
+      await db.merge(item.id, {
         is_locked: true,
-        locked_at: DateTime.now().toISO(),
+        locked_at: DateTime.now().toJSDate(),
         locked_by: 'Kashif'
       });
     }
@@ -143,8 +161,10 @@ export const FloorLayout = () => {
       <div className="flex flex-col transition-all delay-75" style={{
         background: state.floor?.background
       }}>
-        <div className="h-[100px]"></div>
-        <div className="layout relative h-[calc(100vh_-_80px_-_100px)] p-3 overflow-hidden">
+        <div className="h-[80px] bg-white p-3 flex items-center">
+          {state.switchTable && <div className="text-xl"><FontAwesomeIcon icon={faChair} /> Switch from Table {state?.table?.name}{state?.table?.number} to another</div>}
+        </div>
+        <div className="layout relative h-[calc(100vh_-_80px_-_80px)] p-3 overflow-hidden">
           {state.floor && (
             <>
               {tables?.data?.map(item => (

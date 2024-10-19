@@ -62,9 +62,9 @@ export const FloorTable = ({
       }
     },
     onMoveEnd() {
-      if( isEditing ) {
-
-      }
+      // if( isEditing ) {
+      //
+      // }
     }
   });
 
@@ -91,7 +91,7 @@ export const FloorTable = ({
   const total = calculateOrderTotal(order);
   const isLateOrder = useMemo(() => {
     if( order ) {
-      const diff = DateTime.now().diff(DateTime.fromISO(order.created_at)).as('hours');
+      const diff = DateTime.now().diff(DateTime.fromJSDate(order.created_at)).as('hours');
       return diff >= 2;
     }
 

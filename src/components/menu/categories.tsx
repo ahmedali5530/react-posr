@@ -36,7 +36,7 @@ export const MenuCategories = () => {
           key={index}
           className={cn(
             categoryClasses,
-            state?.category?.id === item.id ? 'bg-gradient' : 'bg-neutral-300'
+            state?.category?.id === item?.id ? 'bg-gradient' : 'bg-neutral-300'
           )}
           onClick={() => setState(prev => ({
             ...prev,

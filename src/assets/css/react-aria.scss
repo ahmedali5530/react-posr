@@ -20,7 +20,7 @@
 
 @keyframes modal-blur {
     from {
-        transform: scale(0);
+        transform: scale(0.7);
     }
 
     to {
@@ -30,11 +30,11 @@
 
 .react-aria-Modal{
     &[data-entering] {
-        animation: modal-blur 150ms;
+        animation: modal-blur 100ms;
     }
 
     &[data-exiting] {
-        animation: modal-blur 150ms reverse ease-in;
+        animation: modal-blur 50ms reverse ease-in;
     }
 }
 .react-aria-Dialog{

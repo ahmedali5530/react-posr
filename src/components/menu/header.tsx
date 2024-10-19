@@ -1,7 +1,7 @@
 import { useAtom } from "jotai/index";
 import { appSettings, appState } from "@/store/jotai.ts";
 import { Button } from "@/components/common/input/button.tsx";
-import { faArrowLeft, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faChevronDown, faUser, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils.ts";
 import React, { useEffect, useState } from "react";
 import { Modal } from "@/components/common/react-aria/modal.tsx";
@@ -13,6 +13,7 @@ import { Dropdown, DropdownItem } from "@/components/common/react-aria/dropdown.
 import { useDB } from "@/api/db/db.ts";
 import { MenuItemType } from "@/api/model/cart_item.ts";
 import { Payment } from "@/components/payment/payment.tsx";
+import { Customers } from "@/components/customer/customer.tsx";
 
 export const MenuHeader = () => {
   const db = useDB();
@@ -32,13 +33,13 @@ export const MenuHeader = () => {
   }, [setting.order_types, state.orderType]);
 
   useEffect(() => {
-    if(state?.order?.id !== 'new' && state.orders.length > 0){
+    if( state?.order?.id !== 'new' && state.orders.length > 0 ) {
       onOrderClick(state?.order?.id);
     }
   }, [state.orders, state?.order?.id]);
 
   const reset = async () => {
-    if(state.order.id === 'new' && state.cart.length > 0){
+    if( state.order.id === 'new' && state.cart.length > 0 ) {
       setConfirmCartAction(true);
       return false;
     }
@@ -58,7 +59,7 @@ export const MenuHeader = () => {
   }
 
   const onOrderClick = (key: string) => {
-    if(key === 'new'){
+    if( key === 'new' ) {
       setState(prev => ({
         ...prev,
         order: {
@@ -67,11 +68,11 @@ export const MenuHeader = () => {
         },
         cart: []
       }))
-    }else{
+    } else {
       const order = state.orders.find(item => item.id === key);
       const seats = new Map();
-      order.items.forEach(item => {
-        if(item.seat) {
+      order?.items.forEach(item => {
+        if( item.seat ) {
           seats.set(item.seat, item.seat);
         }
       });
@@ -98,6 +99,28 @@ export const MenuHeader = () => {
     }
   }
 
+  const switchTable = async () => {
+    setState(prev => ({
+      ...prev,
+      showFloor: true,
+      switchTable: true
+    }));
+
+    // release table
+    await db.merge(state.table.id, {
+      is_locked: false,
+      locked_at: null,
+      locked_by: null
+    });
+  }
+
+  const openPersons = async () => {
+    setState(prev => ({
+      ...prev,
+      showPersons: true,
+    }));
+  }
+
   return (
     <>
       <div className="flex justify-between items-center w-full">
@@ -105,7 +128,8 @@ export const MenuHeader = () => {
           <Button variant="primary" icon={faArrowLeft} onClick={reset} size="lg">{state?.floor?.name}</Button>
           {state.orders.length > 0 ? (
             <Dropdown
-              label={state?.order?.order ? 'Order# ' + state?.order?.order?.invoice_number : 'New Order'} btnSize="lg" btnFlat={true}
+              label={state?.order?.order ? 'Order# ' + state?.order?.order?.invoice_number : 'New Order'} btnSize="lg"
+              btnFlat={true}
               onAction={onOrderClick}
             >
               {state?.orders?.map((order, index) => (
@@ -122,22 +146,20 @@ export const MenuHeader = () => {
           )}
 
           <button type="button"
-                  className="btn btn-primary lg btn-flat min-w-[50px]">{state?.table?.name}{state?.table?.number}</button>
-          <button type="button"
-                  className="btn btn-primary lg btn-flat">{state?.persons} {state?.persons == '1' ? 'person' : 'persons'}</button>
+                  className="btn btn-primary lg btn-flat min-w-[50px]"
+                  onClick={switchTable}
+          >{state?.table?.name}{state?.table?.number}</button>
+          <Button type="button"
+                  className="btn btn-primary lg btn-flat"
+                  onClick={openPersons}
+                  icon={faUsers}
+          >
+            {state?.persons} {state?.persons == '1' ? 'person' : 'persons'}
+          </Button>
 
           <div className="input-group">
-            <DialogTrigger>
-              <Button size="lg" variant="primary"
-                      flat>{state?.customer ? state.customer?.name : 'Attach customer'}</Button>
-              <Popover>
-                <div>Name: {state.customer?.name}</div>
-                <div>Phone: {state.customer?.phone}</div>
-                <div>Address: {state.customer?.address}</div>
-              </Popover>
-            </DialogTrigger>
-            <Button flat variant="primary" iconButton size="lg" onClick={() => setCustomerModal(true)}>
-              <FontAwesomeIcon icon={faChevronDown}/>
+            <Button flat variant="primary" size="lg" icon={faUser} onClick={() => setCustomerModal(true)}>
+              {state?.customer ? state.customer?.name : 'Attach customer'}
             </Button>
           </div>
         </div>
@@ -175,43 +197,9 @@ export const MenuHeader = () => {
         title={state?.customer?.name || 'Select a customer'}
         size="md"
       >
-        <div className="grid grid-cols-4 items-end gap-3">
-          <Input
-            label="Name"
-            value={state.customer?.name}
-            onChange={(event) => setState(prev => ({
-              ...prev,
-              customer: {
-                ...prev.customer,
-                customer_name: event.target.value
-              }
-            }))}
-          />
-          <Input
-            type="number"
-            label="Phone Number"
-            value={state.customer?.phone}
-            onChange={(event) => setState(prev => ({
-              ...prev,
-              customer: {
-                ...prev.customer,
-                customer_phone: event.target.value
-              }
-            }))}
-          />
-          <Input
-            label="Address"
-            value={state.customer?.address}
-            onChange={(event) => setState(prev => ({
-              ...prev,
-              customer: {
-                ...prev.customer,
-                customer_address: event.target.value
-              }
-            }))}
-          />
-          <Button type="button" variant="primary" flat onClick={() => setCustomerModal(false)}>Attach</Button>
-        </div>
+        <Customers onAttach={() => {
+          setCustomerModal(false)
+        }} />
       </Modal>
 
       {confirmCartAction && (
@@ -224,9 +212,10 @@ export const MenuHeader = () => {
           size="sm"
         >
           <div className="alert alert-danger">
-            There {state.cart.length > 1 ? 'are' : 'is'} {state.cart.length} item{state.cart.length > 1 ? 's' : ''} in cart, choose an action
+            There {state.cart.length > 1 ? 'are' : 'is'} {state.cart.length} item{state.cart.length > 1 ? 's' : ''} in
+            cart, choose an action
           </div>
-          <Payment />
+          <Payment/>
         </Modal>
       )}
     </>

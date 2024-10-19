@@ -7,4 +7,6 @@ export interface Customer extends ID, Name{
   lng?: number
   phone?: number
   secondary_address?: string
+  postal_code?: number
+  points?: number
 }

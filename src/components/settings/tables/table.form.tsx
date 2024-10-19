@@ -16,6 +16,7 @@ import { PaymentType } from "@/api/model/payment_type.ts";
 import { OrderType } from "@/api/model/order_type.ts";
 import { Floor } from "@/api/model/floor.ts";
 import { Switch } from "@/components/common/input/switch.tsx";
+import { StringRecordId } from "surrealdb";
 
 interface Props {
   open: boolean
@@ -136,16 +137,16 @@ export const TableForm = ({
 
     val.priority = parseInt(val.priority);
     if(val.floor){
-      val.floor = val.floor.value;
+      val.floor = new StringRecordId(val.floor.value);
     }
     if(val.categories){
-      val.categories = val.categories.map(item => item.value);
+      val.categories = val.categories.map(item => new StringRecordId(item.value));
     }
     if(val.order_types){
-      val.order_types = val.order_types.map(item => item.value);
+      val.order_types = val.order_types.map(item => new StringRecordId(item.value));
     }
     if(val.payment_types){
-      val.payment_types = val.payment_types.map(item => item.value);
+      val.payment_types = val.payment_types.map(item => new StringRecordId(item.value));
     }
 
     try {

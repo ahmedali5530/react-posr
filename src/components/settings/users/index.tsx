@@ -29,6 +29,7 @@ export const AdminUsers = () => {
     }),
     columnHelper.accessor("roles", {
       header: 'Roles',
+      enableColumnFilter: false,
       cell: info => info.getValue().map((item, index) => <span className="tag mr-2" key={index}>{item}</span>)
     }),
     columnHelper.accessor("id", {

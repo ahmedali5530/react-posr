@@ -19,6 +19,7 @@ import { ModifierGroup } from "@/api/model/modifier_group.ts";
 import { Switch } from "@/components/common/input/switch.tsx";
 import _ from "lodash";
 import { ModifierGroupForm } from "@/components/settings/modifier_groups/modifier_group.form.tsx";
+import { RecordId, StringRecordId } from "surrealdb";
 
 interface Props {
   open: boolean
@@ -153,7 +154,7 @@ export const DishForm = ({
         priority: parseInt(values.priority),
         price: parseFloat(values.price),
         cost: parseFloat(values.cost),
-        categories: values.categories.map(item => item.value)
+        categories: values?.categories?.map(item => new StringRecordId(item.value.toString()))
       };
 
       const dishData = {
@@ -166,13 +167,13 @@ export const DishForm = ({
         categories: data.categories
       };
 
-      let menuId: string;
+      let menuId: RecordId;
       if( data.id ) {
         menuId = data.id;
         await db.update(data.id, dishData);
       } else {
-        const record = await db.create(Tables.dishes, dishData);
-        menuId = record[0].id;
+        const [record] = await db.create(Tables.dishes, dishData);
+        menuId = record.id;
       }
 
       if( data.modifier_groups ) {
