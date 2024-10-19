@@ -201,7 +201,7 @@ export const Orders = () => {
               </Button>
             </div>
           </div>
-          <ScrollContainer className="h-[calc(100vh_-_110px)]">
+          <ScrollContainer className="h-[calc(100vh_-_190px)]">
             <div className="flex-1 rounded-xl flex gap-3 flex-row">
               {orders?.data?.map(item => (
                 <div className="w-[400px] flex-shrink-0" key={item.id}>
@@ -210,6 +210,7 @@ export const Orders = () => {
               ))}
             </div>
           </ScrollContainer>
+          <div className="h-[60px] flex-0 rounded-xl bg-white flex items-center px-3 gap-3"></div>
         </div>
     </Layout>
   );

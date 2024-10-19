@@ -12,6 +12,7 @@ import { PaymentType } from "@/api/model/payment_type.ts";
 import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Tax } from "@/api/model/tax.ts";
+import { StringRecordId } from "surrealdb";
 
 interface Props {
   open: boolean
@@ -88,7 +89,7 @@ export const PaymentTypeForm = ({
     vals.priority = parseInt(vals.priority);
     vals.type = values.type.value;
     if(values.tax){
-      vals.tax = values.tax.value;
+      vals.tax = new StringRecordId(values.tax.value);
     }
 
     try {

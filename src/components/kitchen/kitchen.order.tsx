@@ -15,12 +15,12 @@ export const KitchenOrder = ({
 }: Props) => {
   const db = useDB();
 
-  const diff = DateTime.now().diff(DateTime.fromISO(order.items[0]?.created_at)).as('minutes');
+  const diff = DateTime.now().diff(DateTime.fromJSDate(order.items[0]?.created_at)).as('minutes');
 
   const ready = async () => {
     for(const item of order.items){
       await db.merge(item.id, {
-        completed_at: DateTime.now().toISO()
+        completed_at: DateTime.now().toJSDate()
       });
     }
   }
@@ -49,7 +49,7 @@ export const KitchenOrder = ({
         </div>
         <div className="flex flex-col flex-1">
           <span className="text-lg font-bold px-1 rounded text-right">{order.order?.user?.first_name}</span>
-          <span className="text-right text-xl text-primary-500">ADDON</span>
+          <span className="text-right text-xl text-primary-500"></span>
         </div>
       </div>
       <div className="p-3">

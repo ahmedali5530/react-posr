@@ -1,39 +1,49 @@
 import { DB_REST_DB, DB_REST_NS, DB_REST_PASS, DB_REST_USER, withApi } from "@/api/db/settings.ts";
-import { Surreal } from "surrealdb.js";
+import { ActionResult, Surreal } from "surrealdb";
 import { Tables } from "@/api/db/tables.ts";
-import { ActionResult, LiveQueryResponse } from "surrealdb.js/script/types";
 import { toast } from "sonner";
 
-const db = new Surreal();
+let db: Surreal | undefined;
 
 export const connect = async () => {
-  await db.connect(withApi('/rpc'), {
-    // Set the namespace and database for the connection
-    namespace: DB_REST_NS,
-    database: DB_REST_DB,
+  if (db) return db;
+  db = new Surreal();
+  try {
+    await db.connect(withApi('/rpc'));
 
-    // Set the authentication details for the connection
-    auth: {
+    await db.use({
       namespace: DB_REST_NS,
       database: DB_REST_DB,
+    });
+
+    await db.signin({
       username: DB_REST_USER,
       password: DB_REST_PASS,
-    },
-  });
+    });
+
+    return db;
+  }catch(err){
+    console.error(err);
+    throw err;
+  }
+}
+
+export const getDB = async () => {
+  return await connect();
 }
 
 export const useDB = () => {
   const query = async (sql: string, parameters?: any) => {
     // log sql in dev mode
     if(import.meta.env.DEV) {
-      console.group('DB Debug')
-      console.info(sql.trim(), parameters);
-      console.groupEnd()
+      // console.group('DB Debug')
+      // console.info(sql.trim(), parameters);
+      // console.groupEnd()
     }
 
     try {
       // Perform a custom advanced query
-      return await db.query(sql, parameters);
+      return (await getDB()).query(sql, parameters);
     } catch ( e ) {
       console.error('ERROR while query', e, sql);
       toast.error(e);
@@ -43,7 +53,7 @@ export const useDB = () => {
 
   const select = async <T>(thing: Tables): Promise<ActionResult<Record<string, T>>[]> => {
     try{
-      return await db.select(thing);
+      return (await getDB()).select(thing);
     }catch(e){
       console.log('ERROR while select', e);
       toast.error(e);
@@ -53,7 +63,7 @@ export const useDB = () => {
 
   const del = async (thing: Tables|string) => {
     try{
-      return await db.delete(thing);
+      return (await getDB()).delete(thing);
     }catch(e){
       console.error('ERROR while delete', e);
       toast.error(e);
@@ -61,9 +71,9 @@ export const useDB = () => {
     }
   }
 
-  const insert = async(thing: Tables|string, data: any) => {
+  async function insert(thing: Tables|string, data: any){
     try{
-      return await db.insert(thing, data);
+      return (await getDB()).insert(thing, data);
     }catch(e){
       console.error('ERROR while insert', e);
       toast.error(e);
@@ -71,9 +81,10 @@ export const useDB = () => {
     }
   }
 
+
   const update = async (thing: Tables|string, data: any) => {
     try{
-      return await db.update(thing, data);
+      return (await getDB()).update(thing, data);
     }catch(e){
       console.error('ERROR while updating', e);
       toast.error(e);
@@ -83,7 +94,7 @@ export const useDB = () => {
 
   const patch = async (thing: Tables|string, data: any) => {
     try{
-      return await db.patch(thing, data);
+      return (await getDB()).patch(thing, data);
     }catch(e){
       console.error('ERROR while patching', e);
       toast.error(e);
@@ -93,7 +104,7 @@ export const useDB = () => {
 
   const merge = async (thing: Tables|string, data: any) => {
     try{
-      return await db.merge(thing, data);
+      return (await getDB()).merge(thing, data);
     }catch(e){
       console.error('ERROR while merging', e);
       toast.error(e);
@@ -101,9 +112,9 @@ export const useDB = () => {
     }
   }
 
-  const live = async (thing: Tables|string, callback: (data: LiveQueryResponse) => void, diff?: boolean) => {
+  const live = async (thing: Tables|string, callback: (action: any, result: any) => void, diff?: boolean) => {
     try{
-      return await db.live(thing, callback, diff)
+      return (await getDB()).live(thing, callback, diff)
     }catch(e){
       console.log('ERROR while live query', e);
       toast.error(e);

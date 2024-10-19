@@ -10,6 +10,7 @@ import { Tables } from "@/api/db/tables.ts";
 import { Order, OrderStatus } from "@/api/model/order.ts";
 import { OrderPayment } from "@/components/orders/order.payment.tsx";
 import { withCurrency } from "@/lib/utils.ts";
+import { RecordId, StringRecordId } from "surrealdb";
 
 export const Payment = () => {
   const db = useDB();
@@ -47,7 +48,7 @@ export const Payment = () => {
     for ( const item of state.cart ) {
       const itemData: any = {
         tax: 0,
-        item: item.dish.id,
+        item: new StringRecordId(item.dish.id.toString()),
         price: item.dish.price,
         quantity: item.quantity,
         position: 0,
@@ -62,25 +63,25 @@ export const Payment = () => {
         is_addition: !isNewOrder
       };
 
-      if( item.id.includes('order_item:') ) {
-        itemData.updated_at = DateTime.now().toISO();
+      if( item.id.toString().includes('order_item:') ) {
+        itemData.updated_at = DateTime.now().toJSDate();
 
         await db.merge(item.id, itemData);
-        items.push(item.id);
+        items.push(new StringRecordId(item.id.toString()));
       } else {
-        itemData.created_at = DateTime.now().toISO();
+        itemData.created_at = DateTime.now().toJSDate();
 
         const record = await db.create(Tables.order_items, itemData);
         items.push(record[0].id);
 
         // add in kitchens
-        const kitchen: any = await db.query(`SELECT * from ${Tables.kitchens} where items ?= "${item.dish.id}"`);
+        const kitchen: any = await db.query(`SELECT * from ${Tables.kitchens} where items ?= ${item.dish.id.toString()}`);
         if(kitchen[0].length > 0){
           for(const k of kitchen[0]){
             await db.create(Tables.order_items_kitchen, {
-              created_at: DateTime.now().toISO(),
-              kitchen: k.id,
-              order_item: record[0].id
+              created_at: DateTime.now().toJSDate(),
+              kitchen: new StringRecordId(k.id.toString()),
+              order_item: new StringRecordId(record[0].id.toString())
             });
           }
         }
@@ -88,7 +89,7 @@ export const Payment = () => {
     }
 
     const data: any = {
-      floor: state?.floor?.id,
+      floor: new StringRecordId(state?.floor?.id.toString()),
       covers: parseInt(state?.persons),
       tax: null,
       tax_amount: 0,
@@ -96,39 +97,44 @@ export const Payment = () => {
       discount: null,
       discount_amount: 0,
       customer: null,
-      order_type: state?.orderType?.id,
+      order_type: new StringRecordId(state?.orderType?.id.toString()),
       status: OrderStatus["In Progress"],
       invoice_number: invoiceNumber,
       items: items,
-      table: state?.table?.id,
-      user: page?.user?.id,
+      table: new StringRecordId(state?.table?.id.toString()),
+      user: new StringRecordId(page?.user?.id.toString()),
     };
 
-    let orderObj: any[];
-    if( isNewOrder ) {
-      data.created_at = DateTime.now().toISO();
-      orderObj = await db.create(Tables.orders, data);
+    let orderObj: any;
 
-      // add order back in items
-      for ( const item of items ) {
-        await db.merge(item, {
-          order: orderObj[0].id
-        });
+    try {
+      if( isNewOrder ) {
+        data.created_at = DateTime.now().toJSDate();
+        orderObj = await db.create(Tables.orders, data);
+
+        // add order back in items
+        for ( const item of items ) {
+          await db.merge(item, {
+            order: orderObj[0].id
+          });
+        }
+      } else {
+        data.updated_at = DateTime.now().toJSDate();
+
+        orderObj = await db.merge(state?.order?.id, data);
+
+        // add order back in items
+        for ( const item of items ) {
+          await db.merge(item, {
+            order: orderObj.id
+          });
+        }
       }
-    } else {
-      data.updated_at = DateTime.now().toISO();
-
-      orderObj = await db.merge(state?.order?.id, data);
-
-      // add order back in items
-      for ( const item of items ) {
-        await db.merge(item, {
-          order: orderObj[0].id
-        });
-      }
+    }catch(e){
+      throw e;
+    }finally {
+      setLoading(false);
     }
-
-    setLoading(false);
 
     return orderObj;
   }
@@ -166,8 +172,13 @@ export const Payment = () => {
   const openPayment = async () => {
     const result = await createOrder();
 
-    if(result[0]){
-      const freshOrder = await db.query(`SELECT * FROM ${result[0].id} FETCH items, items.item, item.item.modifiers, table, user, order_type, customer, discount, tax`);
+    if(result){
+      let orderId = result?.id;
+      if(result[0]?.id){
+        orderId = result[0].id;
+      }
+
+      const freshOrder = await db.query(`SELECT * FROM ${orderId} FETCH items, items.item, item.item.modifiers, table, user, order_type, customer, discount, tax`);
       setOrder(freshOrder[0][0]);
       setPayment(true);
     }

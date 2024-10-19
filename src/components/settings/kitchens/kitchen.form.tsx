@@ -14,6 +14,7 @@ import * as z from "zod";
 import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Dish } from "@/api/model/dish.ts";
+import { StringRecordId } from "surrealdb";
 
 interface Props {
   open: boolean
@@ -88,11 +89,11 @@ export const KitchenForm = ({
   const onSubmit = async (values: any) => {
     const vals = {...values};
     if(values.items){
-      vals.items = values.items.map(item => item.value);
+      vals.items = values.items.map(item => new StringRecordId(item.value));
     }
 
     if(values.printers){
-      vals.printers = values.printers.map(item => item.value);
+      vals.printers = values.printers.map(item => new StringRecordId(item.value));
     }
 
     try {

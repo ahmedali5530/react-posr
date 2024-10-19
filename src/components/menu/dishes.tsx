@@ -26,7 +26,7 @@ export const MenuDishes = () => {
 
   const dishes = useMemo(() => {
     if( state.category ) {
-      return allDishes?.data.filter(item => item.categories.filter(cat => cat.id === state?.category?.id).length > 0);
+      return allDishes?.data.filter(item => item.categories.filter(cat => cat.id.toString() === state?.category?.id.toString()).length > 0);
     }
 
     return allDishes?.data || [];

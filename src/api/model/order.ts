@@ -11,7 +11,7 @@ import { OrderPayment } from "@/api/model/order_payment.ts";
 
 export interface Order extends ID{
   covers?: number
-  created_at: string
+  created_at: Date
   customer?: Customer
   floor: Floor
   table: Table

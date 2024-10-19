@@ -96,8 +96,6 @@ export const KitchenScreen = () => {
       kitchen: kitchenId,
     });
 
-    console.log(completedOrders)
-
     const duration: any = await db.query(`return duration::mins(duration::from::secs(math::floor(${completedOrders[0][0].diff/completedOrders[0][0].count})))`);
 
     setAvgTime(`${formatNumber(duration[0])} mins`);
@@ -106,7 +104,7 @@ export const KitchenScreen = () => {
   const completeAllOrders = async () => {
     await db.query(`update ${Tables.order_items_kitchen} set completed_at = $time where kitchen = $kitchen and completed_at = None`, {
       kitchen: kitchen.id,
-      time: DateTime.now().toISO()
+      time: DateTime.now().toJSDate()
     });
   }
 

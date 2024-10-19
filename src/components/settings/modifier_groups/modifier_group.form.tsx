@@ -15,6 +15,7 @@ import { Dish } from "@/api/model/dish.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { DishForm } from "@/components/settings/dishes/dish.form.tsx";
+import { StringRecordId } from "surrealdb";
 
 interface Props {
   open: boolean
@@ -100,7 +101,7 @@ export const ModifierGroupForm = ({
       for(const m of vals.modifiers){
         if(m.id){
           await db.merge(m.id, {
-            modifier: m.modifier.value,
+            modifier: new StringRecordId(m.modifier.value),
             price: m.price
           });
 
@@ -108,7 +109,7 @@ export const ModifierGroupForm = ({
 
         }else{
           const record = await db.create(Tables.modifiers, {
-            modifier: m.modifier.value,
+            modifier: new StringRecordId(m.modifier.value),
             price: m.price
           });
 

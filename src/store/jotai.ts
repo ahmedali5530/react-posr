@@ -33,6 +33,7 @@ export interface AppStateInterface {
   cart: MenuItem[]
   seats: string[]
   seat?: string
+  switchTable?: boolean
 }
 
 export const appState = atomWithStorage<AppStateInterface>(

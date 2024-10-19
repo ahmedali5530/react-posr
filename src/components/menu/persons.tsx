@@ -2,11 +2,13 @@ import { useAtom } from "jotai";
 import { appState } from "@/store/jotai.ts";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils.ts";
+import { useDB } from "@/api/db/db.ts";
 
 export const MenuPersons = () => {
   const [state, setState] = useAtom(appState);
   const [error, setError] = useState(false);
   const [first, setFirst] = useState(true);
+  const db = useDB();
 
   const onKey = (key: string) => {
     setState(prev => ({
@@ -17,7 +19,7 @@ export const MenuPersons = () => {
     setFirst(false);
   }
 
-  const onOk = () => {
+  const onOk = async () => {
     if( !state.persons || state.persons.trim() === '' || state.persons.trim() === '0' ) {
       setError(true);
       return;
@@ -26,7 +28,14 @@ export const MenuPersons = () => {
     setState(prev => ({
       ...prev,
       showPersons: false,
-    }))
+    }));
+
+    // if we have order set in the order directly
+    if(state.order){
+      await db.merge(state.order.id, {
+        covers: parseInt(state?.persons)
+      });
+    }
   }
 
   useEffect(() => {

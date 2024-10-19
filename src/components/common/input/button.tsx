@@ -43,11 +43,11 @@ export const Button = (props: ButtonProps) => {
     >
       {icon && (
         <span className="mr-2">
-          <FontAwesomeIcon icon={icon} size="lg"/>
+          <FontAwesomeIcon icon={icon}/>
         </span>
       )}
       {isLoading && (
-        <FontAwesomeIcon icon={faSpinner} spin size="lg"/>
+        <FontAwesomeIcon icon={faSpinner} spin/>
       )}
       {children as ReactNode}
     </AriaButton>
