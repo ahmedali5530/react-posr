@@ -21,10 +21,10 @@ export const Index = () => {
       "Menu": <Menu/>,
       "Orders": <Orders/>,
       "Summary": <Summary/>,
-      "Closing": <Closing/>,
-      "Reports": <Reports/>,
       "Kitchen": <KitchenScreen/>,
       "Delivery": <Delivery/>,
+      "Closing": <Closing/>,
+      "Reports": <Reports/>,
       "Admin": <Admin/>
     };
 

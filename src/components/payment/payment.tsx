@@ -156,6 +156,7 @@ export const Payment = () => {
     setState(prev => ({
       ...prev,
       cart: [],
+      customer: undefined,
       showFloor: true,
       table: undefined,
       persons: '1',

@@ -32,7 +32,7 @@ export const OrderPaymentTax = ({
         <Button
           className="min-w-[150px]"
           variant="primary"
-          active={item.id === tax?.id}
+          active={item.id.toString() === tax?.id.toString()}
           key={item.id}
           onClick={() => setTax(item)}
           size="lg"

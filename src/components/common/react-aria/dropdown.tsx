@@ -9,6 +9,7 @@ import {
 } from 'react-aria-components';
 import { ReactNode } from "react";
 import { Button } from "@/components/common/input/button.tsx";
+import { cn } from "@/lib/utils.ts";
 
 interface DropdownProps<T>
   extends MenuProps<T>, Omit<MenuTriggerProps, 'children'> {
@@ -23,7 +24,7 @@ export function Dropdown<T extends object>(
 ) {
   return (
     <MenuTrigger {...props}>
-      <Button className="btn btn-primary" size={btnSize} flat={btnFlat} iconButton={btnIconButton}>{label}</Button>
+      <Button className={cn('btn btn-primary', props.className)} size={btnSize} flat={btnFlat} iconButton={btnIconButton}>{label}</Button>
       <Popover className="bg-white p-1 shadow-xl rounded-lg border">
         <Menu {...props}>
           {children}

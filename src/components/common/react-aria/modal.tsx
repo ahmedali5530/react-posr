@@ -13,7 +13,7 @@ interface ModalProps extends PropsWithChildren {
   hideCloseButton?: boolean;
   transparentContainer?: boolean;
   header?: ReactNode;
-  size?: "full" | "bottom-sheet" | "sm" | "md" | "lg";
+  size?: "full" | "bottom-sheet" | "sm" | "md" | "lg" | "xl";
   backdrop?: boolean;
 }
 
@@ -54,6 +54,7 @@ export const Modal: FunctionComponent<ModalProps> = (props) => {
               props.size === "bottom-sheet" && "modal-bottom-sheet",
               props.size === "sm" && "modal-sm",
               props.size === 'lg' && 'modal-lg',
+              props.size === 'xl' && 'modal-xl',
               (!props.size || props.size === "md") && 'modal-md',
               !props.backdrop && 'no-backdrop'
             )}

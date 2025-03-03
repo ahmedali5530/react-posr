@@ -138,7 +138,8 @@ export const FloorLayout = () => {
           order: order,
           id: order ? order.id : 'new'
         },
-        switchTable: false // turn off switch table flag
+        switchTable: false, // turn off switch table flag
+        customer: order?.customer, // clear customer
       }));
 
       setSettings(prev => ({

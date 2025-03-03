@@ -43,15 +43,15 @@ export const Sidebar = () => {
     { title: 'Menu', icon: <FontAwesomeIcon icon={faBars} size="lg"/> },
     { title: 'Orders', icon: <FontAwesomeIcon icon={faList} size="lg"/> },
     { title: 'Summary', icon: <FontAwesomeIcon icon={faClipboardList} size="lg"/> },
-    { title: 'Closing', icon: <FontAwesomeIcon icon={faStore} size="lg"/> },
-    { title: 'Reports', icon: <FontAwesomeIcon icon={faLineChart} size="lg"/> },
     { title: 'Kitchen', icon: <FontAwesomeIcon icon={faUtensils} size="lg"/> },
     { title: 'Delivery', icon: <FontAwesomeIcon icon={faMotorcycle} size="lg"/> },
+    { title: 'Closing', icon: <FontAwesomeIcon icon={faStore} size="lg"/> },
+    { title: 'Reports', icon: <FontAwesomeIcon icon={faLineChart} size="lg"/> },
     { title: 'Admin', icon: <FontAwesomeIcon icon={faGear} size="lg"/> },
   ];
 
   return (
-    <div className="flex flex-col justify-between h-screen items-center sidebar border border-white bg-white/50 backdrop-blur">
+    <div className="flex flex-col justify-between h-screen items-center sidebar border border-y-0 border-white bg-white/50 backdrop-blur">
       <div className="w-full">
         <ul className="p-2 flex flex-col">
           {sidebarItems.map(item => (

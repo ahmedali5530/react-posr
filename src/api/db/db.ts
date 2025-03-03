@@ -11,6 +11,8 @@ export const connect = async () => {
   try {
     await db.connect(withApi('/rpc'));
 
+    await db.ready;
+
     await db.use({
       namespace: DB_REST_NS,
       database: DB_REST_DB,
