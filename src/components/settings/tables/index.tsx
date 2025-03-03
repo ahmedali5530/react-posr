@@ -5,7 +5,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { Table } from "@/api/model/table.ts";
 import { Button } from "@/components/common/input/button.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faPencil, faPlus } from "@fortawesome/free-solid-svg-icons";
+import {faCheck, faLock, faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
 import { TableComponent } from "@/components/common/table/table.tsx";
 import { TableForm } from "@/components/settings/tables/table.form.tsx";
 import { useDB } from "@/api/db/db.ts";
@@ -51,7 +51,7 @@ export const AdminTables = () => {
     }),
     columnHelper.accessor("is_locked", {
       header: 'Locked',
-      cell: info => info.getValue() ? <FontAwesomeIcon icon={faCheck} className="text-success-500" onClick={() => releaseTable(info.row.original.id)} /> : null,
+      cell: info => info.getValue() ? <FontAwesomeIcon icon={faLock} title="Click to unlock it" className="text-danger-500 cursor-pointer" onClick={() => releaseTable(info.row.original.id)} /> : null,
       enableColumnFilter: false,
       enableSorting: false
     }),

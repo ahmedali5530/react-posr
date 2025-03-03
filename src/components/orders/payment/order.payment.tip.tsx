@@ -13,8 +13,11 @@ interface Props {
 export const OrderPaymentTip = ({
   setTip, tipType, tip, setTipType
 }: Props) => {
-  const [quickOptions, setQuickOptions] = useState([
+  const [quickPercentOptions] = useState([
     5, 10, 15, 20, 30, 50, 100
+  ]);
+  const [quickFixedOptions] = useState([
+    50, 100, 500, 1000
   ]);
   const keyboardKeys = [1, 2, 3, 4, 5, 6, 7, 8, 9, '.', 0];
 
@@ -41,7 +44,7 @@ export const OrderPaymentTip = ({
       </div>
       {tipType === DiscountType.Percent && (
         <div className="flex flex-wrap gap-3 mb-3 justify-center">
-          {quickOptions.map(quickOption => (
+          {quickPercentOptions.map(quickOption => (
             <Button
               size="lg" variant="primary" flat active={tipType === DiscountType.Percent && tip === quickOption}
               onClick={() => {
@@ -52,6 +55,24 @@ export const OrderPaymentTip = ({
               key={quickOption}
             >
               {quickOption}%
+            </Button>
+          ))}
+        </div>
+      )}
+
+      {tipType === DiscountType.Fixed && (
+        <div className="flex flex-wrap gap-3 mb-3 justify-center">
+          {quickFixedOptions.map(quickOption => (
+            <Button
+              size="lg" variant="primary" flat active={tipType === DiscountType.Fixed && tip === quickOption}
+              onClick={() => {
+                setTipType(DiscountType.Fixed);
+                setTip(quickOption);
+              }}
+              className="min-w-[100px]"
+              key={quickOption}
+            >
+              {quickOption}
             </Button>
           ))}
         </div>

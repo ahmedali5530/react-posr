@@ -92,3 +92,15 @@ export const appSettings = atomWithStorage<AppSettingsInterface>(
     },
   }
 );
+
+export interface AppAlertInterface {
+  opened: boolean
+  message: string
+  type: "info"|"error"|"warning"|"success"
+}
+
+export const appAlert = atom<AppAlertInterface>({
+  opened: false,
+  message: '',
+  type: 'info'
+})

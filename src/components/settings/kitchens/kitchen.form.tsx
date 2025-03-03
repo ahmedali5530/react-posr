@@ -56,11 +56,11 @@ export const KitchenForm = ({
         priority: data.priority,
         printers: data?.printers?.map(item => ({
           label: item.name,
-          value: item.id
+          value: item.id.toString()
         })),
         items: data?.items?.map(item => ({
           label: item.name,
-          value: item.id
+          value: item.id.toString()
         })),
       });
     }
@@ -144,7 +144,7 @@ export const KitchenForm = ({
                     onChange={field.onChange}
                     options={dishes?.data?.map(item => ({
                       label: item.name,
-                      value: item.id
+                      value: item.id.toString()
                     }))}
                     isMulti
                   />
@@ -163,7 +163,7 @@ export const KitchenForm = ({
                     onChange={field.onChange}
                     options={printers?.data?.map(item => ({
                       label: item.name,
-                      value: item.id
+                      value: item.id.toString()
                     }))}
                     isMulti
                   />

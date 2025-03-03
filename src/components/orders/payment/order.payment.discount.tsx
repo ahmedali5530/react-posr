@@ -77,7 +77,7 @@ export const OrderPaymentDiscount = ({
           <Button
             className="min-w-[150px]"
             variant="primary"
-            active={item.id === discount?.id}
+            active={item.id.toString() === discount?.id.toString()}
             key={item.id}
             onClick={() => {
               addDiscount(item);
@@ -90,13 +90,15 @@ export const OrderPaymentDiscount = ({
           </Button>
         ))}
       </div>
-      {discount && (
-        <div className="text-2xl text-center">
-          Discount {discount.min_rate === discount.max_rate ? (discount.type === DiscountType.Fixed ? withCurrency(discount.min_rate) : discount.min_rate) : `${discount.min_rate} - ${discount.max_rate}`}
-          {discount.type === DiscountType.Percent && '%'}{' '}
-          {!!discount.max_cap && `with max cap of ${withCurrency(discount.max_cap)}`}
-        </div>
-      )}
+      <div className="text-2xl text-center">
+        {discount && (
+          <>
+            Discount {discount.min_rate === discount.max_rate ? (discount.type === DiscountType.Fixed ? withCurrency(discount.min_rate) : discount.min_rate) : `${discount.min_rate} - ${discount.max_rate}`}
+            {discount.type === DiscountType.Percent && '%'}{' '}
+            {!!discount.max_cap && `with max cap of ${withCurrency(discount.max_cap)}`}
+          </>
+        )}
+      </div>
       <div>
         {keyboard && (
           <div className="grid grid-cols-3 gap-3 mb-3">

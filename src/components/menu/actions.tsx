@@ -5,7 +5,7 @@ import { useAtom } from "jotai/index";
 import { appState } from "@/store/jotai.ts";
 
 export const MenuActions = () => {
-  const [state, setState] = useAtom(appState);
+  const [, setState] = useAtom(appState);
 
   return (
     <div className="flex gap-3 p-3 items-center border-t">
