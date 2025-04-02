@@ -14,3 +14,7 @@ export interface LabelValue {
   label: string
   value: string
 }
+
+export interface KeyValue {
+  [key: string]: string|number
+}
