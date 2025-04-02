@@ -15,6 +15,8 @@ interface ModalProps extends PropsWithChildren {
   header?: ReactNode;
   size?: "full" | "bottom-sheet" | "sm" | "md" | "lg" | "xl";
   backdrop?: boolean;
+  shouldCenter?: boolean;
+  backgroundColor?: string
 }
 
 export const Modal: FunctionComponent<ModalProps> = (props) => {
@@ -46,6 +48,10 @@ export const Modal: FunctionComponent<ModalProps> = (props) => {
           isDismissable={props.shouldCloseOnOverlayClick === undefined ? true : props.shouldCloseOnOverlayClick}
           isKeyboardDismissDisabled={props.shouldCloseOnEsc === undefined ? true : props.shouldCloseOnEsc}
           onOpenChange={close}
+          className={cn(
+            props.shouldCenter ? 'flex justify-center items-center h-screen' : ''
+          )}
+
         >
           <Dialog
             className={cn(
@@ -60,7 +66,7 @@ export const Modal: FunctionComponent<ModalProps> = (props) => {
             )}
           >
             <div style={{
-              backgroundColor: 'rgb(255, 255, 255)',
+              backgroundColor: props.backgroundColor ?? 'rgb(255, 255, 255)',
               backdropFilter: 'blur(10px)'
             }} className="rounded-lg">
               {!props.hideCloseButton && (
@@ -72,7 +78,7 @@ export const Modal: FunctionComponent<ModalProps> = (props) => {
                 </button>
               )}
 
-              <div className="p-5 border-b-2 border-neutral-200">
+              <div className="p-5 border-b border-neutral-100">
                 <Heading slot="title" className="text-2xl">{props?.title}</Heading>
                 {props.header && props.header}
               </div>
