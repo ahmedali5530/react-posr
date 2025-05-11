@@ -33,9 +33,7 @@ export const Countdown = ({time, showAll}: Props) => {
      calculateDiff();
     }, 1000);
 
-    return () => {
-      clearInterval(timer);
-    }
+    return () => clearInterval(timer);
   }, [time, showAll]);
 
   return (

@@ -30,4 +30,6 @@ export const TempBill = ({
   );
 
   usePrint(markup);
+
+  return null;
 }

@@ -14,9 +14,13 @@ import {
 import { cn } from "@/lib/utils.ts";
 import { Button } from "@/components/common/input/button.tsx";
 import { CSSProperties } from "react";
+import {NavLink} from "react-router";
+import {ADMIN, CLOSING, DELIVERY, KITCHEN, MENU, ORDERS, REPORTS, SUMMARY} from "@/routes/posr.ts";
 
 export const Sidebar = () => {
   const [page, setPage] = useAtom(appPage);
+
+  const pathInfo = location.pathname;
 
   const logout = () => {
     setPage(prev => ({
@@ -40,40 +44,37 @@ export const Sidebar = () => {
   }
 
   const sidebarItems = [
-    { title: 'Menu', icon: <FontAwesomeIcon icon={faBars} size="lg"/> },
-    { title: 'Orders', icon: <FontAwesomeIcon icon={faList} size="lg"/> },
-    { title: 'Summary', icon: <FontAwesomeIcon icon={faClipboardList} size="lg"/> },
-    { title: 'Kitchen', icon: <FontAwesomeIcon icon={faUtensils} size="lg"/> },
-    { title: 'Delivery', icon: <FontAwesomeIcon icon={faMotorcycle} size="lg"/> },
-    { title: 'Closing', icon: <FontAwesomeIcon icon={faStore} size="lg"/> },
-    { title: 'Reports', icon: <FontAwesomeIcon icon={faLineChart} size="lg"/> },
-    { title: 'Admin', icon: <FontAwesomeIcon icon={faGear} size="lg"/> },
+    { title: 'Menu', icon: <FontAwesomeIcon icon={faBars} size="lg"/>, link: MENU },
+    { title: 'Orders', icon: <FontAwesomeIcon icon={faList} size="lg"/>, link: ORDERS },
+    { title: 'Summary', icon: <FontAwesomeIcon icon={faClipboardList} size="lg"/>, link: SUMMARY },
+    { title: 'Kitchen', icon: <FontAwesomeIcon icon={faUtensils} size="lg"/>, link: KITCHEN },
+    { title: 'Delivery', icon: <FontAwesomeIcon icon={faMotorcycle} size="lg"/>, link: DELIVERY },
+    { title: 'Closing', icon: <FontAwesomeIcon icon={faStore} size="lg"/>, link: CLOSING },
+    { title: 'Reports', icon: <FontAwesomeIcon icon={faLineChart} size="lg"/>, link: REPORTS },
+    { title: 'Admin', icon: <FontAwesomeIcon icon={faGear} size="lg"/>, link: ADMIN },
   ];
 
   return (
     <div className="flex flex-col justify-between h-screen items-center sidebar border border-y-0 border-white bg-white/50 backdrop-blur">
       <div className="w-full">
-        <ul className="p-2 flex flex-col">
+        <div className="p-2 flex flex-col">
           {sidebarItems.map(item => (
-            <li
+            <NavLink
+              to={item.link}
               className={cn(
-                'flex flex-col text-center cursor-pointer p-[0.5rem] gap-2 rounded-xl pressable',
-                page.page === item.title ? 'shadow-xl bg-gradient' : 'text-neutral-900 border-[3px] border-transparent'
+                'flex flex-col text-center cursor-pointer p-[0.5rem] gap-2 rounded-xl pressable no-underline',
+                pathInfo === item.link ? 'shadow-xl bg-gradient' : 'text-neutral-900 border-[3px] border-transparent'
               )}
               key={item.title}
-              onClick={() => setPage(prev => ({
-                ...prev,
-                page: item.title
-              }))}
               style={{
                 '--padding': '0.5rem'
               } as CSSProperties}
             >
               <span className="icon">{item.icon}</span>
               <span className="label text-[12px]">{item.title}</span>
-            </li>
+            </NavLink>
           ))}
-        </ul>
+        </div>
       </div>
       <div className="flex flex-col gap-1">
         <Button variant="warning" onClick={settings} flat>

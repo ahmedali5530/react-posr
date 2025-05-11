@@ -1,18 +1,20 @@
 import { Layout } from "@/screens/partials/layout.tsx";
 import { Button } from "@/components/common/input/button.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faTableColumns } from "@fortawesome/free-solid-svg-icons";
+import {faBars, faClose, faTableColumns} from "@fortawesome/free-solid-svg-icons";
 import ScrollContainer from "react-indiana-drag-scroll";
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Kitchen, KitchenOrder as KitchenOrderModel } from "@/api/model/kitchen.ts";
 import { Tables } from "@/api/db/tables.ts";
 import { Order, OrderStatus } from "@/api/model/order.ts";
-import { useCallback, useEffect, useState } from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import { useDB } from "@/api/db/db.ts";
 import { OrderItemKitchen } from "@/api/model/order_item_kitchen.ts";
 import { KitchenOrder } from "@/components/kitchen/kitchen.order.tsx";
 import { DateTime } from "luxon";
-import { formatNumber } from "@/lib/utils.ts";
+import {cn, formatNumber} from "@/lib/utils.ts";
+import {Customers} from "@/components/customer/customer.tsx";
+import {Modal} from "@/components/common/react-aria/modal.tsx";
 
 
 
@@ -108,6 +110,22 @@ export const KitchenScreen = () => {
     });
   }
 
+  const allDishes = useMemo(() => {
+    const itemsMap = new Map();
+    orders.forEach(item => {
+      item.items.forEach(orderItem => {
+        const itemName = orderItem.order_item.item.name;
+        itemsMap.set(itemName, (itemsMap.get(itemName) ?? 0) + orderItem.order_item.quantity);
+      })
+    });
+
+    return Array.from(itemsMap);
+  }, [orders]);
+
+  const [dishesModal, setDishesModal] = useState(false);
+
+  console.log(allDishes);
+
   return(
     <Layout containerClassName="overflow-hidden">
       <div className="flex gap-5 p-3 flex-col">
@@ -128,22 +146,43 @@ export const KitchenScreen = () => {
           </div>
           <div className="flex gap-3">
             <Button variant="warning" size="lg" filled onClick={completeAllOrders}>Complete all open orders</Button>
-            <Button variant="warning" size="lg" filled>View all dishes</Button>
+            <Button variant="warning" size="lg" filled onClick={() => setDishesModal(!dishesModal)}>View all dishes</Button>
           </div>
           <div className="input-group flex-1 justify-end flex gap-3 items-center h-full">
             <span className="bg-neutral-900 text-warning-500 text-2xl h-full flex items-center px-3">Avg time: {avgTime}</span>
             {/*<span>timer</span>*/}
           </div>
         </div>
-        <ScrollContainer className="h-[calc(100vh_-_110px)]">
-          <div className="flex-1 rounded-xl flex gap-3 flex-row">
-            {orders.map((item, index) => (
-              <div className="w-[400px] flex-shrink-0" key={index}>
-                <KitchenOrder order={item} />
-              </div>
-            ))}
-          </div>
-        </ScrollContainer>
+        <div className="grid grid-cols-5 gap-5">
+          <ScrollContainer className={cn(
+            'h-[calc(100vh_-_110px)]',
+            dishesModal ? 'col-span-4' : 'col-span-5'
+          )}>
+            <div className="flex-1 rounded-xl flex gap-3 flex-row">
+              {orders.map((item, index) => (
+                <div className="w-[400px] flex-shrink-0" key={index}>
+                  <KitchenOrder order={item} />
+                </div>
+              ))}
+            </div>
+          </ScrollContainer>
+
+          {dishesModal && (
+            <div className="flex flex-col col-span-1 bg-white">
+              <button
+                onClick={() => setDishesModal(false)}
+                className="bg-black text-white self-end mb-5 inline-flex h-12 w-12 justify-center items-center">
+                <FontAwesomeIcon icon={faClose} />
+              </button>
+              {allDishes.map((item, index) => (
+                <div className="flex justify-between text-2xl odd:bg-gray-200 p-3" key={index}>
+                  <strong>{item[0]}</strong>
+                  <span className="bg-black text-warning-500 w-12 text-center">{item[1]}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </Layout>
   )
