@@ -172,7 +172,7 @@ export const MenuDishModifiers = (props: Props) => {
       size="full"
     >
       {props.dish && (
-        <div className="grid grid-cols-7 gap-3">
+        <div className="!grid grid-cols-7 gap-3">
           <div className="col-span-1 flex flex-col rounded-3xl bg-neutral-100">
             <ScrollContainer className="modifiers-swiper">
               {groups.map((item, index) => (
@@ -210,7 +210,7 @@ export const MenuDishModifiers = (props: Props) => {
                   <SwiperSlide
                     key={rowId}
                     className={cn(
-                      'grid grid-cols-3 grid-rows-7'
+                      '!grid grid-cols-3 grid-rows-7'
                     )}
                   >
                     {group.modifiers.slice(rowId * ITEMS_PER_SLIDE, ((rowId * ITEMS_PER_SLIDE) + ITEMS_PER_SLIDE)).map((modifier, mIndex) => (

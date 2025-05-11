@@ -68,7 +68,7 @@ export const MenuDishes = () => {
           <SwiperSlide
             key={rowId}
             className={cn(
-              "grid grid-cols-3 lg:grid-cols-4 grid-rows-5 lg:grid-rows-6"
+              "!grid grid-cols-3 lg:grid-cols-4 grid-rows-5 lg:grid-rows-6"
             )}
           >
             {dishes.slice(rowId * ITEMS_PER_SLIDE, ((rowId * ITEMS_PER_SLIDE) + ITEMS_PER_SLIDE)).map((item, index) => (

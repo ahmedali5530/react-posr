@@ -30,7 +30,7 @@ export const MenuHeader = () => {
         orderType: setting?.order_types[0]
       }))
     }
-  }, [setting.order_types, state.orderType]);
+  }, [setting?.order_types, state.orderType]);
 
   useEffect(() => {
     if( state?.order?.id !== 'new' && state.orders.length > 0 ) {
@@ -154,25 +154,25 @@ export const MenuHeader = () => {
                   onClick={openPersons}
                   icon={faUsers}
           >
-            {state?.persons} {state?.persons == '1' ? 'person' : 'persons'}
+            {state?.persons} PAX
           </Button>
 
           <div className="input-group">
             <Button flat variant="primary" size="lg" icon={faUser} onClick={() => setCustomerModal(true)}>
-              {state?.customer ? state.customer?.name : 'Attach customer'}
+              {state?.customer ? state.customer?.name : 'Customer'}
             </Button>
           </div>
         </div>
 
         <div className="flex input-group rounded-full">
-          {setting.order_types.map((item, index) => (
+          {setting?.order_types?.map((item, index) => (
             <Button
               variant="primary"
               size="lg"
               className={cn(
                 "flex-1",
                 index === 0 && '!rounded-l-lg',
-                index === setting.order_types.length - 1 && ' !rounded-r-lg'
+                index === setting?.order_types?.length - 1 && ' !rounded-r-lg'
               )}
               active={item.id === state?.orderType?.id}
               onClick={() => {

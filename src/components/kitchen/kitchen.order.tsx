@@ -43,7 +43,7 @@ export const KitchenOrder = ({
           <div className="flex flex-col items-start gap-1">
             <span className="font-bold text-xl">{order.order?.order_type?.name} / {order.order?.invoice_number}</span>
             <span className="text-xl font-bold">
-              <Countdown time={order.items[0].created_at} showAll/>
+              <Countdown time={order.items[0].created_at} />
             </span>
           </div>
         </div>

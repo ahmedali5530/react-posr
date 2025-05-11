@@ -4,7 +4,7 @@ import { Order as OrderModel, OrderStatus } from "@/api/model/order.ts";
 import { Tables } from "@/api/db/tables.ts";
 import { useEffect, useState } from "react";
 import { useDB } from "@/api/db/db.ts";
-import { Order } from "@/components/orders/order";
+import { OrderBox } from "@/components/orders/order.box.tsx";
 import ScrollContainer from "react-indiana-drag-scroll";
 import { Floor } from "@/api/model/floor.ts";
 import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
@@ -18,6 +18,7 @@ import { DateValue } from "react-aria-components";
 import { Button } from "@/components/common/input/button.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faTableColumns } from "@fortawesome/free-solid-svg-icons";
+import {OrderRow} from "@/components/orders/order.row.tsx";
 
 export const Orders = () => {
   const db = useDB();
@@ -25,7 +26,7 @@ export const Orders = () => {
 
   const [params, setParams] = useAtom(appSettings);
   const [date, setDate] = useState<DateValue>(today(getLocalTimeZone()));
-  const [view, setView] = useState<'row' | 'column'>('row');
+  const [view, setView] = useState<'row' | 'column'>('column');
 
 
   const {
@@ -33,7 +34,7 @@ export const Orders = () => {
     fetchData: fetchOrders,
     addFilter: addOrderFilter,
     resetFilters: resetOrdersFilters
-  } = useApi<SettingsData<OrderModel>>(Tables.orders, [], ['created_at asc'], 0, 99999, ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'payments', 'payments.order_payment', 'extras', 'extras.order_extras']);
+  } = useApi<SettingsData<OrderModel>>(Tables.orders, [], ['created_at desc'], 0, 99999, ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'payments', 'payments.order_payment', 'extras', 'extras.order_extras']);
 
   const {
     data: floors,
@@ -102,7 +103,6 @@ export const Orders = () => {
     if( date ) {
       addOrderFilter(`time::format(created_at, "%Y-%m-%d") = "${date?.toString()}"`);
     }
-
   }, [params.ordersFilters, date]);
 
   return (
@@ -193,23 +193,36 @@ export const Orders = () => {
               <DatePicker value={date} onChange={setDate} maxValue={today(getLocalTimeZone())} isClearable/>
             </div>
             <div className="input-group flex-1 justify-end">
-              <Button iconButton variant="primary" onClick={() => setView('row')} active={view === 'row'}>
-                <FontAwesomeIcon icon={faTableColumns}/>
+              <Button icon={faTableColumns} variant="primary" onClick={() => setView('column')} active={view === 'column'}>
+                Blocks
               </Button>
-              <Button iconButton variant="primary" onClick={() => setView('column')} active={view === 'column'}>
-                <FontAwesomeIcon icon={faBars}/>
+              <Button icon={faBars} variant="primary" onClick={() => setView('row')} active={view === 'row'}>
+                Table
               </Button>
             </div>
           </div>
-          <ScrollContainer className="h-[calc(100vh_-_190px)]">
-            <div className="flex-1 rounded-xl flex gap-3 flex-row">
-              {orders?.data?.map(item => (
-                <div className="w-[400px] flex-shrink-0" key={item.id}>
-                  <Order order={item}/>
-                </div>
-              ))}
-            </div>
-          </ScrollContainer>
+          {view === 'column' && (
+            <ScrollContainer className="h-[calc(100vh_-_190px)]">
+              <div className="flex-1 rounded-xl flex gap-3 flex-row">
+                {orders?.data?.map(item => (
+                  <div className="w-[400px] flex-shrink-0" key={item.id}>
+                    <OrderBox order={item}/>
+                  </div>
+                ))}
+              </div>
+            </ScrollContainer>
+          )}
+
+          {view === 'row' && (
+            <ScrollContainer className="max-h-[calc(100vh_-_190px)]">
+              <div className="flex-1 rounded-xl flex flex-col">
+                {orders?.data?.map(item => (
+                  <OrderRow order={item} key={item.id} />
+                ))}
+              </div>
+            </ScrollContainer>
+          )}
+
           <div className="h-[60px] flex-0 rounded-xl bg-white flex items-center px-3 gap-3"></div>
         </div>
     </Layout>

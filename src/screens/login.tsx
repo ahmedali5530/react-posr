@@ -7,6 +7,7 @@ import { appPage } from "@/store/jotai.ts";
 import { cn } from "@/lib/utils.ts";
 import { useDB } from "@/api/db/db.ts";
 import { User } from "@/api/model/user.ts";
+import {useNavigate} from "react-router";
 
 export const Login = () => {
   const db = useDB();
@@ -14,6 +15,8 @@ export const Login = () => {
   const [code, setCode] = useState('');
   const [page, setPage] = useAtom(appPage);
   const [error, setError] = useState(false);
+
+  const navigation = useNavigate();
 
   const onClear = () => {
     setCode('');
@@ -58,6 +61,11 @@ export const Login = () => {
     }));
 
     setCode('');
+
+    console.log('lgged in');
+
+    // redirect to menu
+    navigation('/menu');
   }
 
   const denyLogin = () => {

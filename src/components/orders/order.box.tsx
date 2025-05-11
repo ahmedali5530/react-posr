@@ -17,7 +17,7 @@ interface Props {
   order: OrderModel
 }
 
-export const Order = ({
+export const OrderBox = ({
   order
 }: Props) => {
   const itemsTotal = calculateOrderTotal(order);
