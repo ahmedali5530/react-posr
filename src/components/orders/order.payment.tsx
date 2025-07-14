@@ -232,6 +232,9 @@ export const OrderPayment = ({
             tipType={tipType}
             payments={paymentTypes}
             setPayments={setPaymentTypes}
+            itemsTotal={itemsTotal}
+            serviceChargeAmount={serviceChargeAmount}
+            setServiceChargeAmount={setServiceChargeAmount}
           />
         </div>
       </div>
