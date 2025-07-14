@@ -92,7 +92,7 @@ export const OrderRow = ({
         </div>
 
         <div className="flex items-center justify-end px-3 flex-1">
-          <div className="text-right font-bold text-lg">{withCurrency(total)}</div>
+          <div className="text-right font-bold text-lg text-danger-700">{withCurrency(total)}</div>
         </div>
       </div>
 

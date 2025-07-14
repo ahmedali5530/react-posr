@@ -15,7 +15,7 @@ import {OrderPayment} from "@/api/model/order_payment.ts";
 import {nanoid} from "nanoid";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {toast} from "sonner";
-import {useAtom} from "jotai/index";
+import {useAtom} from "jotai";
 import {appAlert} from "@/store/jotai.ts";
 
 interface Props {
@@ -38,11 +38,16 @@ interface Props {
 
   payments: OrderPayment[]
   setPayments: (paymentType: OrderPayment[] | ((prev: OrderPayment[]) => OrderPayment[])) => void;
+
+  itemsTotal: number
+
+  setServiceChargeAmount: (amt: number) => void
+  serviceChargeAmount: number
 }
 
 export const OrderPaymentReceiving = ({
   total, order, onComplete, extras, setTax, tax, taxAmount, discount, discountAmount, tipType, tip, tipAmount,
-  payments, setPayments
+  payments, setPayments, itemsTotal, serviceChargeAmount
 }: Props) => {
   const db = useDB();
   const [alert, setAlert] = useAtom(appAlert);
@@ -135,7 +140,6 @@ export const OrderPaymentReceiving = ({
     if (payments.length > 0) {
       // find largest tax and apply it
       const paymentsWithTaxes = payments.filter(item => !!item.payment_type.tax);
-      console.log(paymentsWithTaxes)
       let tax = null;
       if(paymentsWithTaxes.length > 0){
         paymentsWithTaxes.forEach(pt => {
@@ -202,6 +206,12 @@ export const OrderPaymentReceiving = ({
     setSelectedAmount('');
   }
 
+  const calculateTotal = (taxRate: number) => {
+    const txAmount = itemsTotal * taxRate / 100;
+    const extrasTotal = Object.values(extras).reduce((prev, item) => prev + item, 0);
+    return itemsTotal + extrasTotal + txAmount + serviceChargeAmount - discountAmount + tipAmount;
+  }
+
   return (
     <div className="grid grid-cols-2 gap-3">
       <div>
@@ -248,11 +258,19 @@ export const OrderPaymentReceiving = ({
               key={item.id}
               onClick={() => {
                 if(selectedAmount.trim().length > 0){
-                  addPayment(selectedAmount, item, total)
+                  let amt = selectedAmount;
+                  addPayment(amt, item, total)
                 }
 
                 if(selectedAmount.trim().length === 0 && changeDue < 0) {
-                  addPayment(-1 * changeDue, item, total)
+                  let amt = selectedAmount;
+                  // first add tax and then apply the payment
+                  if(item.tax) {
+                    amt = calculateTotal(item.tax.rate).toString();
+                    setSelectedAmount(amt);
+                  }
+
+                  addPayment(amt, item, total)
                 }
               }}
               size="lg"
