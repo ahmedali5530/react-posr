@@ -225,7 +225,7 @@ export const OrderPaymentReceiving = ({
             changeDue > 0 && 'text-success-700'
           )
         }>
-          Change: {withCurrency(changeDue)}
+          {changeDue < 0 ? 'Remaining' : 'Change'}: {withCurrency(changeDue)}
         </div>
         <div className="relative">
           <ScrollContainer className="gap-3 flex overflow-x-auto mb-5">
@@ -258,19 +258,45 @@ export const OrderPaymentReceiving = ({
               key={item.id}
               onClick={() => {
                 if(selectedAmount.trim().length > 0){
-                  let amt = selectedAmount;
-                  addPayment(amt, item, total)
-                }
-
-                if(selectedAmount.trim().length === 0 && changeDue < 0) {
+                  console.log('1')
                   let amt = selectedAmount;
                   // first add tax and then apply the payment
                   if(item.tax) {
                     amt = calculateTotal(item.tax.rate).toString();
                     setSelectedAmount(amt);
                   }
+                }else if(selectedAmount.trim().length === 0 && changeDue < 0) {
+                  console.log('2')
+                  if(item.tax) {
+                    console.log('2.1')
+                    setTax(item.tax);
+                    const amt = calculateTotal(item.tax.rate).toString();
+                    setSelectedAmount(amt);
 
-                  addPayment(amt, item, total)
+                    addPayment(amt, item, total)
+                  }else {
+                    console.log('2.2')
+                    addPayment(-1 * changeDue, item, total)
+                  }
+
+                }else if(tax !== item.tax && changeDue < 0) {
+                  console.log('3')
+                  let amt = selectedAmount;
+                  // first add tax and then apply the payment
+                  if(item.tax) {
+                    console.log('3.1')
+                    setTax(item.tax);
+                    amt = calculateTotal(item.tax.rate).toString();
+                    setSelectedAmount(amt);
+
+                    addPayment(amt, item, total)
+                  }else {
+                    console.log('3.2')
+                    addPayment(amt, item, total)
+                  }
+                }else {
+                  console.log('4')
+                  addPayment(selectedAmount, item, total)
                 }
               }}
               size="lg"

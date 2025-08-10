@@ -30,10 +30,10 @@ export const Menu = () => {
           <div className="h-[70px] flex items-center gap-3 mb-3">
             <MenuHeader/>
           </div>
-          <div className="mb-3 bg-white rounded-xl">
+          <div className="mb-3 rounded-xl">
             <MenuCategories/>
           </div>
-          <div className="bg-white rounded-xl">
+          <div className="rounded-xl">
             <MenuDishes/>
           </div>
           <div className="mt-3 hidden">
