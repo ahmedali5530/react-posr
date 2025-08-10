@@ -1,7 +1,7 @@
 import { withCurrency } from "@/lib/utils.ts";
 import { Dish } from "@/api/model/dish.ts";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAtom } from "jotai/index";
+import { useAtom } from "jotai";
 import { appState } from "@/store/jotai.ts";
 import { MenuDishModifiers } from "@/components/menu/modifiers.tsx";
 import { CartModifierGroup, MenuItem, MenuItemType } from "@/api/model/cart_item.ts";
@@ -84,10 +84,10 @@ export const MenuDish = ({ onClick, item, level, isModifier }: Props) => {
                  className="rounded-xl rounded-r-none pointer-events-none h-full w-[60px] xl:w-[90px] object-cover"/>
           </div>
           <div className="flex flex-col px-3 py-2">
-                    <span className="flex flex-row gap-2 mb-1">
-                      <span
-                        className="rounded-full border border-neutral-700 py-1 px-3 text-xs font-bold text-warning-700">{withCurrency(item.price)}</span>
-                    </span>
+            <span className="flex flex-row gap-2 mb-1">
+              <span
+                className="rounded-full border border-neutral-700 py-1 px-3 text-xs font-bold text-warning-700">{withCurrency(item.price)}</span>
+            </span>
             <h6 className="text-ellipsis line-clamp-2 flex-shrink flex-grow-0 text-pretty"
                 title={item.name}>
               {modifierGroups.length > 0 &&
