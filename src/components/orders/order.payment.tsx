@@ -17,6 +17,9 @@ import { PaymentType } from "@/api/model/payment_type.ts";
 import {faPencil} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {OrderPayment as OrderPaymentModal} from "@/api/model/order_payment.ts";
+import {dispatchPrint} from "@/lib/print.service.ts";
+import {PRINT_TYPE} from "@/lib/print.registry.tsx";
+import {useDB} from "@/api/db/db.ts";
 
 interface Props {
   order: Order
@@ -40,6 +43,8 @@ const extraItems = {
 export const OrderPayment = ({
   order, onClose
 }: Props) => {
+  const db = useDB();
+
   const closeModal = () => {
     onClose();
   }
@@ -92,6 +97,23 @@ export const OrderPayment = ({
   }, [itemsTotal, taxAmount, discountAmount, serviceChargeAmount, extras, tipAmount]);
 
   const [mode, setMode] = useState(PaymentOptions.Tax);
+
+  const print = async () => {
+    // fetch latest order from database
+    const o = await db.query<Order>(`select * from ${order.id} fetch items, items.item, item.item.modifiers, table, user, order_type, customer, discount, tax, payments, payments.payment_type, extras, extras.order_extras`);
+
+    dispatchPrint(PRINT_TYPE.final_bill, {
+      order: o[0][0]
+    });
+  }
+
+  const onPayment = () => {
+    closeModal();
+
+    setTimeout(() => {
+      print();
+    }, 300)
+  }
 
   return (
     <Modal
@@ -220,7 +242,7 @@ export const OrderPayment = ({
           <OrderPaymentReceiving
             order={order}
             total={total}
-            onComplete={closeModal}
+            onComplete={onPayment}
             extras={extras}
             setTax={setTax}
             discountAmount={discountAmount}
@@ -235,6 +257,7 @@ export const OrderPayment = ({
             itemsTotal={itemsTotal}
             serviceChargeAmount={serviceChargeAmount}
             setServiceChargeAmount={setServiceChargeAmount}
+            serviceCharge={serviceCharge}
           />
         </div>
       </div>

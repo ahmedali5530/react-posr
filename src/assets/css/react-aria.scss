@@ -1,109 +1,119 @@
 .react-aria-ModalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 2;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
 
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
 
-    height: var(--visual-viewport-height, 100vh);
+  height: var(--visual-viewport-height, 100vh);
 
-    background: rgba(0 0 0 / .5);
+  background: rgba(0 0 0 / .5);
 
-    overflow: auto;
+  overflow: auto;
+
+  &.bottom-sheet{
+    justify-content: flex-end;
+  }
 }
 
 
 @keyframes modal-blur {
-    from {
-        transform: scale(0.7);
-    }
+  from {
+    transform: scale(0.7);
+  }
 
-    to {
-        transform: scale(1);
-    }
+  to {
+    transform: scale(1);
+  }
 }
 
-.react-aria-Modal{
-    &[data-entering] {
-        animation: modal-blur 100ms;
-    }
+.react-aria-Modal {
+  &[data-entering] {
+    animation: modal-blur 100ms;
+  }
 
-    &[data-exiting] {
-        animation: modal-blur 50ms reverse ease-in;
-    }
+  &[data-exiting] {
+    animation: modal-blur 50ms reverse ease-in;
+  }
 }
-.react-aria-Dialog{
-    @apply shadow-2xl;
 
-    .static-content {
-        position: sticky;
-        top: 0;
-        background: white;
-    }
+.react-aria-Dialog {
+  @apply shadow-2xl;
 
-    &.modal-full {
-        width: 100vw;
-        height: 100vh;
-        @apply rounded-none border-none shadow-none overflow-hidden;
+  .static-content {
+    position: sticky;
+    top: 0;
+    background: white;
+  }
 
-        .modal-container {
-            height: calc(100vh - 75px);
-        }
-    }
+  &.modal-full {
+    width: 100vw;
+    height: 100vh;
+    @apply rounded-none border-none shadow-none overflow-hidden;
 
-    &.modal-bottom-sheet {
-        width: 100vw;
-        height: calc(100vh - 50%);
-        @apply rounded-none border-none;
-        bottom: 0;
-        position: fixed;
-        background-color: white;
+    .modal-container {
+      height: calc(100vh - 75px);
     }
+  }
 
-    &.modal-sm {
-        width: 35vw;
-    }
-    &.modal-md{
-        width: 60vw;
-    }
-    &.modal-lg{
-        width: 75vw;
-    }
-    &.modal-xl{
-        width: 90vw;
-    }
+  &.modal-bottom-sheet {
+    width: 100vw;
+    height: calc(100vh - 50%);
+    @apply rounded-none border-none;
+    bottom: 0;
+    position: fixed;
+    background-color: white;
+  }
+
+  &.modal-sm {
+    width: 35vw;
+  }
+
+  &.modal-md {
+    min-width: 60vw;
+  }
+
+  &.modal-lg {
+    min-width: 75vw;
+  }
+
+  &.modal-xl {
+    min-width: 90vw;
+  }
 }
 
 @media (max-width: 1024px) {
-    .react-aria-Dialog {
-        &.modal-md {
-            width: 80vw;
-        }
-
-        &.modal-lg {
-            width: 90vw;
-        }
-
-        &.modal-sm {
-            width: 60vw;
-        }
+  .react-aria-Dialog {
+    &.modal-md {
+      width: 80vw;
     }
+
+    &.modal-lg {
+      width: 90vw;
+    }
+
+    &.modal-sm {
+      width: 60vw;
+    }
+  }
 }
+
 @media (max-width: 768px) {
-    .react-aria-Dialog {
-        &.modal-sm, &.modal-md, &.modal-lg {
-            width: 100vw;
-        }
+  .react-aria-Dialog {
+    &.modal-sm, &.modal-md, &.modal-lg {
+      width: 100vw;
     }
+  }
 }
 
-.react-aria-CalendarCell{
-    &[data-disabled="true"]{
-        @apply text-neutral-500;
-    }
+.react-aria-CalendarCell {
+  &[data-disabled="true"] {
+    @apply text-neutral-500;
+  }
 }

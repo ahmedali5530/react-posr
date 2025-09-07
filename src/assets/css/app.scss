@@ -106,6 +106,9 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
   &.lg {
     width: 48px;
   }
+  &.xl{
+    width: 72px;
+  }
 }
 
 .table {
@@ -397,12 +400,13 @@ table th {
   padding-right: 30px;
 }
 .btn-keyboard {
-  transition: none;
-  min-width: 48px;
-  height: 48px;
+  min-width: 72px;
+  height: 72px;
+  font-size: 24px;
+  text-transform: unset;
 
   &:active {
-    @apply bg-neutral-500;
+    @apply bg-neutral-900;
     color: white;
   }
   &:focus,

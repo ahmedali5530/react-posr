@@ -35,7 +35,7 @@ export const getDB = async () => {
 }
 
 export const useDB = () => {
-  const query = async (sql: string, parameters?: any) => {
+  const query = async <T = any>(sql: string, parameters?: any): Promise<ActionResult<Record<string, T>>[]> => {
     // log sql in dev mode
     if(import.meta.env.DEV) {
       // console.group('DB Debug')

@@ -34,7 +34,7 @@ export const Orders = () => {
     fetchData: fetchOrders,
     addFilter: addOrderFilter,
     resetFilters: resetOrdersFilters
-  } = useApi<SettingsData<OrderModel>>(Tables.orders, [], ['created_at desc'], 0, 99999, ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'payments', 'payments.order_payment', 'extras', 'extras.order_extras']);
+  } = useApi<SettingsData<OrderModel>>(Tables.orders, [], ['created_at desc'], 0, 99999, ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'payments', 'payments.payment_type', 'extras', 'extras.order_extras']);
 
   const {
     data: floors,
@@ -46,6 +46,7 @@ export const Orders = () => {
 
   const {
     data: orderTypes,
+
   } = useApi<SettingsData<OrderType>>(Tables.order_types, [], [], 0, 99999);
 
   const runLiveQuery = async () => {

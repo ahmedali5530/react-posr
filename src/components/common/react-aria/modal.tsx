@@ -13,10 +13,11 @@ interface ModalProps extends PropsWithChildren {
   hideCloseButton?: boolean;
   transparentContainer?: boolean;
   header?: ReactNode;
-  size?: "full" | "bottom-sheet" | "sm" | "md" | "lg" | "xl";
+  size?: "full" | "sm" | "md" | "lg" | "xl";
   backdrop?: boolean;
   shouldCenter?: boolean;
   backgroundColor?: string
+  bottomSheet?: boolean
 }
 
 export const Modal: FunctionComponent<ModalProps> = (props) => {
@@ -42,6 +43,12 @@ export const Modal: FunctionComponent<ModalProps> = (props) => {
         isKeyboardDismissDisabled={props.shouldCloseOnEsc === undefined ? true : props.shouldCloseOnEsc}
         isOpen={open}
         onOpenChange={close}
+        className={
+          cn(
+            'react-aria-ModalOverlay',
+            props.bottomSheet ? 'bottom-sheet' : ''
+          )
+        }
       >
         <ReactAriaModal
           isOpen={open}
@@ -49,7 +56,7 @@ export const Modal: FunctionComponent<ModalProps> = (props) => {
           isKeyboardDismissDisabled={props.shouldCloseOnEsc === undefined ? true : props.shouldCloseOnEsc}
           onOpenChange={close}
           className={cn(
-            props.shouldCenter ? 'flex justify-center items-center h-screen' : ''
+            props.bottomSheet ? 'mb-12' : ''
           )}
 
         >
@@ -57,7 +64,6 @@ export const Modal: FunctionComponent<ModalProps> = (props) => {
             className={cn(
               'react-aria-Dialog',
               props.size === "full" && "modal-full",
-              props.size === "bottom-sheet" && "modal-bottom-sheet",
               props.size === "sm" && "modal-sm",
               props.size === 'lg' && 'modal-lg',
               props.size === 'xl' && 'modal-xl',

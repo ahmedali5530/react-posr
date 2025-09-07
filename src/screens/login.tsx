@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils.ts";
 import { useDB } from "@/api/db/db.ts";
 import { User } from "@/api/model/user.ts";
 import {useNavigate} from "react-router";
+import {MENU} from "@/routes/posr.ts";
 
 export const Login = () => {
   const db = useDB();
@@ -62,10 +63,8 @@ export const Login = () => {
 
     setCode('');
 
-    console.log('lgged in');
-
     // redirect to menu
-    navigation('/menu');
+    navigation(MENU);
   }
 
   const denyLogin = () => {

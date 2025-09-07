@@ -12,6 +12,7 @@ import useApi, {SettingsData} from "@/api/db/use.api.ts";
 import {nanoid} from "nanoid";
 import {toast} from "sonner";
 import {Input} from "@/components/common/input/input.tsx";
+import {Textarea} from "@/components/common/input/textarea.tsx";
 
 export const Closing = () => {
   const db = useDB();
@@ -46,16 +47,17 @@ export const Closing = () => {
   const fetchTodaysPayments = async () => {
     try {
 
-      const result = await db.query(`
+      const result: any = await db.query(`
           SELECT payments.*
           FROM order
-          WHERE date (created_at) = $today
+          WHERE time::format(created_at, "%Y-%m-%d") = $today
             AND status = 'Paid'
               FETCH payments
               , payments.payment_type
       `, {today});
 
-      const orders = result[0]?.result || [];
+      const orders = (result?.[0] && (result[0] as any).result) || [];
+
       const paymentTotals = new Map<string, number>();
 
       // Aggregate payments by payment type
@@ -136,6 +138,21 @@ export const Closing = () => {
     );
   };
 
+  const addTerminal = () => {
+    setTerminalCash(prev => [
+      ...prev,
+      {
+        terminal_id: nanoid(),
+        terminal_name: `Terminal ${prev.length + 1}`,
+        cash_amount: 0,
+      }
+    ])
+  }
+
+  const removeTerminal = (id: string) => {
+    setTerminalCash(prev => prev.filter(terminal => terminal.terminal_id !== id));
+  }
+
   const addExpense = () => {
     setExpenses(prev => [
       ...prev,
@@ -210,43 +227,52 @@ export const Closing = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold mb-4">Previous Day Balance</h2>
-              <input
+              <Input
                 type="number"
                 value={previousDayBalance}
                 onChange={(e) => setPreviousDayBalance(Number(e.target.value))}
-                className="w-full p-4 text-2xl border rounded-lg text-center touch-manipulation"
                 placeholder="0.00"
                 step="0.01"
+                enableKeyboard
+                inputSize="lg"
               />
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold mb-4">Petty Cash</h2>
-              <input
+              <Input
                 type="number"
                 value={pettyCash}
                 onChange={(e) => setPettyCash(Number(e.target.value))}
-                className="w-full p-4 text-2xl border rounded-lg text-center touch-manipulation"
                 placeholder="0.00"
                 step="0.01"
+                enableKeyboard
+                inputSize="lg"
               />
             </div>
           </div>
 
           {/* Terminal Cash */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Terminal Cash</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold mb-4">Terminal Cash</h2>
+              <Button onClick={addTerminal} variant="primary" size="lg" type="button">
+                <FontAwesomeIcon icon={faPlus} className="mr-2"/>
+                Add Terminal
+              </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {terminalCash.map((terminal) => (
                 <div key={terminal.terminal_id} className="border rounded-lg p-4">
-                  <label className="block text-sm font-medium mb-2">{terminal.terminal_name}</label>
-                  <input
+                  <Input
+                    label={terminal.terminal_name}
                     type="number"
                     value={terminal.cash_amount}
                     onChange={(e) => updateTerminalCash(terminal.terminal_id, Number(e.target.value))}
-                    className="w-full p-3 text-xl border rounded-lg text-center touch-manipulation"
                     placeholder="0.00"
                     step="0.01"
+                    enableKeyboard
+                    inputSize="lg"
                   />
                 </div>
               ))}
@@ -263,13 +289,14 @@ export const Closing = () => {
               {paymentSummaries.map((ps) => (
                 <div key={ps.payment_type.id} className="border rounded-lg p-4">
                   <label className="block text-sm font-medium mb-2">{ps.payment_type.name}</label>
-                  <input
+                  <Input
                     type="number"
                     value={ps.amount}
                     onChange={(e) => updatePaymentSummary(ps.payment_type.id, Number(e.target.value))}
-                    className="w-full p-3 text-xl border rounded-lg text-center touch-manipulation"
                     placeholder="0.00"
                     step="0.01"
+                    enableKeyboard
+                    inputSize="lg"
                   />
                 </div>
               ))}
@@ -283,7 +310,7 @@ export const Closing = () => {
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Expenses</h2>
-              <Button onClick={addExpense} variant="primary">
+              <Button onClick={addExpense} variant="primary" size="lg" type="button">
                 <FontAwesomeIcon icon={faPlus} className="mr-2"/>
                 Add Expense
               </Button>
@@ -296,12 +323,16 @@ export const Closing = () => {
                   value={expense.description}
                   onChange={(e) => updateExpense(expense.id, 'description', e.target.value)}
                   placeholder="Description"
+                  enableKeyboard
+                  inputSize="lg"
                 />
                 <Input
                   type="text"
                   value={expense.category || ''}
                   onChange={(e) => updateExpense(expense.id, 'category', e.target.value)}
                   placeholder="Category"
+                  enableKeyboard
+                  inputSize="lg"
                 />
                 <Input
                   type="number"
@@ -309,10 +340,14 @@ export const Closing = () => {
                   onChange={(e) => updateExpense(expense.id, 'amount', Number(e.target.value))}
                   placeholder="0.00"
                   step="0.01"
+                  enableKeyboard
+                  inputSize="lg"
                 />
                 <Button
                   onClick={() => removeExpense(expense.id)}
                   variant="danger"
+                  size="lg"
+                  type="button"
                 >
                   <FontAwesomeIcon icon={faTrash}/>
                 </Button>
@@ -329,12 +364,12 @@ export const Closing = () => {
           {/* Notes */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">Notes</h2>
-            <textarea
+            <Input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full p-4 border rounded-lg touch-manipulation"
-              rows={4}
               placeholder="Add any additional notes..."
+              enableKeyboard
+              inputSize="lg"
             />
           </div>
 

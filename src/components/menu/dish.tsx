@@ -69,6 +69,7 @@ export const MenuDish = ({ onClick, item, level, isModifier }: Props) => {
               level: level,
               selectedGroups: [],
               newOrOld: MenuItemType.new,
+              category: state.category ? state.category?.name : (item.categories.length === 1 ? item.categories[0].name : '')
             })
           }
         }}
@@ -90,8 +91,7 @@ export const MenuDish = ({ onClick, item, level, isModifier }: Props) => {
             </span>
             <h6 className="text-ellipsis line-clamp-2 flex-shrink flex-grow-0 text-pretty"
                 title={item.name}>
-              {modifierGroups.length > 0 &&
-                <span className="bg-danger-500 text-white rounded px-1 text-sm">M</span>} {item.name}
+              {item.name}
             </h6>
           </div>
         </div>
@@ -111,7 +111,8 @@ export const MenuDish = ({ onClick, item, level, isModifier }: Props) => {
               id: m.id,
               quantity: 1,
               level: level,
-              newOrOld: MenuItemType.new
+              newOrOld: MenuItemType.new,
+              category: state.category ? state.category?.name : (grp?.in?.categories?.length === 1 ? grp.in.categories[0].name : '')
             }))]
           }))]}
           onClose={(payload) => {
@@ -124,7 +125,8 @@ export const MenuDish = ({ onClick, item, level, isModifier }: Props) => {
                 id: nanoid(),
                 isModifier,
                 level: level,
-                newOrOld: MenuItemType.new
+                newOrOld: MenuItemType.new,
+                category: state.category ? state.category?.name : (item.categories.length === 1 ? item.categories[0].name : '')
               }, payload);
             }
             setModifiersModal(false);

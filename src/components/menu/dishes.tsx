@@ -40,7 +40,6 @@ export const MenuDishes = () => {
       cart: [
         {
           ...item,
-          category: state.category?.name,
           selectedGroups
         },
         ...prev.cart,
