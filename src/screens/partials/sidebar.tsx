@@ -14,13 +14,15 @@ import {
 import { cn } from "@/lib/utils.ts";
 import { Button } from "@/components/common/input/button.tsx";
 import { CSSProperties } from "react";
-import {NavLink} from "react-router";
-import {ADMIN, CLOSING, DELIVERY, KITCHEN, MENU, ORDERS, REPORTS, SUMMARY} from "@/routes/posr.ts";
+import {NavLink, useNavigate} from "react-router";
+import {ADMIN, CLOSING, DELIVERY, KITCHEN, LOGIN, MENU, ORDERS, REPORTS, SETTINGS, SUMMARY} from "@/routes/posr.ts";
 
 export const Sidebar = () => {
   const [page, setPage] = useAtom(appPage);
 
   const pathInfo = location.pathname;
+
+  const navigation = useNavigate();
 
   const logout = () => {
     setPage(prev => ({
@@ -28,6 +30,8 @@ export const Sidebar = () => {
       page: 'Login',
       user: undefined
     }));
+
+    navigation(LOGIN);
   }
 
   const lock = () => {
@@ -37,10 +41,8 @@ export const Sidebar = () => {
       locked: true,
       lockedBy: prev.user
     }));
-  }
 
-  const settings = () => {
-
+    navigation(LOGIN);
   }
 
   const sidebarItems = [
@@ -77,9 +79,18 @@ export const Sidebar = () => {
         </div>
       </div>
       <div className="flex flex-col gap-1">
-        <Button variant="warning" onClick={settings} flat>
+        <NavLink
+          to={SETTINGS}
+          className={cn(
+            'btn btn-warning btn-flat',
+          )}
+          key={'settings'}
+          style={{
+            '--padding': '0.5rem'
+          } as CSSProperties}
+        >
           <FontAwesomeIcon icon={faWrench} />
-        </Button>
+        </NavLink>
         <Button variant="primary" onClick={lock} flat>
           <FontAwesomeIcon icon={faLock} />
         </Button>

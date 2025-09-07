@@ -12,6 +12,7 @@ interface ButtonProps extends BaseProps {
   iconButton?: boolean;
   flat?: boolean;
   icon?: IconProp;
+  rightIcon?: IconProp;
   isLoading?: boolean;
   disabled?: boolean;
   tabIndex?: number;
@@ -20,7 +21,7 @@ interface ButtonProps extends BaseProps {
 }
 
 export const Button = (props: ButtonProps) => {
-  const { active, variant, size, iconButton, flat, icon, isLoading, disabled, children, filled, onClick, ...rest } = props;
+  const { active, variant, size, iconButton, flat, icon, isLoading, disabled, children, filled, onClick, rightIcon, ...rest } = props;
 
   return (
     <AriaButton
@@ -50,6 +51,11 @@ export const Button = (props: ButtonProps) => {
         <FontAwesomeIcon icon={faSpinner} spin/>
       )}
       {children as ReactNode}
+      {rightIcon && (
+        <span className="ml-2">
+          <FontAwesomeIcon icon={rightIcon}/>
+        </span>
+      )}
     </AriaButton>
   );
 };

@@ -279,7 +279,8 @@ export const Keyboard = (props: KeyboardProps) => {
       <Modal
         open={show}
         onClose={handleClose}
-        size={'bottom-sheet'}
+        size={'md'}
+        bottomSheet={true}
       >
         <div className={cn(
           'container',

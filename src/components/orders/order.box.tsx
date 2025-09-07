@@ -11,7 +11,9 @@ import {faBars, faCreditCard, faPrint} from "@fortawesome/free-solid-svg-icons";
 import {OrderItemName} from "@/components/common/order/order.item.tsx";
 import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {TempBill} from "@/components/prints/temp.bill.tsx";
+import {dispatchPrint} from "@/lib/print.service";
+import {PRINT_TYPE} from "@/lib/print.registry.tsx";
+import {DiscountType} from "@/api/model/discount.ts";
 
 interface Props {
   order: OrderModel
@@ -25,10 +27,8 @@ export const OrderBox = ({
 
   const total = useMemo(() => {
     const extrasTotal = order?.extras ? order?.extras?.reduce((prev, item) => prev + item.value, 0) : 0;
-    return itemsTotal + extrasTotal + Number(order?.tax_amount || 0) - Number(order?.discount_amount || 0);
+    return itemsTotal + extrasTotal + Number(order?.tax_amount ?? 0) - Number(order?.discount_amount ?? 0) + Number(order.service_charge_amount ?? 0) + Number(order?.tip_amount ?? 0);
   }, [itemsTotal, order]);
-
-  const [print, setPrint] = useState(false);
 
   return (
     <>
@@ -57,24 +57,40 @@ export const OrderBox = ({
               <div className="text-right">{withCurrency(order?.tax_amount)}</div>
             </div>
           )}
-          {order?.discount && (
+          {order?.discount ? (
             <div className="flex">
               <div className="flex-1">Discount</div>
               <div className="text-right">{withCurrency(order?.discount_amount)}</div>
             </div>
-          )}
-          {order?.service_charges_amount && (
+          ) : ''}
+          {order?.service_charge && order?.service_charge > 0 ? (
             <div className="flex">
-              <div className="flex-1">Service charges ({order?.service_charges}%)</div>
-              <div className="text-right">{withCurrency(order?.service_charges_amount)}</div>
+              <div className="flex-1">Service charges ({order?.service_charge}%)</div>
+              <div className="text-right">{withCurrency(order?.service_charge_amount)}</div>
             </div>
-          )}
+          ) : ''}
           {order?.extras && order?.extras?.map(item => (
             <div className="flex">
               <div className="flex-1">{item.name}</div>
               <div className="text-right">{withCurrency(item.value)}</div>
             </div>
           ))}
+          {order?.tip_amount > 0 && (
+            <div className="flex">
+              <div className="flex-1">Tip {order?.tip_type === DiscountType.Percent ? '%' : ''}</div>
+              <div className="text-right">{withCurrency(order?.tip_amount)}</div>
+            </div>
+          )}
+          {order?.payments?.length > 0 && (
+            <div className="separator h-[2px]" style={{'--size': '10px', '--space': '5px'} as CSSProperties}></div>
+          )}
+          {order?.payments?.map((item, index) => (
+            <div key={index} className="flex">
+              <div className="flex-1">{item.payment_type.name}</div>
+              <div className="text-right">{withCurrency(item.amount)}</div>
+            </div>
+          ))}
+          <div className="separator h-[2px]" style={{'--size': '10px', '--space': '5px'} as CSSProperties}></div>
           <div className="flex font-bold">
             <div className="flex-1">Total</div>
             <div className="text-right">{withCurrency(total)}</div>
@@ -87,17 +103,38 @@ export const OrderBox = ({
             btnFlat={true}
             className="flex-1"
             onAction={(key) => {
-              if (key === 'print') {
-                setPrint(true)
+              if (key === 'temp_bill') {
+                dispatchPrint(PRINT_TYPE.presale_bill, {
+                  order: order
+                });
+              }
+
+              if (key === 'final_bill') {
+                dispatchPrint(PRINT_TYPE.final_bill, {
+                  order: order,
+                  duplicate: true
+                });
               }
             }}
           >
-            <DropdownItem id="print" key={order.id} className="min-w-[50px]">Print temp bill</DropdownItem>
+            {order.status === OrderStatus["In Progress"] && (
+              <DropdownItem id="temp_bill" key={order.id} className="min-w-[50px]">
+                <FontAwesomeIcon icon={faPrint} /> Print temp bill
+              </DropdownItem>
+            )}
+
+            {order.status === OrderStatus["Paid"] && (
+              <DropdownItem id="final_bill" key={order.id} className="min-w-[50px]">
+                <FontAwesomeIcon icon={faPrint} /> Print final bill
+              </DropdownItem>
+            )}
           </Dropdown>
           {order.status === OrderStatus["In Progress"] && (
             <>
               <Button onClick={() => {
-                setPrint(true)
+                dispatchPrint(PRINT_TYPE.presale_bill, {
+                  order: order
+                });
               }} variant="primary" flat size="lg" className="flex-1" icon={faPrint}>Temp bill</Button>
               <Button variant="warning" filled size="lg" className="flex-1" onClick={() => setPayment(true)}
                       icon={faCreditCard}>
@@ -111,12 +148,6 @@ export const OrderBox = ({
       {payment && (
         <OrderPayment order={order} onClose={() => {
           setPayment(false)
-        }}/>
-      )}
-
-      {print && (
-        <TempBill order={order} onDone={() => {
-          setPrint(false);
         }}/>
       )}
     </>

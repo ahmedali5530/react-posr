@@ -94,13 +94,18 @@ export const KitchenScreen = () => {
   }, [kitchen]);
 
   const calculateAverageTime = useCallback(async (kitchenId: string) => {
-    const completedOrders = await db.query(`select math::sum(time::unix(completed_at) - time::unix(created_at)) AS diff, count() from ${Tables.order_items_kitchen} where kitchen = $kitchen and completed_at != None group all`, {
+    const completedOrders  = await db.query(`select math::sum(time::unix(completed_at) - time::unix(created_at)) AS diff, count() from ${Tables.order_items_kitchen} where kitchen = $kitchen and completed_at != None and time::format(created_at, "%Y-%m-%d") = $date group all`, {
       kitchen: kitchenId,
+      date: DateTime.now().toISODate()
     });
 
-    const duration: any = await db.query(`return duration::mins(duration::from::secs(math::floor(${completedOrders[0][0].diff/completedOrders[0][0].count})))`);
+    if(completedOrders[0].length > 0) {
+      const duration: any = await db.query(`return duration::mins(duration::from::secs(math::floor(${completedOrders[0][0].diff / completedOrders[0][0].count})))`);
 
-    setAvgTime(`${formatNumber(duration[0])} mins`);
+      setAvgTime(`${formatNumber(duration[0])} mins`);
+    }else{
+      setAvgTime('-');
+    }
   }, []);
 
   const completeAllOrders = async () => {
@@ -123,8 +128,6 @@ export const KitchenScreen = () => {
   }, [orders]);
 
   const [dishesModal, setDishesModal] = useState(false);
-
-  console.log(allDishes);
 
   return(
     <Layout containerClassName="overflow-hidden">

@@ -43,11 +43,13 @@ interface Props {
 
   setServiceChargeAmount: (amt: number) => void
   serviceChargeAmount: number
+
+  serviceCharge: number
 }
 
 export const OrderPaymentReceiving = ({
   total, order, onComplete, extras, setTax, tax, taxAmount, discount, discountAmount, tipType, tip, tipAmount,
-  payments, setPayments, itemsTotal, serviceChargeAmount
+  payments, setPayments, itemsTotal, serviceChargeAmount, serviceCharge
 }: Props) => {
   const db = useDB();
   const [alert, setAlert] = useAtom(appAlert);
@@ -114,7 +116,9 @@ export const OrderPaymentReceiving = ({
         discount_amount: discountAmount,
         tip: tip,
         tip_amount: tipAmount,
-        tip_type: tipType
+        tip_type: tipType,
+        service_charge: serviceCharge,
+        service_charge_amount: serviceChargeAmount
       });
 
       onComplete();

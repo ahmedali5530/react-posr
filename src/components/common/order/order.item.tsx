@@ -1,6 +1,7 @@
 import { cn, formatNumber } from "@/lib/utils.ts";
 import React from "react";
 import { OrderItem, OrderItemModifier } from "@/api/model/order_item.ts";
+import {calculateOrderItemPrice} from "@/lib/cart.ts";
 
 export const OrderItemName = ({
   item, showGroups, showQuantity, showPrice
@@ -17,7 +18,7 @@ export const OrderItemName = ({
       } as any}>
         <span className="flex-1">{item.item.name}</span>
         {showQuantity && <span className="flex-0 w-[50px] text-right">{formatNumber(item.quantity)}</span>}
-        {showPrice && <span className="flex-0 w-[70px] text-right">{formatNumber(item.price)}</span>}
+        {showPrice && <span className="flex-0 w-[70px] text-right">{formatNumber(calculateOrderItemPrice(item))}</span>}
       </div>
       {item?.modifiers?.length > 0 && (
         <div className="pl-3 flex flex-col">
