@@ -73,7 +73,8 @@ export const Summary = () => {
                 variant="lg"
                 onClick={() => {
                   dispatchPrint(PRINT_TYPE.summary, {
-                    orders: orders
+                    orders: orders,
+                    date: date.toString()
                   })
                 }}
               >Print</Button>
@@ -85,7 +86,7 @@ export const Summary = () => {
                 <FontAwesomeIcon icon={faSpinner} spin size="5x"/>
               </div>
             ) : (
-              <SummaryComponent orders={orders} />
+              <SummaryComponent orders={orders} date={date.toString()} />
             )}
           </div>
         </div>

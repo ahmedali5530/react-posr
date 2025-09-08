@@ -5,10 +5,11 @@ import {formatNumber, withCurrency} from "@/lib/utils.ts";
 
 interface Props {
   orders: { data?: Order[] }
+  date: string
 }
 
 export const Summary = ({
-  orders
+  orders, date
 }: Props) => {
   const exclusive = useMemo(() => {
     let total = 0;
@@ -179,6 +180,7 @@ export const Summary = ({
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{textAlign: 'center', marginBottom: '16px', fontSize: '24px'}}>Summary of {date}</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Exclusive amount</span>
           <span>{withCurrency(exclusive)}</span>

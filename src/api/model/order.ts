@@ -49,5 +49,5 @@ export interface OrderExtra extends ID{
 export enum OrderStatus {
   'In Progress' = 'In Progress',
   Paid = 'Paid',
-  Completed = 'Completed'
+  Cancelled = 'Cancelled'
 }

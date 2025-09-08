@@ -7,9 +7,9 @@ import {OrderPayment} from "@/components/orders/order.payment.tsx";
 import ScrollContainer from "react-indiana-drag-scroll";
 import {OrderHeader} from "@/components/orders/order.header.tsx";
 import {OrderTimes} from "@/components/orders/order.times.tsx";
-import {faBars, faCreditCard, faPrint} from "@fortawesome/free-solid-svg-icons";
+import {faBars, faCodeBranch, faCreditCard, faPrint, faChair, faMoneyBillTransfer} from "@fortawesome/free-solid-svg-icons";
 import {OrderItemName} from "@/components/common/order/order.item.tsx";
-import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.tsx";
+import {Dropdown, DropdownItem, DropdownSeparator} from "@/components/common/react-aria/dropdown.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {dispatchPrint} from "@/lib/print.service";
 import {PRINT_TYPE} from "@/lib/print.registry.tsx";
@@ -118,15 +118,34 @@ export const OrderBox = ({
             }}
           >
             {order.status === OrderStatus["In Progress"] && (
-              <DropdownItem id="temp_bill" key={order.id} className="min-w-[50px]">
-                <FontAwesomeIcon icon={faPrint} /> Print temp bill
-              </DropdownItem>
+              <>
+                <DropdownItem id="cancel" key={order.id} className="min-w-[50px] bg-danger-100 text-danger-500">
+                  <FontAwesomeIcon icon={faMoneyBillTransfer} /> Cancel order
+                </DropdownItem>
+                <DropdownSeparator />
+                <DropdownItem id="temp_bill" key={order.id} className="min-w-[50px]">
+                  <FontAwesomeIcon icon={faPrint} /> Print temp bill
+                </DropdownItem>
+                <DropdownSeparator />
+                <DropdownItem id="split_by_seats" key={order.id} className="min-w-[50px]">
+                  <FontAwesomeIcon icon={faChair} /> Split by seats
+                </DropdownItem>
+                <DropdownItem id="split_manually" key={order.id} className="min-w-[50px]">
+                  <FontAwesomeIcon icon={faCodeBranch} /> Split Manually
+                </DropdownItem>
+              </>
             )}
 
             {order.status === OrderStatus["Paid"] && (
-              <DropdownItem id="final_bill" key={order.id} className="min-w-[50px]">
-                <FontAwesomeIcon icon={faPrint} /> Print final bill
-              </DropdownItem>
+              <>
+                <DropdownItem id="refund" key={order.id} className="min-w-[50px] bg-danger-100 text-danger-500">
+                  <FontAwesomeIcon icon={faMoneyBillTransfer} /> Refund
+                </DropdownItem>
+                <DropdownSeparator />
+                <DropdownItem id="final_bill" key={order.id} className="min-w-[50px]">
+                  <FontAwesomeIcon icon={faPrint} /> Print final bill
+                </DropdownItem>
+              </>
             )}
           </Dropdown>
           {order.status === OrderStatus["In Progress"] && (
