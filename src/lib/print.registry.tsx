@@ -20,7 +20,7 @@ export function initializePrintTemplates() {
   ));
 
   registerPrintTemplate(PRINT_TYPE.summary, (payload: any) => (
-    <Summary orders={payload?.orders} />
+    <Summary {...payload} />
   ));
 }
 

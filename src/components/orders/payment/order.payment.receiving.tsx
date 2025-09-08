@@ -17,6 +17,8 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {toast} from "sonner";
 import {useAtom} from "jotai";
 import {appAlert} from "@/store/jotai.ts";
+import {dispatchPrint} from "@/lib/print.service.ts";
+import {PRINT_TYPE} from "@/lib/print.registry.tsx";
 
 interface Props {
   order: Order
@@ -169,12 +171,15 @@ export const OrderPaymentReceiving = ({
     return tendered - total;
   }, [total, tendered]);
 
-  const addPayment = (amount: string|number, paymentType: PaymentType, total: number) => {
+  const addPayment = (amount: string|number, paymentType: PaymentType, payable: number) => {
     if(amount.toString().length === 0){
       return;
     }
 
-    if(paymentType.type === 'Card' && changeDue === 0){
+    // Compute change due relative to this payable (may include tax for selected payment type)
+    const localChangeDue = tendered - payable;
+
+    if(paymentType.type === 'Card' && localChangeDue >= 0){
       setAlert(prev => ({
         ...prev,
         opened: true,
@@ -182,11 +187,10 @@ export const OrderPaymentReceiving = ({
         message: 'Cannot add more payment for card'
       }));
 
-      // toast.warning("Cannot add more payment for card");
       return;
     }
 
-    if(paymentType.type === 'Card' && Number(amount) > Number(-1 * changeDue)){
+    if(paymentType.type === 'Card' && Number(amount) > Number(-1 * localChangeDue)){
       setAlert(prev => ({
         ...prev,
         opened: true,
@@ -194,8 +198,7 @@ export const OrderPaymentReceiving = ({
         message: 'Added exact amount for card based payment'
       }));
 
-      // toast.warning("Added exact amount for card based payment");
-      amount = -1 * changeDue;
+      amount = -1 * localChangeDue;
     }
 
     setPayments(prev => [
@@ -203,7 +206,7 @@ export const OrderPaymentReceiving = ({
       {
         payment_type: paymentType,
         amount: Number(amount),
-        payable: total,
+        payable: payable,
         id: nanoid()
       }
     ])
@@ -214,6 +217,30 @@ export const OrderPaymentReceiving = ({
     const txAmount = itemsTotal * taxRate / 100;
     const extrasTotal = Object.values(extras).reduce((prev, item) => prev + item, 0);
     return itemsTotal + extrasTotal + txAmount + serviceChargeAmount - discountAmount + tipAmount;
+  }
+
+  // Determine highest tax among existing payments, optionally considering a candidate tax
+  const getHighestTaxRate = (candidateRate?: number) => {
+    const existingRates = payments
+      .filter(p => !!p.payment_type.tax)
+      .map(p => (p.payment_type.tax as Tax).rate);
+    const currentMax = existingRates.length > 0 ? Math.max(...existingRates) : 0;
+    return candidateRate === undefined ? currentMax : Math.max(currentMax, candidateRate);
+  }
+
+  const getHighestTaxObject = (candidate?: Tax): Tax | undefined => {
+    const existingTaxes = payments
+      .filter(p => !!p.payment_type.tax)
+      .map(p => p.payment_type.tax as Tax);
+    let highest: Tax | undefined = existingTaxes.length > 0
+      ? existingTaxes.reduce((acc, t) => (acc.rate >= t.rate ? acc : t))
+      : undefined;
+    if(candidate){
+      if(!highest || candidate.rate >= highest.rate){
+        highest = candidate;
+      }
+    }
+    return highest;
   }
 
   return (
@@ -261,46 +288,27 @@ export const OrderPaymentReceiving = ({
               variant="primary"
               key={item.id}
               onClick={() => {
+                // Determine the effective highest tax after choosing this payment type
+                const candidateTax = item.tax;
+                const highestTax = getHighestTaxObject(candidateTax);
+                const highestRate = highestTax ? highestTax.rate : 0;
+
+                // Keep order-level tax in sync with highest tax across selected payments
+                setTax && setTax(highestTax);
+
+                const payable = calculateTotal(highestRate);
+
                 if(selectedAmount.trim().length > 0){
-                  console.log('1')
-                  let amt = selectedAmount;
-                  // first add tax and then apply the payment
-                  if(item.tax) {
-                    amt = calculateTotal(item.tax.rate).toString();
-                    setSelectedAmount(amt);
-                  }
-                }else if(selectedAmount.trim().length === 0 && changeDue < 0) {
-                  console.log('2')
-                  if(item.tax) {
-                    console.log('2.1')
-                    setTax(item.tax);
-                    const amt = calculateTotal(item.tax.rate).toString();
-                    setSelectedAmount(amt);
-
-                    addPayment(amt, item, total)
-                  }else {
-                    console.log('2.2')
-                    addPayment(-1 * changeDue, item, total)
-                  }
-
-                }else if(tax !== item.tax && changeDue < 0) {
-                  console.log('3')
-                  let amt = selectedAmount;
-                  // first add tax and then apply the payment
-                  if(item.tax) {
-                    console.log('3.1')
-                    setTax(item.tax);
-                    amt = calculateTotal(item.tax.rate).toString();
-                    setSelectedAmount(amt);
-
-                    addPayment(amt, item, total)
-                  }else {
-                    console.log('3.2')
-                    addPayment(amt, item, total)
-                  }
+                  // Respect typed amount; add with proper payable (includes highest tax)
+                  addPayment(selectedAmount, item, payable)
+                }else if(changeDue < 0) {
+                  // No typed amount: auto-fill remaining for convenience
+                  const remaining = payable - tendered;
+                  const amt = remaining.toString();
+                  setSelectedAmount(amt);
+                  addPayment(amt, item, payable)
                 }else {
-                  console.log('4')
-                  addPayment(selectedAmount, item, total)
+                  // Nothing typed and no remaining due – do nothing (card will be blocked inside addPayment)
                 }
               }}
               size="lg"
@@ -339,7 +347,18 @@ export const OrderPaymentReceiving = ({
               </Button>
             </div>
             <div className="flex gap-5">
-              <Button variant="primary" className="flex-1" flat icon={faPrint} size="lg">Temp bill</Button>
+              <Button
+                variant="primary"
+                className="flex-1"
+                flat
+                icon={faPrint}
+                size="lg"
+                onClick={() => {
+                  dispatchPrint(PRINT_TYPE.presale_bill, {
+                    order: order
+                  });
+                }}
+              >Temp bill</Button>
               <Button
                 variant="success"
                 className="flex-1"

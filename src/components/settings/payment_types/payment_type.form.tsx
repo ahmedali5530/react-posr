@@ -56,10 +56,10 @@ export const PaymentTypeForm = ({
           label: data.type,
           value: data.type
         },
-        tax: {
+        tax: (data.tax ? {
           label: `${data?.tax?.name} ${data?.tax?.rate}%`,
           value: data?.tax?.id
-        }
+        } : undefined)
       });
     }
   }, [data]);
@@ -80,8 +80,6 @@ export const PaymentTypeForm = ({
   const types = [
     'Cash', 'Card', 'Points'
   ];
-
-  console.log(errors)
 
   const onSubmit = async (values: any) => {
     const vals = {...values};

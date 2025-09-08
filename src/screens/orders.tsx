@@ -112,7 +112,7 @@ export const Orders = () => {
           <div className="h-[60px] flex-0 rounded-xl bg-white flex items-center px-3 gap-3">
             <div className="min-w-[200px]">
               <ReactSelect
-                options={[OrderStatus["In Progress"], OrderStatus.Paid, OrderStatus.Completed].map(item => ({
+                options={[OrderStatus["In Progress"], OrderStatus.Paid, OrderStatus.Cancelled].map(item => ({
                   label: item,
                   value: item
                 }))}

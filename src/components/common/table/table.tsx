@@ -364,7 +364,7 @@ export const TableComponent: FC<TableComponentProps> = ({
               </option>
             ))}
           </select>{" "}
-          &bull; <span>{t("Total records")}</span>{" "}
+          &bull; <span className="flex-grow flex-shrink-0">{t("Total records")}</span>{" "}
           <strong>{total}</strong>
         </span>
       </div>

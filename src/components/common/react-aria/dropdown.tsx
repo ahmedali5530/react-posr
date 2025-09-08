@@ -5,7 +5,7 @@ import {
   MenuProps,
   MenuTrigger,
   MenuTriggerProps,
-  Popover
+  Popover, Separator
 } from 'react-aria-components';
 import { ReactNode } from "react";
 import { Button } from "@/components/common/input/button.tsx";
@@ -55,5 +55,11 @@ export function DropdownItem(props: MenuItemProps) {
         </>
       )}
     </MenuItem>
+  );
+}
+
+export function DropdownSeparator(){
+  return (
+    <Separator className="bg-gray-300 h-[1px] mx-3 my-1" />
   );
 }
