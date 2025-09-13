@@ -16,9 +16,10 @@ import {nanoid} from "nanoid";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {toast} from "sonner";
 import {useAtom} from "jotai";
-import {appAlert} from "@/store/jotai.ts";
+import {appAlert, appPage} from "@/store/jotai.ts";
 import {dispatchPrint} from "@/lib/print.service.ts";
 import {PRINT_TYPE} from "@/lib/print.registry.tsx";
+import {StringRecordId} from "surrealdb";
 
 interface Props {
   order: Order
@@ -79,6 +80,7 @@ export const OrderPaymentReceiving = ({
   const keyboardKeys = [1, 2, 3, 4, 5, 6, 7, 8, 9, '.', 0];
 
   const [closing, setClosing] = useState(false);
+  const [page, setPage] = useAtom(appPage);
 
   const closeOrder = async () => {
     setClosing(true);
@@ -88,7 +90,7 @@ export const OrderPaymentReceiving = ({
       const orderPayments = [];
       for (const payment of payments) {
         const orderPayment = await db.create(Tables.order_payment, {
-          amount: tendered,
+          amount: payment.amount,
           payment_type: payment.payment_type.id,
           comments: '',
           payable: total
@@ -108,6 +110,8 @@ export const OrderPaymentReceiving = ({
         extraOptions.push(record[0].id);
       }
 
+      console.log(serviceChargeAmount)
+
       await db.merge(order.id, {
         status: OrderStatus.Paid,
         payments: orderPayments,
@@ -120,7 +124,8 @@ export const OrderPaymentReceiving = ({
         tip_amount: tipAmount,
         tip_type: tipType,
         service_charge: serviceCharge,
-        service_charge_amount: serviceChargeAmount
+        service_charge_amount: serviceChargeAmount,
+        cashier: new StringRecordId(page?.user?.id.toString()),
       });
 
       onComplete();
