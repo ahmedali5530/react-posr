@@ -7,7 +7,7 @@ import {OrderPayment} from "@/components/orders/order.payment.tsx";
 import ScrollContainer from "react-indiana-drag-scroll";
 import {OrderHeader} from "@/components/orders/order.header.tsx";
 import {OrderTimes} from "@/components/orders/order.times.tsx";
-import {faBars, faCodeBranch, faCreditCard, faPrint, faChair, faMoneyBillTransfer} from "@fortawesome/free-solid-svg-icons";
+import {faEllipsisV, faCodeBranch, faCreditCard, faPrint, faChair, faMoneyBillTransfer, faObjectGroup} from "@fortawesome/free-solid-svg-icons";
 import {OrderItemName} from "@/components/common/order/order.item.tsx";
 import {Dropdown, DropdownItem, DropdownSeparator} from "@/components/common/react-aria/dropdown.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
@@ -98,7 +98,7 @@ export const OrderBox = ({
         </div>
         <div className="flex gap-5">
           <Dropdown
-            label={<><FontAwesomeIcon icon={faBars} className="mr-3"/> More</>}
+            label={<><FontAwesomeIcon icon={faEllipsisV} className="mr-3"/> More</>}
             btnSize="lg"
             btnFlat={true}
             className="flex-1"
@@ -123,15 +123,15 @@ export const OrderBox = ({
                   <FontAwesomeIcon icon={faMoneyBillTransfer} /> Cancel order
                 </DropdownItem>
                 <DropdownSeparator />
-                <DropdownItem id="temp_bill" key={order.id} className="min-w-[50px]">
-                  <FontAwesomeIcon icon={faPrint} /> Print temp bill
-                </DropdownItem>
-                <DropdownSeparator />
                 <DropdownItem id="split_by_seats" key={order.id} className="min-w-[50px]">
                   <FontAwesomeIcon icon={faChair} /> Split by seats
                 </DropdownItem>
                 <DropdownItem id="split_manually" key={order.id} className="min-w-[50px]">
                   <FontAwesomeIcon icon={faCodeBranch} /> Split Manually
+                </DropdownItem>
+                <DropdownSeparator />
+                <DropdownItem id="merge" key={order.id} className="min-w-[50px]">
+                  <FontAwesomeIcon icon={faObjectGroup} /> Merge orders
                 </DropdownItem>
               </>
             )}
@@ -143,7 +143,7 @@ export const OrderBox = ({
                 </DropdownItem>
                 <DropdownSeparator />
                 <DropdownItem id="final_bill" key={order.id} className="min-w-[50px]">
-                  <FontAwesomeIcon icon={faPrint} /> Print final bill
+                  <FontAwesomeIcon icon={faPrint} /> Print final bill copy
                 </DropdownItem>
               </>
             )}
