@@ -23,20 +23,20 @@ export const OrderPaymentTip = ({
 
   return (
     <div className="flex flex-col justify-between h-full">
-      <div className="mb-5 flex justify-between">
+      <div className="mb-5 flex justify-between flex-col gap-5">
         <Button variant="danger" active={tip === 0} onClick={() => setTip(0)} size="lg">No Tip</Button>
         <div className="input-group">
           <Button
             size="lg" variant="primary" active={tipType === DiscountType.Percent}
             onClick={() => setTipType(DiscountType.Percent)}
-            className="min-w-[150px]"
+            className="min-w-[150px] flex-1"
           >
             {DiscountType.Percent}
           </Button>
           <Button
             size="lg" variant="primary" active={tipType === DiscountType.Fixed}
             onClick={() => setTipType(DiscountType.Fixed)}
-            className="min-w-[150px]"
+            className="min-w-[150px] flex-1"
           >
             {DiscountType.Fixed}
           </Button>

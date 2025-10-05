@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { appSettings, appState } from "@/store/jotai.ts";
+import {appAlert, appPage, appSettings, appState} from "@/store/jotai.ts";
 import { CSSProperties, useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/common/input/button.tsx";
 import { cn } from "@/lib/utils.ts";
@@ -26,6 +26,8 @@ export const FloorLayout = () => {
   const db = useDB();
   const [liveQuery, setLiveQuery] = useState(null);
   const [tablesLiveQuery, setTablesLiveQuery] = useState(null);
+  const [page] = useAtom(appPage);
+  const [, setAlert] = useAtom(appAlert);
 
   const {
     data: floors
@@ -75,8 +77,8 @@ export const FloorLayout = () => {
     runTablesLiveQuery().then();
 
     return () => {
-      db.db.kill(liveQuery).then(() => console.log('live query killed'));
-      db.db.kill(tablesLiveQuery).then(() => console.log('tables live query killed'));
+      db.db.kill(liveQuery).then();
+      db.db.kill(tablesLiveQuery).then();
     }
   }, []);
 
@@ -100,7 +102,6 @@ export const FloorLayout = () => {
   }, [orders]);
 
   const tableOrder = useCallback((tableId: string) => {
-
     return orders?.data?.find(item =>
       item.table.id.toString() === tableId.toString()
     )
@@ -108,7 +109,12 @@ export const FloorLayout = () => {
 
   const onClick = async (item: Table) => {
     if( item.is_locked ) {
-      toast.warning(`${item.locked_by} is already taking order on this table`);
+      setAlert(prev => ({
+        ...prev,
+        message: `${item.locked_by} is already taking order on this table`,
+        type: 'error',
+        opened: true
+      }))
     }
 
     if( !item.is_block && !item.is_locked ) {
@@ -140,19 +146,20 @@ export const FloorLayout = () => {
         },
         switchTable: false, // turn off switch table flag
         customer: order?.customer, // clear customer
+        orderType: (item.order_types?.length > 0 ? item.order_types : orderTypes?.data)[0]
       }));
 
       setSettings(prev => ({
         ...prev,
         categories: item.categories?.length > 0 ? item.categories : categories?.data,
         order_types: item.order_types?.length > 0 ? item.order_types : orderTypes?.data,
-        payment_types: item.payment_types?.length > 0 ? item.payment_types : paymentTypes?.data
+        payment_types: item.payment_types?.length > 0 ? item.payment_types : paymentTypes?.data,
       }));
 
       await db.merge(item.id, {
         is_locked: true,
         locked_at: DateTime.now().toJSDate(),
-        locked_by: 'Kashif'
+        locked_by: `${page.user.first_name} ${page.user.last_name}`
       });
     }
   }

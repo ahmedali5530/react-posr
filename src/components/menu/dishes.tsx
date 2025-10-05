@@ -76,6 +76,7 @@ export const MenuDishes = () => {
                 item={item}
                 key={index}
                 level={0}
+                price={item.price}
               />
             ))}
           </SwiperSlide>

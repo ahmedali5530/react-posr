@@ -3,7 +3,7 @@ import { Order } from "@/api/model/order.ts";
 import { OrderItem } from "@/api/model/order_item.ts";
 
 export const calculateCartItemPrice = (item: MenuItem) => {
-  let price =  item.dish.price * item.quantity;
+  let price =  item.price * item.quantity;
   if(item?.selectedGroups) {
     price += item?.selectedGroups?.reduce((prev, modifier) =>
         prev + modifier?.selectedModifiers.reduce((mPrev, mItem) => calculateCartItemPrice(mItem) + mPrev, 0)
@@ -17,7 +17,13 @@ export const calculateOrderItemPrice = (item: OrderItem) => {
   let price = item.price * item.quantity;
   if(item?.modifiers) {
     price += item?.modifiers?.reduce((prev, modifier) =>
-      prev + modifier?.selectedModifiers?.reduce((smPrev, smG) => smPrev + calculateCartItemPrice(smG), 0)
+      prev + modifier?.selectedModifiers?.reduce((smPrev, smG) => {
+        if(smG) {
+          return smPrev + calculateCartItemPrice(smG)
+        }
+
+        return 0;
+      }, 0)
     , 0);
   }
 

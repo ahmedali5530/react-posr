@@ -80,7 +80,7 @@ export const MenuDishModifiers = (props: Props) => {
 
     if( group && group.modifiers.length === group.required_modifiers && props.editing !== true ) {
       group.modifiers.forEach(dish => {
-        onModifierClick(buildModifiersObj(dish.dish));
+        onModifierClick(buildModifiersObj(dish.dish, dish.selectedGroups, dish.price));
       });
     }
   }, [props.dish, group, state.seat, props.level, props.editing]);
@@ -95,7 +95,7 @@ export const MenuDishModifiers = (props: Props) => {
         ) {
           const newGroup = {...group};
           // delete newGroup.selectedModifiers;
-          grp.selectedModifiers.push(buildModifiersObj(d.dish, selectedGroups));
+          grp.selectedModifiers.push(buildModifiersObj(d.dish, selectedGroups, d.price));
         }
       }
     });
@@ -103,7 +103,7 @@ export const MenuDishModifiers = (props: Props) => {
     setGroups(newGroups);
   }
 
-  const buildModifiersObj = (dish: Dish, groups?: CartModifierGroup[]): MenuItem => {
+  const buildModifiersObj = (dish: Dish, groups?: CartModifierGroup[], price?: number): MenuItem => {
     return {
       dish: dish,
       seat: state.seat,
@@ -112,7 +112,8 @@ export const MenuDishModifiers = (props: Props) => {
       level: props.level,
       selectedGroups: groups,
       isModifier: true,
-      newOrOld: MenuItemType.new
+      newOrOld: MenuItemType.new,
+      price: price
     }
   }
 
@@ -120,7 +121,7 @@ export const MenuDishModifiers = (props: Props) => {
     if( grp.has_required_modifiers && grp.selectedModifiers.length < grp.required_modifiers ) {
       return 'bg-danger-200';
     } else if( grp.has_required_modifiers && grp.selectedModifiers.length === grp.required_modifiers) {
-      return ''; //'bg-success-200';
+      return 'bg-white'; //'bg-success-200';
     }
 
     return 'bg-white';
@@ -174,12 +175,12 @@ export const MenuDishModifiers = (props: Props) => {
       {props.dish && (
         <div className="!grid grid-cols-7 gap-3">
           <div className="col-span-1 flex flex-col rounded-3xl bg-neutral-100">
-            <ScrollContainer className="modifiers-swiper">
+            <ScrollContainer className="modifiers-swiper flex flex-col gap-[5px]">
               {groups.map((item, index) => (
                 <span
                   className={
                     cn(
-                      'flex flex-col items-center justify-center p-1 cursor-pointer min-h-[56px]',
+                      'flex flex-col items-center justify-center p-1 cursor-pointer min-h-[56px] shadow',
                       index === 0 && 'rounded-t-3xl',
                       index + 1 === groups.length && 'rounded-b-3xl',
                       group?.out?.id === item.out.id ? 'bg-gradient' : requireClass(item)
@@ -220,6 +221,7 @@ export const MenuDishModifiers = (props: Props) => {
                         key={mIndex}
                         level={props.level + 1}
                         isModifier
+                        price={modifier.price}
                       />
                     ))}
                   </SwiperSlide>

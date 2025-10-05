@@ -9,19 +9,26 @@ export const connect = async () => {
   if (db) return db;
   db = new Surreal();
   try {
-    await db.connect(withApi('/rpc'));
+    await db.connect(withApi(''), {
+      namespace: DB_REST_NS,
+      database: DB_REST_DB,
+      auth: {
+        username: DB_REST_USER,
+        password: DB_REST_PASS,
+      }
+    });
 
     await db.ready;
 
-    await db.use({
-      namespace: DB_REST_NS,
-      database: DB_REST_DB,
-    });
-
-    await db.signin({
-      username: DB_REST_USER,
-      password: DB_REST_PASS,
-    });
+    // await db.use({
+    //   namespace: DB_REST_NS,
+    //   database: DB_REST_DB,
+    // });
+    //
+    // await db.signin({
+    //   username: DB_REST_USER,
+    //   password: DB_REST_PASS,
+    // });
 
     return db;
   }catch(err){

@@ -135,7 +135,9 @@ export const FloorTable = ({
         <>
           {isLateOrder && (
             <span
-              className="absolute -top-3 -left-3 rounded-full h-6 w-6 flex items-center justify-center bg-white text-danger-500 shadow">
+              className="absolute -top-3 -left-3 rounded-full h-6 w-6 flex items-center justify-center bg-white text-danger-500 shadow"
+              title="More then 2 hours"
+            >
               <FontAwesomeIcon icon={faExclamationCircle} beat/>
             </span>
           )}

@@ -17,12 +17,16 @@ export const PrintFinalBill: React.FC<Props> = ({order, duplicate}) => {
     return itemsTotal + extrasTotal + Number(order?.tax_amount ?? 0) - Number(order?.discount_amount ?? 0) + Number(order.service_charge_amount ?? 0) + Number(order?.tip_amount ?? 0);
   }, [itemsTotal, order]);
 
+  const payments= useMemo(() => {
+    return order?.payments?.reduce((prev, item) => prev + Number(item.amount), 0);
+  }, [order]);
+
   return (
     <div style={{padding: 12, fontFamily: 'monospace', width: 280}}>
       <div style={{textAlign: 'center', marginBottom: 8}}>
         <strong>{duplicate ? 'Duplicate ' : ''}Final Bill</strong>
       </div>
-      <CommonBillParts order={order} itemsTotal={itemsTotal}/>
+      <CommonBillParts order={order} itemsTotal={itemsTotal} total={total}/>
       <hr/>
       {order?.payments?.map((item, index) => (
         <div key={index} style={{display: 'flex'}}>
@@ -32,8 +36,8 @@ export const PrintFinalBill: React.FC<Props> = ({order, duplicate}) => {
       ))}
       <hr/>
       <div style={{display: 'flex', fontWeight: 'bold'}}>
-        <div style={{flex: 1}}>Total</div>
-        <div style={{textAlign: 'right'}}>{withCurrency(total)}</div>
+        <div style={{flex: 1}}>Change</div>
+        <div style={{textAlign: 'right'}}>{withCurrency(payments - total)}</div>
       </div>
     </div>
   );
