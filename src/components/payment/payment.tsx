@@ -1,16 +1,17 @@
-import { Button } from "@/components/common/input/button.tsx";
-import { faCancel, faCheck, faCreditCard } from "@fortawesome/free-solid-svg-icons";
-import React, { useMemo, useState } from "react";
-import { useAtom } from "jotai";
-import { appPage, appState } from "@/store/jotai.ts";
-import { calculateCartItemPrice } from "@/lib/cart.ts";
-import { useDB } from "@/api/db/db.ts";
-import { DateTime } from "luxon";
-import { Tables } from "@/api/db/tables.ts";
-import { Order, OrderStatus } from "@/api/model/order.ts";
-import { OrderPayment } from "@/components/orders/order.payment.tsx";
-import { withCurrency } from "@/lib/utils.ts";
-import { RecordId, StringRecordId } from "surrealdb";
+import {Button} from "@/components/common/input/button.tsx";
+import {faCancel, faCheck, faCreditCard} from "@fortawesome/free-solid-svg-icons";
+import React, {useMemo, useState} from "react";
+import {useAtom} from "jotai";
+import {appPage, appState} from "@/store/jotai.ts";
+import {calculateCartItemPrice} from "@/lib/cart.ts";
+import {useDB} from "@/api/db/db.ts";
+import {DateTime} from "luxon";
+import {Tables} from "@/api/db/tables.ts";
+import {Order, OrderStatus} from "@/api/model/order.ts";
+import {OrderPayment} from "@/components/orders/order.payment.tsx";
+import {withCurrency} from "@/lib/utils.ts";
+import {StringRecordId} from "surrealdb";
+import {MenuItemType} from "@/api/model/cart_item.ts";
 
 export const Payment = () => {
   const db = useDB();
@@ -185,6 +186,15 @@ export const Payment = () => {
     }
   }
 
+  const cancel = async () => {
+    setState(prev => ({
+      ...prev,
+      seats: [],
+      cart: prev.cart.filter(item => item.newOrOld === MenuItemType.old),
+      seat: undefined
+    }))
+  }
+
   return (
     <>
       <div className="font-bold">
@@ -205,12 +215,7 @@ export const Payment = () => {
                     disabled={isLoading || state.cart.length === 0} isLoading={isLoading}>To kitchen</Button>
             <Button variant="warning" filled className="flex-1" size="lg" icon={faCreditCard} onClick={openPayment}
                     disabled={isLoading || state.cart.length === 0} isLoading={isLoading}>Pay Now</Button>
-            <Button variant="danger" className="flex-1" size="lg" icon={faCancel} onClick={() => setState(prev => ({
-              ...prev,
-              seats: [],
-              cart: [],
-              seat: undefined
-            }))} disabled={isLoading}>Cancel</Button>
+            <Button variant="danger" className="flex-1" size="lg" icon={faCancel} onClick={cancel} disabled={isLoading}>Cancel</Button>
           </div>
         </div>
       </div>

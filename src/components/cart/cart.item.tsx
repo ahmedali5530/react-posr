@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { MenuItem } from "@/api/model/cart_item.ts";
-import { useAtom } from "jotai/index";
+import { useAtom } from "jotai";
 import { appState } from "@/store/jotai.ts";
 import { cn } from "@/lib/utils.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPencil, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/components/common/input/button.tsx";
 import { MenuDishModifiers } from "@/components/menu/modifiers.tsx";
+import {Input} from "@/components/common/input/input.tsx";
 
 interface Props {
   item: MenuItem
@@ -56,9 +57,24 @@ export const CartItem = ({ item, index }: Props) => {
                 }))
               }}
             ><FontAwesomeIcon icon={faPlus}/></Button>
-            <Button flat className="min-w-[56px]">
-              {item.quantity}
-            </Button>
+            <Input
+              type="number"
+              enableKeyboard
+              value={item.quantity}
+              onChange={(e) => {
+                console.log(e.target.value)
+                setState(prev => ({
+                  ...prev,
+                  cart: prev.cart.map((_item) => {
+                    if( item.id === _item.id ) {
+                      _item.quantity = Number(e.target.value);
+                    }
+                    return _item;
+                  })
+                }))
+              }}
+              className="!w-[60px] !border-0 !bg-white"
+            />
             {item.quantity <= 1 ? (
               <Button
                 flat
@@ -150,7 +166,7 @@ export const CartItemName = ({ item }: Omit<Props, "index">) => {
         '--padding': (item.level * 0.875) + 'rem'
       } as any}>
         <span>{item.dish.name}</span>
-        <span>{item.dish.price * item.quantity}</span>
+        <span>{item.price * item.quantity}</span>
       </div>
       {item?.selectedGroups?.map(group =>
         <div className="border-[3px] border-l-warning-500 border-r-0 border-y-0 mb-2" key={group.out?.id}>

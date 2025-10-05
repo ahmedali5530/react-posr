@@ -28,6 +28,7 @@ export const Customers = ({
                 name: event.target.value
               }
             }))}
+            enableKeyboard
           />
         </div>
         <div>
@@ -42,6 +43,7 @@ export const Customers = ({
                 phone: Number(event.target.value)
               }
             }))}
+            enableKeyboard
           />
         </div>
         <div>
@@ -55,13 +57,14 @@ export const Customers = ({
                 address: event.target.value
               }
             }))}
+            enableKeyboard
           />
         </div>
         <Button type="button" variant="primary" filled onClick={onAttach}>Attach</Button>
       </div>
       <div className="h-[2px] bg-gray-300 my-5"/>
       <div className="mb-3">
-        <Input placeholder="Search" className="search-field" onChange={(event) => setSearch(event.target.value)} />
+        <Input placeholder="Search" className="search-field" onChange={(event) => setSearch(event.target.value)} enableKeyboard />
       </div>
 
       <div className="mb-3">

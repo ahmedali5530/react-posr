@@ -17,9 +17,10 @@ interface Props {
   item: Dish
   level: number
   isModifier?: boolean
+  price: number
 }
 
-export const MenuDish = ({ onClick, item, level, isModifier }: Props) => {
+export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => {
   const db = useDB();
   const [state] = useAtom(appState);
 
@@ -69,7 +70,8 @@ export const MenuDish = ({ onClick, item, level, isModifier }: Props) => {
               level: level,
               selectedGroups: [],
               newOrOld: MenuItemType.new,
-              category: state.category ? state.category?.name : (item.categories.length === 1 ? item.categories[0].name : '')
+              category: state.category ? state.category?.name : (item.categories.length === 1 ? item.categories[0].name : ''),
+              price: price
             })
           }
         }}
@@ -87,7 +89,7 @@ export const MenuDish = ({ onClick, item, level, isModifier }: Props) => {
           <div className="flex flex-col px-3 py-2">
             <span className="flex flex-row gap-2 mb-1">
               <span
-                className="rounded-full border border-neutral-700 py-1 px-3 text-xs font-bold text-warning-700">{withCurrency(item.price)}</span>
+                className="rounded-full border border-neutral-700 py-1 px-3 text-xs font-bold text-warning-700">{withCurrency(price)}</span>
             </span>
             <h6 className="text-ellipsis line-clamp-2 flex-shrink flex-grow-0 text-pretty"
                 title={item.name}>
@@ -126,7 +128,8 @@ export const MenuDish = ({ onClick, item, level, isModifier }: Props) => {
                 isModifier,
                 level: level,
                 newOrOld: MenuItemType.new,
-                category: state.category ? state.category?.name : (item.categories.length === 1 ? item.categories[0].name : '')
+                category: state.category ? state.category?.name : (item.categories.length === 1 ? item.categories[0].name : ''),
+                price: price
               }, payload);
             }
             setModifiersModal(false);

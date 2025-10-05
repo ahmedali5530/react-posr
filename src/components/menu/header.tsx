@@ -92,6 +92,7 @@ export const MenuHeader = () => {
             id: item.id,
             selectedGroups: item.modifiers || [] as any,
             newOrOld: MenuItemType.old,
+            price: item.price
           }))
         ],
         seats: Array.from(seats.values()),

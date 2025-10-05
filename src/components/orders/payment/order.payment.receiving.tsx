@@ -46,13 +46,15 @@ interface Props {
 
   setServiceChargeAmount: (amt: number) => void
   serviceChargeAmount: number
-
   serviceCharge: number
+  serviceChargeType: DiscountType
+
+  notes: string
 }
 
 export const OrderPaymentReceiving = ({
   total, order, onComplete, extras, setTax, tax, taxAmount, discount, discountAmount, tipType, tip, tipAmount,
-  payments, setPayments, itemsTotal, serviceChargeAmount, serviceCharge
+  payments, setPayments, itemsTotal, serviceChargeAmount, serviceCharge, serviceChargeType, notes
 }: Props) => {
   const db = useDB();
   const [alert, setAlert] = useAtom(appAlert);
@@ -110,8 +112,6 @@ export const OrderPaymentReceiving = ({
         extraOptions.push(record[0].id);
       }
 
-      console.log(serviceChargeAmount)
-
       await db.merge(order.id, {
         status: OrderStatus.Paid,
         payments: orderPayments,
@@ -125,7 +125,9 @@ export const OrderPaymentReceiving = ({
         tip_type: tipType,
         service_charge: serviceCharge,
         service_charge_amount: serviceChargeAmount,
+        service_charge_type: serviceChargeType,
         cashier: new StringRecordId(page?.user?.id.toString()),
+        notes: notes
       });
 
       onComplete();

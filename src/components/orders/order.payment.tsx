@@ -1,25 +1,25 @@
-import { Order } from "@/api/model/order.ts";
-import { Modal } from "@/components/common/react-aria/modal.tsx";
-import { OrderHeader } from "@/components/orders/order.header.tsx";
+import {Order} from "@/api/model/order.ts";
+import {Modal} from "@/components/common/react-aria/modal.tsx";
+import {OrderHeader} from "@/components/orders/order.header.tsx";
 import ScrollContainer from "react-indiana-drag-scroll";
-import React, { CSSProperties, useEffect, useMemo, useState } from "react";
-import { OrderTimes } from "@/components/orders/order.times.tsx";
-import { calculateOrderTotal } from "@/lib/cart.ts";
-import { cn, withCurrency } from "@/lib/utils.ts";
-import { OrderPaymentReceiving } from "@/components/orders/payment/order.payment.receiving.tsx";
-import { OrderPaymentTax } from "@/components/orders/payment/order.payment.tax.tsx";
-import { Tax } from "@/api/model/tax.ts";
-import { Discount, DiscountType } from "@/api/model/discount.ts";
-import { OrderPaymentDiscount } from "@/components/orders/payment/order.payment.discount.tsx";
-import { OrderPaymentServiceCharges } from "@/components/orders/payment/order.payment.service_charges.tsx";
-import { OrderPaymentTip } from "@/components/orders/payment/order.payment.tip.tsx";
-import { PaymentType } from "@/api/model/payment_type.ts";
+import React, {CSSProperties, useEffect, useMemo, useState} from "react";
+import {OrderTimes} from "@/components/orders/order.times.tsx";
+import {calculateOrderTotal} from "@/lib/cart.ts";
+import {cn, withCurrency} from "@/lib/utils.ts";
+import {OrderPaymentReceiving} from "@/components/orders/payment/order.payment.receiving.tsx";
+import {OrderPaymentTax} from "@/components/orders/payment/order.payment.tax.tsx";
+import {Tax} from "@/api/model/tax.ts";
+import {Discount, DiscountType} from "@/api/model/discount.ts";
+import {OrderPaymentDiscount} from "@/components/orders/payment/order.payment.discount.tsx";
+import {OrderPaymentServiceCharges} from "@/components/orders/payment/order.payment.service_charges.tsx";
+import {OrderPaymentTip} from "@/components/orders/payment/order.payment.tip.tsx";
 import {faPencil} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {OrderPayment as OrderPaymentModal} from "@/api/model/order_payment.ts";
 import {dispatchPrint} from "@/lib/print.service.ts";
 import {PRINT_TYPE} from "@/lib/print.registry.tsx";
 import {useDB} from "@/api/db/db.ts";
+import {OrderPaymentNotes} from "@/components/orders/payment/order.payment.notes.tsx";
 
 interface Props {
   order: Order
@@ -32,7 +32,8 @@ enum PaymentOptions {
   Coupon = 'Coupon',
   Tax = 'Tax',
   'Service Charges' = 'Service Charges',
-  Tip = 'Tip'
+  Tip = 'Tip',
+  Notes = 'Notes'
 }
 
 const extraItems = {
@@ -62,10 +63,13 @@ export const OrderPayment = ({
 
   const [serviceCharge, setServiceCharge] = useState(0);
   const [serviceChargeAmount, setServiceChargeAmount] = useState(0);
+  const [serviceChargeType, setServiceChargeType] = useState<DiscountType>(DiscountType.Percent);
 
   const [tip, setTip] = useState(0);
   const [tipType, setTipType] = useState<DiscountType>(DiscountType.Percent);
   const [tipAmount, setTipAmount] = useState(0);
+
+  const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if(tax){
@@ -85,11 +89,15 @@ export const OrderPayment = ({
 
   useEffect(() => {
     if(serviceCharge){
-      setServiceChargeAmount(itemsTotal * serviceCharge / 100)
+      setServiceChargeAmount(
+        serviceChargeType === DiscountType.Percent ?
+          itemsTotal * serviceCharge / 100 :
+          serviceCharge
+      )
     }else{
       setServiceChargeAmount(0);
     }
-  }, [serviceCharge, itemsTotal]);
+  }, [serviceCharge, itemsTotal, serviceChargeType]);
 
   const total = useMemo(() => {
     const extrasTotal = Object.values(extras).reduce((prev, item) => prev + item, 0);
@@ -176,7 +184,7 @@ export const OrderPayment = ({
                 mode === PaymentOptions['Service Charges'] && 'bg-neutral-900 text-warning-500'
               )
             } onClick={() => setMode(PaymentOptions['Service Charges'])}>
-              <div>Service charges ({serviceCharge}%) <FontAwesomeIcon icon={faPencil}/></div>
+              <div>Service charges ({serviceCharge}{serviceChargeType === DiscountType.Percent ? '%' : ''}) <FontAwesomeIcon icon={faPencil}/></div>
               <div className="text-right">{withCurrency(serviceChargeAmount)}</div>
             </div>
 
@@ -210,6 +218,15 @@ export const OrderPayment = ({
                 <div className="text-right">{withCurrency(extras[extra])}</div>
               </div>
             ))}
+            <div className={
+              cn(
+                "flex justify-between p-3 cursor-pointer",
+                mode === PaymentOptions.Notes && 'bg-neutral-900 text-warning-500'
+              )
+            } onClick={() => setMode(PaymentOptions.Notes)}>
+              <div>Notes <FontAwesomeIcon icon={faPencil}/></div>
+              <div className="text-right">{notes}</div>
+            </div>
 
             <div className="flex justify-between p-3">
               <div className="text-2xl">Total</div>
@@ -218,25 +235,30 @@ export const OrderPayment = ({
           </div>
         </div>
         <div className="bg-neutral-100 rounded-xl flex flex-col p-3">
-            {mode === PaymentOptions.Tax && (
-              <OrderPaymentTax tax={tax} setTax={setTax}/>
-            )}
-            {mode === PaymentOptions.Discount && (
-              <OrderPaymentDiscount
-                discount={discount} setDiscount={setDiscount}
-                discountAmount={discountAmount} setDiscountAmount={setDiscountAmount}
-                itemsTotal={itemsTotal}
-              />
-            )}
-            {mode === PaymentOptions['Service Charges'] && (
-              <OrderPaymentServiceCharges
-                serviceCharge={serviceCharge}
-                setServiceCharge={setServiceCharge}
-              />
-            )}
-            {mode === PaymentOptions.Tip && (
-              <OrderPaymentTip tip={tip} setTip={setTip} tipType={tipType} setTipType={setTipType}/>
-            )}
+          {mode === PaymentOptions.Tax && (
+            <OrderPaymentTax tax={tax} setTax={setTax}/>
+          )}
+          {mode === PaymentOptions.Discount && (
+            <OrderPaymentDiscount
+              discount={discount} setDiscount={setDiscount}
+              discountAmount={discountAmount} setDiscountAmount={setDiscountAmount}
+              itemsTotal={itemsTotal}
+            />
+          )}
+          {mode === PaymentOptions['Service Charges'] && (
+            <OrderPaymentServiceCharges
+              serviceCharge={serviceCharge}
+              setServiceCharge={setServiceCharge}
+              setServiceChargeType={setServiceChargeType}
+              serviceChargeType={serviceChargeType}
+            />
+          )}
+          {mode === PaymentOptions.Tip && (
+            <OrderPaymentTip tip={tip} setTip={setTip} tipType={tipType} setTipType={setTipType}/>
+          )}
+          {mode === PaymentOptions.Notes && (
+            <OrderPaymentNotes setNotes={setNotes} notes={notes} />
+          )}
         </div>
         <div className="flex p-3 flex-col bg-neutral-100 rounded-xl col-span-2">
           <OrderPaymentReceiving
@@ -258,6 +280,8 @@ export const OrderPayment = ({
             serviceChargeAmount={serviceChargeAmount}
             setServiceChargeAmount={setServiceChargeAmount}
             serviceCharge={serviceCharge}
+            serviceChargeType={serviceChargeType}
+            notes={notes}
           />
         </div>
       </div>

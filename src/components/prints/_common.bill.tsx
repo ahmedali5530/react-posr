@@ -8,10 +8,11 @@ import {DiscountType} from "@/api/model/discount.ts";
 interface Props {
   order: Order
   itemsTotal: number
+  total: number
 }
 
 export const CommonBillParts = ({
-  order, itemsTotal
+  order, itemsTotal, total
 }: Props) => {
   return (
     <>
@@ -76,6 +77,11 @@ export const CommonBillParts = ({
             <div style={{ textAlign: 'right' }}>{withCurrency(order?.tip_amount)}</div>
           </div>
         )}
+        <hr/>
+        <div style={{display: 'flex', fontWeight: 'bold'}}>
+          <div style={{flex: 1}}>Total</div>
+          <div style={{textAlign: 'right'}}>{withCurrency(total)}</div>
+        </div>
       </div>
     </>
   );

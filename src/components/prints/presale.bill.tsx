@@ -20,12 +20,7 @@ export const PrintPresaleBill: React.FC<Props> = ({order}) => {
       <div style={{textAlign: 'center', marginBottom: 8}}>
         <strong>Pre-Sale Bill</strong>
       </div>
-      <CommonBillParts order={order} itemsTotal={itemsTotal}/>
-      <hr/>
-      <div style={{display: 'flex', fontWeight: 'bold'}}>
-        <div style={{flex: 1}}>Total</div>
-        <div style={{textAlign: 'right'}}>{withCurrency(total)}</div>
-      </div>
+      <CommonBillParts order={order} itemsTotal={itemsTotal} total={total}/>
     </div>
   );
 }
