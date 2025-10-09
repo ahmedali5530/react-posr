@@ -1,4 +1,4 @@
-import {forwardRef, InputHTMLAttributes, ReactNode, Ref, useCallback, useMemo, useRef, useState} from "react";
+import {forwardRef, InputHTMLAttributes, ReactNode, Ref, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {NumericFormat} from "react-number-format";
 import {cn} from "@/lib/utils.ts";
 import {nanoid} from "nanoid";
@@ -64,9 +64,21 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
     if (!enableKeyboard) return;
     // prevent the input from gaining focus; we'll manage keyboard explicitly
     e.preventDefault();
+    e.stopPropagation();
     setKeyboardValue(props.value?.toString() || '');
     setShowKeyboard(true);
   }, [enableKeyboard, props.value]);
+
+  // Keep internal keyboardValue in sync with external value when keyboard is not open
+  useEffect(() => {
+    if (!enableKeyboard) return;
+    if (!showKeyboard) {
+      const next = props.value?.toString() || '';
+      if (next !== keyboardValue) {
+        setKeyboardValue(next);
+      }
+    }
+  }, [props.value, enableKeyboard, showKeyboard]);
 
   const id = nanoid();
 

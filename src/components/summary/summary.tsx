@@ -344,9 +344,7 @@ export const Summary = ({
             <span>{withCurrency(extras[extra])}</span>
           </div>
         ))}
-
       </div>
-
     </>
   );
 }

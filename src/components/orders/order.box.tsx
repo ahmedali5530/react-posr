@@ -65,7 +65,7 @@ export const OrderBox = ({
           ) : ''}
           {order?.service_charge && order?.service_charge > 0 ? (
             <div className="flex">
-              <div className="flex-1">Service charges ({order?.service_charge}%)</div>
+              <div className="flex-1">Service charges ({order?.service_charge}{order?.service_charge_type === DiscountType.Percent ? '%' : ''})</div>
               <div className="text-right">{withCurrency(order?.service_charge_amount)}</div>
             </div>
           ) : ''}

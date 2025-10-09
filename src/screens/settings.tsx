@@ -1,7 +1,7 @@
 import { Layout } from "@/screens/partials/layout.tsx";
 import { Button } from "@/components/common/input/button.tsx";
 import { useState } from "react";
-import { useAtom } from "jotai/index";
+import { useAtom } from "jotai";
 import { appSettings } from "@/store/jotai.ts";
 
 export const Settings = () => {

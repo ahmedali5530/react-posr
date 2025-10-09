@@ -32,7 +32,7 @@ export const MenuCategories = () => {
           key={index}
           className={cn(
             categoryClasses,
-            state?.category?.id?.toString() === item?.id?.toString() ? 'bg-gradient' : 'bg-white'
+            state?.category?.id?.toString() === item?.id?.toString() ? 'bg-gradient' : 'bg-white border-3 border-transparent'
           )}
           onClick={() => setState(prev => ({
             ...prev,

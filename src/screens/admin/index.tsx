@@ -42,7 +42,7 @@ export const Admin = () => {
         onSelectionChange={(key: string) => setSelected(key)}
       >
         <ScrollContainer mouseScroll hideScrollbars={false} className="flex-grow-0 flex-shrink">
-          <TabList aria-label="Tabs" className="flex flex-row gap-3 px-1 py-3 flex-nowrap border-t-0 border-x-0 border-4">
+          <TabList aria-label="Tabs" className="flex flex-row gap-3 px-1 py-3 flex-nowrap border-t-0 border-x-0 border-4 bg-white">
             {Object.keys(pages).map(key => (
               <Tab id={key} key={key}>{pages[key].title}</Tab>
             ))}

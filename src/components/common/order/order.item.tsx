@@ -20,6 +20,9 @@ export const OrderItemName = ({
         {showQuantity && <span className="flex-0 w-[50px] text-right">{formatNumber(item.quantity)}</span>}
         {showPrice && <span className="flex-0 w-[70px] text-right">{formatNumber(calculateOrderItemPrice(item))}</span>}
       </div>
+      {item.comments && (
+        <span className="flex-1 text-xs italic text-danger-500">({item.comments})</span>
+      )}
       {item?.modifiers?.length > 0 && (
         <div className="pl-3 flex flex-col">
           {item?.modifiers?.map(modifier => (

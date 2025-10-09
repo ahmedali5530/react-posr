@@ -1,4 +1,4 @@
-import {forwardRef, HTMLProps, Ref, useCallback, useRef, useState} from "react";
+import {forwardRef, HTMLProps, Ref, useCallback, useEffect, useRef, useState} from "react";
 import { cn } from "@/lib/utils.ts";
 import {VirtualKeyboard} from "@/components/common/input/virtual.keyboard.tsx";
 
@@ -42,6 +42,17 @@ export const Textarea = forwardRef((
       });
     }
   }, []);
+
+  // Keep internal keyboardValue in sync with external value when keyboard is not open
+  useEffect(() => {
+    if (!enableKeyboard) return;
+    if (!showKeyboard) {
+      const next = (props.value as any)?.toString?.() || '';
+      if (next !== keyboardValue) {
+        setKeyboardValue(next);
+      }
+    }
+  }, [props.value, enableKeyboard, showKeyboard]);
 
   return (
     <>

@@ -61,7 +61,7 @@ export const CommonBillParts = ({
         )}
         {order?.service_charge && order?.service_charge > 0 ? (
           <div style={{ display: 'flex' }}>
-            <div style={{ flex: 1 }}>Service charges ({order?.service_charge}%)</div>
+            <div style={{ flex: 1 }}>Service charges ({order?.service_charge}{order?.service_charge_type === DiscountType.Percent ? '%' : ''})</div>
             <div style={{ textAlign: 'right' }}>{withCurrency(order?.service_charge_amount)}</div>
           </div>
         ) : ''}
