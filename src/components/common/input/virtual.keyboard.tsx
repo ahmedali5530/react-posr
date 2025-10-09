@@ -104,7 +104,7 @@ export function VirtualKeyboard(props: VirtualKeyboardProps) {
         <div className="mb-4">
           <input
             type={type}
-            className="form-control w-full"
+            className="input xl w-full"
             placeholder={placeholder}
             value={value}
             readOnly

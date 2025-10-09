@@ -26,6 +26,7 @@ export interface Order extends ID{
   tax?: Tax
   tax_amount?: number
 
+  service_charge_type?: string
   service_charge?: number
   service_charge_amount?: number
 

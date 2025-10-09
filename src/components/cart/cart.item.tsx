@@ -1,13 +1,14 @@
-import React, { useState } from "react";
-import { MenuItem } from "@/api/model/cart_item.ts";
-import { useAtom } from "jotai";
-import { appState } from "@/store/jotai.ts";
-import { cn } from "@/lib/utils.ts";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMinus, faPencil, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { Button } from "@/components/common/input/button.tsx";
-import { MenuDishModifiers } from "@/components/menu/modifiers.tsx";
+import React, {useState} from "react";
+import {MenuItem, MenuItemType} from "@/api/model/cart_item.ts";
+import {useAtom} from "jotai";
+import {appState} from "@/store/jotai.ts";
+import {cn} from "@/lib/utils.ts";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faMinus, faPencil, faPlus, faTrash, faComment} from "@fortawesome/free-solid-svg-icons";
+import {Button} from "@/components/common/input/button.tsx";
+import {MenuDishModifiers} from "@/components/menu/modifiers.tsx";
 import {Input} from "@/components/common/input/input.tsx";
+import {VirtualKeyboard} from "@/components/common/input/virtual.keyboard.tsx";
 
 interface Props {
   item: MenuItem
@@ -17,6 +18,8 @@ interface Props {
 export const CartItem = ({ item, index }: Props) => {
   const [_state, setState] = useAtom(appState);
   const [isModifiersOpen, setModifiersOpen] = useState(false);
+  const [isCommentKeyboardOpen, setCommentKeyboardOpen] = useState(false);
+  const [commentText, setCommentText] = useState(item.comments || "");
 
   return (
     <>
@@ -42,92 +45,135 @@ export const CartItem = ({ item, index }: Props) => {
       >
         <div className="flex flex-col items-start gap-3">
           <div className="flex gap-2 items-center">
-            <Button
-              flat
-              iconButton
-              onClick={() => {
-                setState(prev => ({
-                  ...prev,
-                  cart: prev.cart.map((_item) => {
-                    if( item.id === _item.id ) {
-                      _item.quantity++;
-                    }
-                    return _item;
-                  })
-                }))
-              }}
-            ><FontAwesomeIcon icon={faPlus}/></Button>
-            <Input
-              type="number"
-              enableKeyboard
-              value={item.quantity}
-              onChange={(e) => {
-                console.log(e.target.value)
-                setState(prev => ({
-                  ...prev,
-                  cart: prev.cart.map((_item) => {
-                    if( item.id === _item.id ) {
-                      _item.quantity = Number(e.target.value);
-                    }
-                    return _item;
-                  })
-                }))
-              }}
-              className="!w-[60px] !border-0 !bg-white"
-            />
-            {item.quantity <= 1 ? (
-              <Button
-                flat
-                iconButton
-                variant={'danger'}
-                onClick={() => {
-                  setState(prev => ({
-                    ...prev,
-                    cart: prev.cart.filter((_item) => {
-                      if( item.id !== _item.id ) {
+            {item.newOrOld === MenuItemType.new && (
+              <>
+                <Button
+                  flat
+                  iconButton
+                  variant="primary"
+                  onClick={() => {
+                    setState(prev => ({
+                      ...prev,
+                      cart: prev.cart.map((_item) => {
+                        if( item.id === _item.id ) {
+                          _item.quantity++;
+                        }
                         return _item;
-                      }
-                    })
-                  }))
-                }}
-              ><FontAwesomeIcon icon={faTrash}/></Button>
-            ) : (
-              <Button
-                flat
-                iconButton
-                onClick={() => {
-                  setState(prev => ({
-                    ...prev,
-                    cart: prev.cart.map((_item) => {
-                      if( item.id === _item.id ) {
-                        if( _item.quantity === 1 ) {
+                      })
+                    }))
+                  }}
+                ><FontAwesomeIcon icon={faPlus}/></Button>
+                <Input
+                  type="number"
+                  enableKeyboard
+                  value={item.quantity}
+                  onChange={(e) => {
+                    setState(prev => ({
+                      ...prev,
+                      cart: prev.cart.map((_item) => {
+                        if( item.id === _item.id ) {
+                          _item.quantity = Number(e.target.value);
+                        }
+                        return _item;
+                      })
+                    }))
+                  }}
+                  className="!w-[60px] !border-0 !bg-white"
+                />
+                {item.quantity <= 1 ? (
+                  <Button
+                    flat
+                    iconButton
+                    variant={'danger'}
+                    onClick={() => {
+                      setState(prev => ({
+                        ...prev,
+                        cart: prev.cart.filter((_item) => {
+                          if( item.id !== _item.id ) {
+                            return _item;
+                          }
+                        })
+                      }))
+                    }}
+                  ><FontAwesomeIcon icon={faTrash}/></Button>
+                ) : (
+                  <Button
+                    flat
+                    iconButton
+                    variant="primary"
+                    onClick={() => {
+                      setState(prev => ({
+                        ...prev,
+                        cart: prev.cart.map((_item) => {
+                          if( item.id === _item.id ) {
+                            if( _item.quantity === 1 ) {
+                              return _item;
+                            }
+
+                            _item.quantity--;
+                          }
+                          return _item;
+                        })
+                      }))
+                    }}
+                  ><FontAwesomeIcon icon={faMinus}/></Button>
+                )}
+              </>
+            )}
+
+            {item.newOrOld === MenuItemType.old && (
+              <>
+                <span className="input">{item.quantity}</span>
+                <Button
+                  flat
+                  iconButton
+                  variant={'danger'}
+                  onClick={() => {
+                    setState(prev => ({
+                      ...prev,
+                      cart: prev.cart.filter((_item) => {
+                        if( item.id !== _item.id ) {
                           return _item;
                         }
-
-                        _item.quantity--;
-                      }
-                      return _item;
-                    })
-                  }))
-                }}
-              ><FontAwesomeIcon icon={faMinus}/></Button>
+                      })
+                    }))
+                  }}
+                ><FontAwesomeIcon icon={faTrash}/></Button>
+              </>
             )}
           </div>
-          {item?.selectedGroups?.length > 0 && (
-            <>
-              <Button
-                flat
-                variant="primary"
-                iconButton
-                onClick={() => {
-                  setModifiersOpen(true)
-                }}
-              ><FontAwesomeIcon icon={faPencil}/></Button>
-            </>
-          )}
+          <div>
+            {item?.selectedGroups?.length > 0 && (
+              <>
+                <Button
+                  flat
+                  variant="primary"
+                  iconButton
+                  onClick={() => {
+                    setModifiersOpen(true)
+                  }}
+                ><FontAwesomeIcon icon={faPencil}/></Button>
+              </>
+            )}
+            {item.newOrOld === MenuItemType.new && (
+              <>
+                <Button
+                  flat
+                  variant="primary"
+                  iconButton
+                  onClick={() => {
+                    setCommentText(item.comments || "");
+                    setCommentKeyboardOpen(true);
+                  }}
+                >
+                  <FontAwesomeIcon icon={faComment}/>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
         <div className="flex-grow items-center">
-          <CartItemName item={item}/>
+          <CartItemName item={item} />
         </div>
       </div>
       {isModifiersOpen && (
@@ -151,6 +197,27 @@ export const CartItem = ({ item, index }: Props) => {
               })
             }))
           }}
+        />
+      )}
+      {isCommentKeyboardOpen && (
+        <VirtualKeyboard
+          open={isCommentKeyboardOpen}
+          onClose={() => {
+            setCommentKeyboardOpen(false);
+            setState(prev => ({
+              ...prev,
+              cart: prev.cart.map((_item) => {
+                if (item.id === _item.id) {
+                  _item.comments = commentText;
+                }
+                return _item;
+              })
+            }));
+          }}
+          type="text"
+          placeholder="Add comment"
+          value={commentText}
+          onChange={(v) => setCommentText(v)}
         />
       )}
     </>

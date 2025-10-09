@@ -313,6 +313,9 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
   &.lg {
     @apply min-h-[48px];
   }
+  &.xl{
+    @apply min-h-[56px];
+  }
   &.with-feedback {
     background-repeat: no-repeat;
     background-size: 20px;
@@ -404,6 +407,7 @@ table th {
   height: 72px;
   font-size: 24px;
   text-transform: unset;
+  box-shadow: 3px 3px 8px rgba(0,0,0,0.4);
 
   &:active {
     @apply bg-neutral-900;
@@ -865,4 +869,27 @@ table th {
   &:before{
     content: '';
   }
+}
+:root {
+  --btn-color: #14dcff; /* change this to any light color */
+}
+
+.pillow-btn {
+  background: linear-gradient(
+                  180deg,
+                  color-mix(in srgb, var(--btn-color) 85%, white),
+                  color-mix(in srgb, var(--btn-color) 85%, black)
+  );
+  color: color-mix(in srgb, var(--btn-color) 10%, black);
+  font-size: 16px;
+  border-radius: 30px;
+  box-shadow: 3px 3px 6px color-mix(in srgb, var(--btn-color) 60%, black),
+  -3px -3px 6px color-mix(in srgb, var(--btn-color) 80%, white);
+  cursor: pointer;
+  transition: all 0.1s linear;
+}
+
+.pillow-btn:active {
+  box-shadow: inset 4px 4px 8px color-mix(in srgb, var(--btn-color) 60%, black),
+  inset -4px -4px 8px color-mix(in srgb, var(--btn-color) 80%, white);
 }

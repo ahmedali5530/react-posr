@@ -45,7 +45,7 @@ export const MenuCart = () => {
           )}
           <ScrollContainer className="gap-1 flex flex-col">
             {cartItems.map((item, index) => (
-              <CartItem item={item} key={index} index={index}/>
+              <CartItem item={item} key={index} index={index} type={item.newOrOld}/>
             ))}
           </ScrollContainer>
         </div>
