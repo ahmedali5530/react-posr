@@ -185,6 +185,7 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
   line-height: 1;
   transition: all linear 100ms;
   border-radius: var(--radius);
+  white-space: nowrap;
   &:active{
     transform: scale(var(--scale));
   }
@@ -196,7 +197,11 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
   }
   &.xl{
     @apply min-h-[54px] text-xl;
+    &.btn-square{
+      @apply min-w-[54px];
+    }
   }
+
   &:disabled, &.disabled {
     @apply cursor-not-allowed pointer-events-none select-none opacity-50;
   }
@@ -315,6 +320,9 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
   }
   &.xl{
     @apply min-h-[56px];
+  }
+  &.flat{
+    @apply border-none;
   }
   &.with-feedback {
     background-repeat: no-repeat;

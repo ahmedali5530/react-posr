@@ -1,13 +1,14 @@
-import React, { useMemo } from "react";
-import { Button } from "@/components/common/input/button.tsx";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
-import { useAtom } from "jotai";
-import { appState } from "@/store/jotai.ts";
+import React, {useMemo} from "react";
+import {Button} from "@/components/common/input/button.tsx";
+import {faTrash} from "@fortawesome/free-solid-svg-icons";
+import {useAtom} from "jotai";
+import {appState} from "@/store/jotai.ts";
 import ScrollContainer from "react-indiana-drag-scroll";
-import { CartItem } from "@/components/cart/cart.item.tsx";
-import { Payment } from "@/components/payment/payment.tsx";
-import { Seats } from "@/components/cart/seats.tsx";
-import { CartActions } from "@/components/cart/cart.actions.tsx";
+import {CartItem} from "@/components/cart/cart.item.tsx";
+import {Payment} from "@/components/payment/payment.tsx";
+import {Seats} from "@/components/cart/seats.tsx";
+import {CartActions} from "@/components/cart/cart.actions.tsx";
+import {MenuItemType} from "@/api/model/cart_item.ts";
 
 export const MenuCart = () => {
   const [state, setState] = useAtom(appState);
@@ -19,6 +20,14 @@ export const MenuCart = () => {
   const isSelected = useMemo(() => {
     return state.cart.find(item => item.isSelected) !== undefined;
   }, [state.cart]);
+
+  const newItems = useMemo(() => {
+    return cartItems.filter(item => item.newOrOld === MenuItemType.new);
+  }, [cartItems]);
+
+  const oldItems = useMemo(() => {
+    return cartItems.filter(item => item.newOrOld === MenuItemType.old);
+  }, [cartItems]);
 
   return (
     <>
@@ -44,8 +53,14 @@ export const MenuCart = () => {
             </div>
           )}
           <ScrollContainer className="gap-1 flex flex-col">
-            {cartItems.map((item, index) => (
-              <CartItem item={item} key={index} index={index} type={item.newOrOld}/>
+            {newItems.map((item, index) => (
+              <CartItem item={item} key={index} index={index}/>
+            ))}
+            {newItems.length > 0 && oldItems.length > 0 && (
+              <div className="h-1 bg-neutral-500 my-3 rounded-full"></div>
+            )}
+            {oldItems.map((item, index) => (
+              <CartItem item={item} key={index} index={index}/>
             ))}
           </ScrollContainer>
         </div>

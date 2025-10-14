@@ -92,7 +92,9 @@ export const MenuHeader = () => {
             id: item.id,
             selectedGroups: item.modifiers || [] as any,
             newOrOld: MenuItemType.old,
-            price: item.price
+            price: item.price,
+            updated_at: item.updated_at,
+            deleted_at: item.deleted_at
           }))
         ],
         seats: Array.from(seats.values()),
