@@ -25,6 +25,12 @@ export const KitchenOrder = ({
     }
   }
 
+  const singleReady = async (item: string) => {
+    await db.merge(item, {
+      completed_at: DateTime.now().toJSDate()
+    });
+  }
+
   return (
     <div className="bg-white rounded-xl shadow">
       <div className={
@@ -54,7 +60,9 @@ export const KitchenOrder = ({
       </div>
       <div className="p-3">
         {order.items.map(item => (
-          <div className="flex flex-col" key={item.id}>
+          <div
+            onClick={() => singleReady(item.id)}
+            className="flex flex-col" key={item.id}>
             <OrderItemName item={item.order_item} showQuantity />
           </div>
         ))}
