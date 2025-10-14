@@ -96,7 +96,7 @@ export function VirtualKeyboard(props: VirtualKeyboardProps) {
       size="lg"
       shouldCloseOnEsc
       shouldCloseOnOverlayClick
-      title={<>&nbsp;</>}
+      title={placeholder}
       shouldCenter
       bottomSheet
     >
@@ -119,7 +119,7 @@ export function VirtualKeyboard(props: VirtualKeyboardProps) {
                     key={`${rowIndex}-${keyIndex}`}
                     className={
                       cn(
-                        "btn btn-keyboard",
+                        "btn btn-primary btn-flat xl btn-square",
                         key === '*clear' && '!bg-danger-500 text-white',
                         key === '*bs' && '!bg-danger-500 text-white',
                         key === '*space' && '!w-[250px]'
@@ -134,7 +134,7 @@ export function VirtualKeyboard(props: VirtualKeyboardProps) {
                   <button
                     className={
                       cn(
-                        "btn btn-keyboard",
+                        "btn btn-primary btn-flat xl btn-square !normal-case",
                         key === '*clear' && '!bg-danger-500 text-white',
                         key === '*space' && '!w-[250px]',
                         key === '*bs' && '!bg-danger-500 text-white',

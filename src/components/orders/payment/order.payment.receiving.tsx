@@ -251,8 +251,8 @@ export const OrderPaymentReceiving = ({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <div>
+    <div className="grid grid-cols-2 gap-5">
+      <div className="bg-white rounded-xl">
         <div className="mb-3 text-5xl p-5 text-center">
           {withCurrency(tendered)}
         </div>
@@ -377,7 +377,7 @@ export const OrderPaymentReceiving = ({
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-2 p-3">
+      <div className="flex flex-col gap-2 p-3 bg-white rounded-xl">
         {payments.map(payment => (
           <div
             className="flex justify-between text-lg cursor-pointer"

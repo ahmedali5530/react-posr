@@ -9,6 +9,8 @@ import {Button} from "@/components/common/input/button.tsx";
 import {MenuDishModifiers} from "@/components/menu/modifiers.tsx";
 import {Input} from "@/components/common/input/input.tsx";
 import {VirtualKeyboard} from "@/components/common/input/virtual.keyboard.tsx";
+import {useDB} from "@/api/db/db.ts";
+import {DateTime} from "luxon";
 
 interface Props {
   item: MenuItem
@@ -16,31 +18,51 @@ interface Props {
 }
 
 export const CartItem = ({ item, index }: Props) => {
-  const [_state, setState] = useAtom(appState);
+  const db = useDB();
+  const [, setState] = useAtom(appState);
   const [isModifiersOpen, setModifiersOpen] = useState(false);
   const [isCommentKeyboardOpen, setCommentKeyboardOpen] = useState(false);
   const [commentText, setCommentText] = useState(item.comments || "");
+
+  const deleteOrderItem = async (item: MenuItem) => {
+    // TODO: ask for pin to confirm deletion
+    await db.merge(item.id, {
+      deleted_at: DateTime.now().toJSDate()
+    });
+
+
+    // setState(prev => ({
+    //   ...prev,
+    //   cart: prev.cart.filter((_item) => {
+    //     if( item.id !== _item.id ) {
+    //       return _item;
+    //     }
+    //   })
+    // }))
+  }
 
   return (
     <>
       <div
         className={cn(
-          "px-3 py-2 flex rounded-2xl gap-3 cursor-pointer items-start",
+          "px-3 py-2 flex rounded-2xl gap-3 cursor-pointer items-start select-none",
           item.isSelected ? 'bg-neutral-300' : (
             item.isHold ? 'bg-warning-100' : 'bg-neutral-100'
           ),
         )}
         onClick={() => {
-          setState(prev => ({
-            ...prev,
-            cart: prev.cart.map(ci => {
-              if( ci.id === item.id ) {
-                ci.isSelected = !ci.isSelected;
-              }
+          if(item.deleted_at === undefined) {
+            setState(prev => ({
+              ...prev,
+              cart: prev.cart.map(ci => {
+                if (ci.id === item.id) {
+                  ci.isSelected = !ci.isSelected;
+                }
 
-              return ci
-            })
-          }))
+                return ci
+              })
+            }))
+          }
         }}
       >
         <div className="flex flex-col items-start gap-3">
@@ -123,27 +145,23 @@ export const CartItem = ({ item, index }: Props) => {
 
             {item.newOrOld === MenuItemType.old && (
               <>
-                <span className="input">{item.quantity}</span>
-                <Button
-                  flat
-                  iconButton
-                  variant={'danger'}
-                  onClick={() => {
-                    setState(prev => ({
-                      ...prev,
-                      cart: prev.cart.filter((_item) => {
-                        if( item.id !== _item.id ) {
-                          return _item;
-                        }
-                      })
-                    }))
-                  }}
-                ><FontAwesomeIcon icon={faTrash}/></Button>
+                <span className="input justify-center items-center flat !bg-white">{item.quantity}</span>
+                {item.deleted_at === undefined && (
+                  <Button
+                    flat
+                    iconButton
+                    variant={'danger'}
+                    onClick={() => {
+                      deleteOrderItem(item)
+                    }}
+                  ><FontAwesomeIcon icon={faTrash}/></Button>
+                )}
+
               </>
             )}
           </div>
           <div>
-            {item?.selectedGroups?.length > 0 && (
+            {item.newOrOld === MenuItemType.new && item?.selectedGroups?.length > 0 && (
               <>
                 <Button
                   flat
@@ -152,6 +170,7 @@ export const CartItem = ({ item, index }: Props) => {
                   onClick={() => {
                     setModifiersOpen(true)
                   }}
+                  className="mr-2"
                 ><FontAwesomeIcon icon={faPencil}/></Button>
               </>
             )}
@@ -172,7 +191,12 @@ export const CartItem = ({ item, index }: Props) => {
             )}
           </div>
         </div>
-        <div className="flex-grow items-center">
+        <div className={
+          cn(
+            "flex-grow items-center",
+            item.deleted_at ? 'line-through text-danger-500' : ''
+          )
+        }>
           <CartItemName item={item} />
         </div>
       </div>

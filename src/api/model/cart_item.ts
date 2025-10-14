@@ -30,6 +30,10 @@ export interface MenuItem {
   isHold?: boolean
 
   newOrOld: MenuItemType
+
+  created_at?: string
+  updated_at?: string
+  deleted_at?: string
 }
 
 export interface CartModifierGroup extends DishModifierGroup {
