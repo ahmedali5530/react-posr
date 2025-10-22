@@ -31,6 +31,11 @@ export const KitchenOrder = ({
     });
   }
 
+  const isAddon = () => {
+    console.log(order.items)
+    return order.items.filter(item => item.order_item.is_addition).length > 0
+  }
+
   return (
     <div className="bg-white rounded-xl shadow">
       <div className={
@@ -55,7 +60,7 @@ export const KitchenOrder = ({
         </div>
         <div className="flex flex-col flex-1">
           <span className="text-lg font-bold px-1 rounded text-right">{order.order?.user?.first_name}</span>
-          <span className="text-right text-xl text-primary-500"></span>
+          <span className="text-right text-xl text-primary-500">{isAddon() ? 'ADDON' : ''}</span>
         </div>
       </div>
       <div className="p-3">

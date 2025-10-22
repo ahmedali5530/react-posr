@@ -61,8 +61,12 @@ export const Payment = () => {
         is_suspended: item.isHold,
         level: item.level,
         category: item.category,
-        is_addition: !isNewOrder
+        is_addition: false
       };
+
+      if(!isNewOrder && typeof item.id === 'string'){
+        itemData.is_addition = true
+      }
 
       if( item.id.toString().includes('order_item:') ) {
         itemData.updated_at = DateTime.now().toJSDate();
