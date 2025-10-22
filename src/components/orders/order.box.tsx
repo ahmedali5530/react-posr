@@ -32,7 +32,7 @@ export const OrderBox = ({
 
   return (
     <>
-      <div className="rounded-xl p-3 bg-white gap-5 flex flex-col shadow">
+      <div className="rounded-xl p-3 bg-white gap-5 flex flex-col shadow select-none">
         <OrderHeader order={order}/>
         <OrderTimes order={order}/>
         <div className="separator h-[2px]" style={{'--size': '10px', '--space': '5px'} as CSSProperties}></div>

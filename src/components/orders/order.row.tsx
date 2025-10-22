@@ -35,7 +35,7 @@ export const OrderRow = ({
           }
         }}
         className="flex flex-1 odd:bg-white even:bg-neutral-300 gap-1 select-none">
-        <div className="basis-[140px] p-4">{order?.invoice_number} - {order?.order_type?.name}</div>
+        <div className="basis-[140px] flex-shrink flex-grow-0 p-4">{order?.invoice_number} - {order?.order_type?.name}</div>
         <div className="basis-[100px] flex flex-col justify-center items-center" style={{
           color: order?.table.color,
           background: order.table?.background
