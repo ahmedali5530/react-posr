@@ -28,6 +28,10 @@ export const AdminPaymentTypes = () => {
       header: 'Tax',
       cell: info => info.getValue() && <span className="tag">{info.getValue()?.name} {info.getValue()?.rate}%</span>
     }),
+    columnHelper.accessor("discounts", {
+      header: 'Discounts',
+      cell: info => info.getValue()?.map(item => <span className="tag" key={item.id}>{item?.name}</span>)
+    }),
     columnHelper.accessor("priority", {
       header: 'Priority'
     }),

@@ -18,8 +18,15 @@ export const Settings = () => {
   }
 
   return (
-    <Layout>
-      <Button variant="primary" onClick={loadData} isLoading={isLoading}>Load data from file</Button>
+    <Layout containerClassName="p-5">
+      <div className="bg-white shadow p-5 rounded-lg">
+        <h1 className="text-3xl">Device settings</h1>
+        <p className="text-sm text-neutral-500">Settings will be saved on device not in database and will be same for all users logged into this device.</p>
+
+        <div className="mt-5">
+          <h4 className="text-xl">Default printer</h4>
+        </div>
+      </div>
     </Layout>
   );
 }

@@ -23,7 +23,7 @@ export const AdminKitchens = () => {
     }),
     columnHelper.accessor("printers", {
       header: 'Printers',
-      cell: info => info.getValue()?.map(item => <span className="tag">{item.name}</span>)
+      cell: info => info.getValue()?.map(item => <span className="tag" key={item.id}>{item.name}</span>)
     }),
     columnHelper.accessor("priority", {
       header: 'Priority'

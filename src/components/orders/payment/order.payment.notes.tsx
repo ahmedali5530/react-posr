@@ -19,6 +19,7 @@ export const OrderPaymentNotes = ({
   return (
     <div className="flex flex-col h-full">
       <h5 className="text-3xl">Any notes</h5>
+      <p className="text-neutral-500">You can write Card numbers or discount</p>
       <Textarea
         value={notes}
         onChange={(e) => setNotes(e.currentTarget.value)}

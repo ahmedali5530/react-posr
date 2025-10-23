@@ -183,6 +183,7 @@ export const FloorLayout = () => {
                   isLocked={item.is_locked}
                   onClick={() => onClick(item)}
                   key={item.id}
+                  numberOfOrders={tableOrders(item.id)?.length}
                 />
               ))}
             </>

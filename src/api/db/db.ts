@@ -45,9 +45,9 @@ export const useDB = () => {
   const query = async <T = any>(sql: string, parameters?: any): Promise<ActionResult<Record<string, T>>[]> => {
     // log sql in dev mode
     if(import.meta.env.DEV) {
-      // console.group('DB Debug')
-      // console.info(sql.trim(), parameters);
-      // console.groupEnd()
+      console.group('DB Debug')
+      console.info(sql.trim(), parameters);
+      console.groupEnd()
     }
 
     try {

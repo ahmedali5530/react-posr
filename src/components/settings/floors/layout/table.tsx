@@ -29,10 +29,11 @@ interface Props {
   onClick?: () => void
   onRemove?: () => void
   isLocked?: boolean
+  numberOfOrders?: number
 }
 
 export const FloorTable = ({
-  table, isEditing, onClick, onRemove, order, isLocked
+  table, isEditing, onClick, onRemove, order, isLocked, numberOfOrders
 }: Props) => {
   const db = useDB();
 
@@ -148,6 +149,12 @@ export const FloorTable = ({
             <Countdown time={order.created_at}/>
           </span>
           <div className="text-sm">({order?.user?.first_name})</div>
+          {Number(numberOfOrders) > 1 && (
+            <span className="text-xs font-bold rounded-2xl py-[2px] px-2 absolute -top-3 -right-3 shadow-lg" style={{
+              color: table.background,
+              background: table.color
+            }}>{numberOfOrders}</span>
+          )}
         </>
       )}
       <span className="text-2xl">{table.name}{table.number}</span>
