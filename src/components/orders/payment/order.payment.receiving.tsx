@@ -34,6 +34,8 @@ interface Props {
 
   discount?: Discount
   discountAmount?: number
+  setDiscount?: (discount?: Discount) => void
+  setDiscountAmount?: (amount: number) => void
 
   tip: number
   tipType?: DiscountType
@@ -53,7 +55,7 @@ interface Props {
 }
 
 export const OrderPaymentReceiving = ({
-  total, order, onComplete, extras, setTax, tax, taxAmount, discount, discountAmount, tipType, tip, tipAmount,
+  total, order, onComplete, extras, setTax, tax, taxAmount, discount, discountAmount, setDiscount, setDiscountAmount, tipType, tip, tipAmount,
   payments, setPayments, itemsTotal, serviceChargeAmount, serviceCharge, serviceChargeType, notes
 }: Props) => {
   const db = useDB();
@@ -140,6 +142,12 @@ export const OrderPaymentReceiving = ({
 
   const [selectedAmount, setSelectedAmount] = useState('');
 
+  // Track auto-applied discount originating from a payment type
+  const [autoDiscountMeta, setAutoDiscountMeta] = useState<{
+    paymentTypeId?: string
+    discountId?: string
+  }>();
+
   useEffect(() => {
     if (paymentTypes?.length > 0 && payments.length === 0) {
       // setPayments([{
@@ -220,10 +228,11 @@ export const OrderPaymentReceiving = ({
     setSelectedAmount('');
   }
 
-  const calculateTotal = (taxRate: number) => {
+  const calculateTotal = (taxRate: number, overrideDiscountAmount?: number) => {
     const txAmount = itemsTotal * taxRate / 100;
     const extrasTotal = Object.values(extras).reduce((prev, item) => prev + item, 0);
-    return itemsTotal + extrasTotal + txAmount + serviceChargeAmount - discountAmount + tipAmount;
+    const effectiveDiscount = overrideDiscountAmount !== undefined ? overrideDiscountAmount : (discountAmount ?? 0);
+    return itemsTotal + extrasTotal + txAmount + serviceChargeAmount - effectiveDiscount + tipAmount;
   }
 
   // Determine highest tax among existing payments, optionally considering a candidate tax
@@ -250,9 +259,70 @@ export const OrderPaymentReceiving = ({
     return highest;
   }
 
+  const selectBestDiscount = (discounts?: Discount[]): Discount | undefined => {
+    if(!discounts || discounts.length === 0){
+      return undefined;
+    }
+    // Prefer lowest priority value if provided, fallback to first
+    const withPriority = discounts.filter(d => (d as any).priority !== undefined) as (Discount & {priority: number})[];
+    if(withPriority.length > 0){
+      return withPriority.sort((a,b) => a.priority - b.priority)[0];
+    }
+    return discounts[0];
+  }
+
+  const computeDiscountAmountFor = (d?: Discount): number => {
+    if(!d){
+      return 0;
+    }
+    const hasVariableRates = (d.min_rate ?? 0) !== (d.max_rate ?? 0);
+    let computed = 0;
+    if(d.type === DiscountType.Percent){
+      // Use min_rate as default for auto-apply if variable
+      const rate = hasVariableRates ? (d.min_rate ?? 0) : (d.min_rate ?? 0);
+      computed = (rate * itemsTotal) / 100;
+    }else{ // Fixed
+      const base = d.min_rate ?? 0;
+      computed = base;
+    }
+    if(d.max_cap !== undefined && d.max_cap !== null){
+      computed = Math.min(computed, d.max_cap);
+    }
+    // Never exceed itemsTotal
+    computed = Math.min(computed, itemsTotal);
+    return computed;
+  }
+
+  const clearAutoDiscountIfNeeded = (newPaymentTypeId?: string) => {
+    if(autoDiscountMeta?.paymentTypeId && autoDiscountMeta.paymentTypeId !== newPaymentTypeId){
+      setDiscount && setDiscount(undefined);
+      setDiscountAmount && setDiscountAmount(0);
+      setAutoDiscountMeta(undefined);
+    }
+  }
+
+  const applyPaymentTypeDiscountIfAny = (paymentType: PaymentType): number => {
+    clearAutoDiscountIfNeeded(paymentType.id.toString());
+    const d = selectBestDiscount(paymentType.discounts);
+    const amount = computeDiscountAmountFor(d);
+    if(d){
+      setDiscount && setDiscount(d);
+      setDiscountAmount && setDiscountAmount(amount);
+      setAutoDiscountMeta({ paymentTypeId: paymentType.id.toString(), discountId: d.id.toString() });
+    }else{
+      // If no discount on this PT, and previous was auto, ensure cleared
+      if(autoDiscountMeta){
+        setDiscount && setDiscount(undefined);
+        setDiscountAmount && setDiscountAmount(0);
+        setAutoDiscountMeta(undefined);
+      }
+    }
+    return amount;
+  }
+
   return (
-    <div className="grid grid-cols-2 gap-5">
-      <div className="bg-white rounded-xl">
+    <div className="grid grid-cols-2 gap-5 h-[calc(100vh_-_150px)]">
+      <div className="bg-white rounded-xl h-full">
         <div className="mb-3 text-5xl p-5 text-center">
           {withCurrency(tendered)}
         </div>
@@ -270,7 +340,19 @@ export const OrderPaymentReceiving = ({
           <span
             className="btn btn-primary w-[100px] lg"
             onClick={() => {
-              addPayment(total, paymentTypes[0], total);
+              if(!paymentTypes || paymentTypes.length === 0){
+                return;
+              }
+              const pt = paymentTypes[0];
+              const hasTax = !!pt.tax;
+              const highestTax = hasTax ? getHighestTaxObject(pt.tax) : getHighestTaxObject(undefined);
+              if(hasTax){
+                setTax && setTax(highestTax);
+              }
+              const highestRate = hasTax ? (highestTax ? highestTax.rate : 0) : (tax ? tax.rate : getHighestTaxRate());
+              const autoDiscountAmount = applyPaymentTypeDiscountIfAny(pt);
+              const payable = calculateTotal(highestRate, autoDiscountAmount);
+              addPayment(total, pt, payable);
               setMode('quick');
             }}
           >{withCurrency(total)}</span>
@@ -279,7 +361,19 @@ export const OrderPaymentReceiving = ({
                 key={item}
                 className="btn btn-primary w-[100px] lg"
                 onClick={() => {
-                  addPayment(item, paymentTypes[0], total);
+                  if(!paymentTypes || paymentTypes.length === 0){
+                    return;
+                  }
+                  const pt = paymentTypes[0];
+                  const hasTax = !!pt.tax;
+                  const highestTax = hasTax ? getHighestTaxObject(pt.tax) : getHighestTaxObject(undefined);
+                  if(hasTax){
+                    setTax && setTax(highestTax);
+                  }
+                  const highestRate = hasTax ? (highestTax ? highestTax.rate : 0) : (tax ? tax.rate : getHighestTaxRate());
+                  const autoDiscountAmount = applyPaymentTypeDiscountIfAny(pt);
+                  const payable = calculateTotal(highestRate, autoDiscountAmount);
+                  addPayment(item, pt, payable);
                   setMode('quick');
                 }}
               >{withCurrency(item)}</span>
@@ -296,14 +390,22 @@ export const OrderPaymentReceiving = ({
               key={item.id}
               onClick={() => {
                 // Determine the effective highest tax after choosing this payment type
+                const hasTax = !!item.tax;
                 const candidateTax = item.tax;
-                const highestTax = getHighestTaxObject(candidateTax);
-                const highestRate = highestTax ? highestTax.rate : 0;
+                const highestTax = hasTax ? getHighestTaxObject(candidateTax) : getHighestTaxObject(undefined);
+                // Only update global tax when this payment type has a tax attached
+                if (hasTax) {
+                  setTax && setTax(highestTax);
+                }
+                // For non-tax payment types, use current order-level tax (or highest among existing payments)
+                const highestRate = hasTax
+                  ? (highestTax ? highestTax.rate : 0)
+                  : (tax ? tax.rate : getHighestTaxRate());
 
-                // Keep order-level tax in sync with highest tax across selected payments
-                setTax && setTax(highestTax);
+                // Apply discount(s) attached to the payment type (auto)
+                const autoDiscountAmount = applyPaymentTypeDiscountIfAny(item);
 
-                const payable = calculateTotal(highestRate);
+                const payable = calculateTotal(highestRate, autoDiscountAmount);
 
                 if(selectedAmount.trim().length > 0){
                   // Respect typed amount; add with proper payable (includes highest tax)
@@ -369,15 +471,17 @@ export const OrderPaymentReceiving = ({
               <Button
                 variant="success"
                 className="flex-1"
-                filled size="lg"
+                filled
+                size="lg"
                 onClick={closeOrder}
                 disabled={changeDue < 0 || closing}
+                flat
               >Complete</Button>
             </div>
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-2 p-3 bg-white rounded-xl">
+      <div className="flex flex-col gap-2 p-3 bg-white rounded-xl h-full">
         {payments.map(payment => (
           <div
             className="flex justify-between text-lg cursor-pointer"

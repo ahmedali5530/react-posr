@@ -131,7 +131,7 @@ export const OrderPayment = ({
       size="full"
     >
       <div className="grid grid-cols-4 gap-5 mb-5">
-        <div className="bg-white rounded-xl flex flex-col">
+        <div className="bg-white rounded-xl flex flex-col overflow-auto h-[calc(100vh_-_150px)]">
           <div className="p-3 flex gap-3 flex-col">
             <OrderHeader order={order}/>
             <OrderTimes order={order}/>
@@ -234,7 +234,7 @@ export const OrderPayment = ({
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl flex flex-col p-3">
+        <div className="bg-white rounded-xl flex flex-col p-3 h-[calc(100vh_-_150px)]">
           {mode === PaymentOptions.Tax && (
             <OrderPaymentTax tax={tax} setTax={setTax}/>
           )}
@@ -269,6 +269,8 @@ export const OrderPayment = ({
             setTax={setTax}
             discountAmount={discountAmount}
             discount={discount}
+            setDiscount={setDiscount}
+            setDiscountAmount={setDiscountAmount}
             tax={tax}
             taxAmount={taxAmount}
             tip={tip}

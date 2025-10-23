@@ -86,7 +86,7 @@ export const OrderPaymentDiscount = ({
 
   return (
     <div className="flex flex-col justify-between h-full">
-      <div className="flex gap-5 flex-wrap">
+      <div className="flex flex-col gap-5">
         <Button
           className="min-w-[150px]"
           variant="danger"
@@ -100,22 +100,24 @@ export const OrderPaymentDiscount = ({
         >
           No discount
         </Button>
-        {discounts?.data?.map(item => (
-          <Button
-            className="min-w-[150px]"
-            variant="primary"
-            active={item.id.toString() === discount?.id.toString()}
-            key={item.id}
-            onClick={() => {
-              addDiscount(item);
-            }}
-            size="lg"
-          >
-            {item.name}{' '}
-            ({item.min_rate === item.max_rate ? (item.type === DiscountType.Fixed ? withCurrency(item.min_rate) : item.min_rate) : `${item.min_rate} - ${item.max_rate}`}
-            {item.type === DiscountType.Percent && '%'})
-          </Button>
-        ))}
+        <div className="flex gap-5 flex-wrap">
+          {discounts?.data?.map(item => (
+            <Button
+              className="min-w-[150px]"
+              variant="primary"
+              active={item.id.toString() === discount?.id.toString()}
+              key={item.id}
+              onClick={() => {
+                addDiscount(item);
+              }}
+              size="lg"
+            >
+              {item.name}{' '}
+              ({item.min_rate === item.max_rate ? (item.type === DiscountType.Fixed ? withCurrency(item.min_rate) : item.min_rate) : `${item.min_rate} - ${item.max_rate}`}
+              {item.type === DiscountType.Percent && '%'})
+            </Button>
+          ))}
+        </div>
       </div>
       <div className="text-2xl text-center">
         {discount && (

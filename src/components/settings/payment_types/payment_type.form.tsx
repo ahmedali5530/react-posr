@@ -5,14 +5,15 @@ import { Controller, useForm } from "react-hook-form";
 import { useDB } from "@/api/db/db.ts";
 import { Tables } from "@/api/db/tables.ts";
 import { toast } from 'sonner';
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { PaymentType } from "@/api/model/payment_type.ts";
 import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Tax } from "@/api/model/tax.ts";
 import { StringRecordId } from "surrealdb";
+import {Discount} from "@/api/model/discount.ts";
 
 interface Props {
   open: boolean
@@ -20,17 +21,21 @@ interface Props {
   data?: PaymentType
 }
 
-const validationSchema = yup.object({
-  name: yup.string().required("This is required"),
-  priority: yup.number().required("This is required").typeError('This should be a number'),
-  type: yup.object({
-    label: yup.string(),
-    value: yup.string()
-  }).required('This is required'),
-  tax: yup.object({
-    label: yup.string(),
-    value: yup.string()
-  }).nullable()
+const validationSchema = z.object({
+  name: z.string().min(1, "This is required"),
+  priority: z.string().min(1, "This is required"),
+  type: z.object({
+    label: z.string(),
+    value: z.string()
+  }).required(),
+  tax: z.object({
+    label: z.string(),
+    value: z.string()
+  }).nullable(),
+  discounts: z.array(z.object({
+    label: z.string(),
+    value: z.string()
+  })).nullable()
 });
 
 export const PaymentTypeForm = ({
@@ -58,8 +63,12 @@ export const PaymentTypeForm = ({
         },
         tax: (data.tax ? {
           label: `${data?.tax?.name} ${data?.tax?.rate}%`,
-          value: data?.tax?.id
-        } : undefined)
+          value: data?.tax?.id?.toString()
+        } : undefined),
+        discounts: data?.discounts?.map(item => ({
+          label: item.name,
+          value: item.id.toString()
+        })),
       });
     }
   }, [data]);
@@ -73,8 +82,15 @@ export const PaymentTypeForm = ({
     enabled: false
   });
 
+  const {
+    data: discounts,
+    fetch: fetchDiscounts
+  } = useApi<SettingsData<Discount>>(Tables.discounts, ['max_rate = min_rate'], ['priority asc'], 0, 99999, [], {
+    enabled: false
+  });
+
   const { register, control, handleSubmit, formState: {errors}, reset } = useForm({
-    resolver: yupResolver(validationSchema)
+    resolver: zodResolver(validationSchema)
   });
 
   const types = [
@@ -88,6 +104,10 @@ export const PaymentTypeForm = ({
     vals.type = values.type.value;
     if(values.tax){
       vals.tax = new StringRecordId(values.tax.value);
+    }
+
+    if(values.discounts){
+      vals.discounts = values.discounts.map(item => new StringRecordId(item.value));
     }
 
     try {
@@ -112,6 +132,7 @@ export const PaymentTypeForm = ({
   useEffect(() => {
     if(open){
       fetchTaxes();
+      fetchDiscounts();
     }
   }, [open]);
 
@@ -183,6 +204,26 @@ export const PaymentTypeForm = ({
                 control={control}
               />
             </div>
+          </div>
+
+          <div className="flex-1 mb-3">
+            <label htmlFor="">Discounts</label>
+            <Controller
+              render={({ field }) => (
+                <ReactSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={discounts?.data?.map(item => ({
+                    label: item.name,
+                    value: item.id.toString()
+                  }))}
+                  isMulti
+                />
+              )}
+              name="discounts"
+              control={control}
+            />
+            <span className="text-sm text-neutral-500">Only fixed amount discounts can be applied</span>
           </div>
 
           <div>
