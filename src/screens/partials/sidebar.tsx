@@ -9,13 +9,25 @@ import {
   faList, faLock,
   faMotorcycle,
   faStore,
-  faUtensils, faWrench
+  faUtensils, faWarehouse, faWrench
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils.ts";
 import { Button } from "@/components/common/input/button.tsx";
 import { CSSProperties } from "react";
 import {NavLink, useNavigate} from "react-router";
-import {ADMIN, CLOSING, DELIVERY, KITCHEN, LOGIN, MENU, ORDERS, REPORTS, SETTINGS, SUMMARY} from "@/routes/posr.ts";
+import {
+  ADMIN,
+  CLOSING,
+  DELIVERY,
+  INVENTORY,
+  KITCHEN,
+  LOGIN,
+  MENU,
+  ORDERS,
+  REPORTS,
+  SETTINGS,
+  SUMMARY
+} from "@/routes/posr.ts";
 
 export const Sidebar = () => {
   const [page, setPage] = useAtom(appPage);
@@ -53,7 +65,8 @@ export const Sidebar = () => {
     { title: 'Delivery', icon: <FontAwesomeIcon icon={faMotorcycle} size="lg"/>, link: DELIVERY },
     { title: 'Closing', icon: <FontAwesomeIcon icon={faStore} size="lg"/>, link: CLOSING },
     { title: 'Reports', icon: <FontAwesomeIcon icon={faLineChart} size="lg"/>, link: REPORTS },
-    { title: 'Admin', icon: <FontAwesomeIcon icon={faGear} size="lg"/>, link: ADMIN },
+    { title: 'Inventory', icon: <FontAwesomeIcon icon={faWarehouse} size="lg"/>, link: INVENTORY },
+    { title: 'Manage', icon: <FontAwesomeIcon icon={faGear} size="lg"/>, link: ADMIN },
   ];
 
   return (

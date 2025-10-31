@@ -17,8 +17,9 @@ import {Delivery} from "@/screens/delivery.tsx";
 import {Admin} from "@/screens/admin";
 import {Reports} from "@/screens/reports.tsx";
 import {BrowserRouter, Route, Routes} from "react-router";
-import {ADMIN, CLOSING, DELIVERY, KITCHEN, MENU, ORDERS, REPORTS, SETTINGS, SUMMARY} from "@/routes/posr.ts";
+import {ADMIN, CLOSING, DELIVERY, INVENTORY, KITCHEN, MENU, ORDERS, REPORTS, SETTINGS, SUMMARY} from "@/routes/posr.ts";
 import {Settings} from "@/screens/settings.tsx";
+import {Inventory} from "@/screens/inventory.tsx";
 
 
 // connect to surrealDB via websocket
@@ -51,6 +52,7 @@ function App() {
               <Route path={REPORTS} element={<Reports/>}/>
               <Route path={ADMIN} element={<Admin/>}/>
               <Route path={SETTINGS} element={<Settings/>}/>
+              <Route path={INVENTORY} element={<Inventory/>}/>
             </Routes>
           </BrowserRouter>
         </PrintProvider>

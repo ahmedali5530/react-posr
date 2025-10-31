@@ -14,21 +14,41 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {dispatchPrint} from "@/lib/print.service";
 import {PRINT_TYPE} from "@/lib/print.registry.tsx";
 import {DiscountType} from "@/api/model/discount.ts";
+import {SplitBySeats} from "@/components/orders/split/split.seats.tsx";
+import {SplitItems} from "@/components/orders/split/split.items.tsx";
+import {SplitAmount} from "@/components/orders/split/split.amount.tsx";
+import {Checkbox} from "@/components/common/input/checkbox.tsx";
 
 interface Props {
   order: OrderModel
+  onMergeSelect?: (order: OrderModel, add: boolean) => void
+  mergingOrders: OrderModel[]
+  merging: boolean
 }
 
 export const OrderBox = ({
-  order
+  order, onMergeSelect, mergingOrders, merging
 }: Props) => {
   const itemsTotal = calculateOrderTotal(order);
   const [payment, setPayment] = useState(false);
+
+  const [splitBySeats, setSplitBySeats] = useState(false);
+  const [splitByManually, setSplitByManually] = useState(false);
+  const [splitByAmount, setSplitByAmount] = useState(false);
 
   const total = useMemo(() => {
     const extrasTotal = order?.extras ? order?.extras?.reduce((prev, item) => prev + item.value, 0) : 0;
     return itemsTotal + extrasTotal + Number(order?.tax_amount ?? 0) - Number(order?.discount_amount ?? 0) + Number(order.service_charge_amount ?? 0) + Number(order?.tip_amount ?? 0);
   }, [itemsTotal, order]);
+
+  const hasSeats = useMemo(() => {
+    const items = order.items.filter((item) => item.seat !== undefined);
+    return items.length > 1
+  }, [order]);
+
+  const mergingOrderIds = useMemo(() => {
+    return mergingOrders.map(item => item.id.toString());
+  }, [mergingOrders]);
 
   return (
     <>
@@ -97,68 +117,102 @@ export const OrderBox = ({
           </div>
         </div>
         <div className="flex gap-5">
-          <Dropdown
-            label={<><FontAwesomeIcon icon={faEllipsisV} className="mr-3"/> More</>}
-            btnSize="lg"
-            btnFlat={true}
-            className="flex-1"
-            onAction={(key) => {
-              if (key === 'temp_bill') {
-                dispatchPrint(PRINT_TYPE.presale_bill, {
-                  order: order
-                });
-              }
-
-              if (key === 'final_bill') {
-                dispatchPrint(PRINT_TYPE.final_bill, {
-                  order: order,
-                  duplicate: true
-                });
-              }
-            }}
-          >
-            {order.status === OrderStatus["In Progress"] && (
-              <>
-                <DropdownItem id="cancel" key={order.id} className="min-w-[50px] bg-danger-100 text-danger-500">
-                  <FontAwesomeIcon icon={faMoneyBillTransfer} /> Cancel order
-                </DropdownItem>
-                <DropdownSeparator />
-                <DropdownItem id="split_by_seats" key={order.id} className="min-w-[50px]">
-                  <FontAwesomeIcon icon={faChair} /> Split by seats
-                </DropdownItem>
-                <DropdownItem id="split_manually" key={order.id} className="min-w-[50px]">
-                  <FontAwesomeIcon icon={faCodeBranch} /> Split Manually
-                </DropdownItem>
-                <DropdownSeparator />
-                <DropdownItem id="merge" key={order.id} className="min-w-[50px]">
-                  <FontAwesomeIcon icon={faObjectGroup} /> Merge orders
-                </DropdownItem>
-              </>
-            )}
-
-            {order.status === OrderStatus["Paid"] && (
-              <>
-                <DropdownItem id="refund" key={order.id} className="min-w-[50px] bg-danger-100 text-danger-500">
-                  <FontAwesomeIcon icon={faMoneyBillTransfer} /> Refund
-                </DropdownItem>
-                <DropdownSeparator />
-                <DropdownItem id="final_bill" key={order.id} className="min-w-[50px]">
-                  <FontAwesomeIcon icon={faPrint} /> Print final bill copy
-                </DropdownItem>
-              </>
-            )}
-          </Dropdown>
-          {order.status === OrderStatus["In Progress"] && (
+          {merging ? (
             <>
-              <Button onClick={() => {
-                dispatchPrint(PRINT_TYPE.presale_bill, {
-                  order: order
-                });
-              }} variant="primary" flat size="lg" className="flex-1" icon={faPrint}>Temp bill</Button>
-              <Button variant="warning" filled size="lg" className="flex-1" onClick={() => setPayment(true)}
-                      icon={faCreditCard}>
-                Pay Now
-              </Button>
+              <Checkbox onChange={() => {
+                if(mergingOrderIds.includes(order.id.toString())){
+                  onMergeSelect(order, false);
+                }else{
+                  onMergeSelect(order, true);
+                }
+
+              }} checked={mergingOrderIds.includes(order.id.toString())} label="Select to merge" />
+            </>
+          ) : (
+            <>
+              <Dropdown
+                label={<><FontAwesomeIcon icon={faEllipsisV} className="mr-3"/> More</>}
+                btnSize="lg"
+                btnFlat={true}
+                className="flex-1"
+                onAction={(key) => {
+                  if (key === 'temp_bill') {
+                    dispatchPrint(PRINT_TYPE.presale_bill, {
+                      order: order
+                    });
+                  }
+
+                  if (key === 'final_bill') {
+                    dispatchPrint(PRINT_TYPE.final_bill, {
+                      order: order,
+                      duplicate: true
+                    });
+                  }
+
+                  if(key === 'split_by_seats' && hasSeats) {
+                    setSplitBySeats(true);
+                  }
+
+                  if(key === 'split_by_items') {
+                    setSplitByManually(true);
+                  }
+
+                  if(key === 'split_by_amount') {
+                    setSplitByAmount(true);
+                  }
+
+                  if(key === 'merge'){
+                    onMergeSelect(order, true);
+                  }
+                }}
+              >
+                {order.status === OrderStatus["In Progress"] && (
+                  <>
+                    <DropdownItem id="cancel" key="cancel" className="min-w-[50px] bg-danger-100 text-danger-500">
+                      <FontAwesomeIcon icon={faMoneyBillTransfer} /> Cancel order
+                    </DropdownItem>
+                    <DropdownSeparator />
+                    <DropdownItem isDisabled={hasSeats !== true} id="split_by_seats" key="split_by_seats" className="min-w-[50px]">
+                      <FontAwesomeIcon icon={faChair} /> Split by seats
+                    </DropdownItem>
+                    <DropdownItem id="split_by_items" key="split_by_items" className="min-w-[50px]">
+                      <FontAwesomeIcon icon={faCodeBranch} /> Split by items
+                    </DropdownItem>
+                    <DropdownItem id="split_by_amount" key="split_by_amount" className="min-w-[50px]">
+                      <FontAwesomeIcon icon={faCodeBranch} /> Split by amount
+                    </DropdownItem>
+                    <DropdownSeparator />
+                    <DropdownItem id="merge" key="merge" className="min-w-[50px]">
+                      <FontAwesomeIcon icon={faObjectGroup} /> Merge orders
+                    </DropdownItem>
+                  </>
+                )}
+
+                {order.status === OrderStatus["Paid"] && (
+                  <>
+                    <DropdownItem id="refund" key="refund" className="min-w-[50px] bg-danger-100 text-danger-500">
+                      <FontAwesomeIcon icon={faMoneyBillTransfer} /> Refund
+                    </DropdownItem>
+                    <DropdownSeparator />
+                    <DropdownItem id="final_bill" key="final_bill" className="min-w-[50px]">
+                      <FontAwesomeIcon icon={faPrint} /> Print final bill copy
+                    </DropdownItem>
+                  </>
+                )}
+              </Dropdown>
+              {order.status === OrderStatus["In Progress"] && (
+                <>
+                  <Button onClick={() => {
+                    dispatchPrint(PRINT_TYPE.presale_bill, {
+                      order: order
+                    });
+                  }} variant="primary" flat size="lg" className="flex-1" icon={faPrint}>Temp bill</Button>
+                  <Button variant="warning" filled size="lg" className="flex-1" onClick={() => setPayment(true)}
+                          icon={faCreditCard}>
+                    Pay Now
+                  </Button>
+                </>
+              )}
             </>
           )}
         </div>
@@ -168,6 +222,24 @@ export const OrderBox = ({
         <OrderPayment order={order} onClose={() => {
           setPayment(false)
         }}/>
+      )}
+
+      {splitBySeats && (
+        <SplitBySeats order={order} onClose={() => {
+          setSplitBySeats(false);
+        }} />
+      )}
+
+      {splitByManually && (
+        <SplitItems order={order} onClose={() => {
+          setSplitByManually(false);
+        }} />
+      )}
+
+      {splitByAmount && (
+        <SplitAmount order={order} onClose={() => {
+          setSplitByAmount(false);
+        }} />
       )}
     </>
   );

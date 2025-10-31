@@ -8,7 +8,8 @@ import { Category } from "@/api/model/category.ts";
 import { toast } from 'sonner';
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
+import {Switch} from "@/components/common/input/switch.tsx";
 
 interface Props {
   open: boolean
@@ -19,6 +20,7 @@ interface Props {
 const validationSchema = yup.object({
   name: yup.string().required("This is required"),
   priority: yup.number().required("This is required").typeError('This should be a number'),
+  show_in_menu: yup.boolean()
 });
 
 export const CategoryForm = ({
@@ -28,7 +30,8 @@ export const CategoryForm = ({
     onClose();
     reset({
       name: null,
-      priority: null
+      priority: null,
+      show_in_menu: null
     });
   }
 
@@ -37,7 +40,8 @@ export const CategoryForm = ({
       reset({
         ...data,
         name: data.name,
-        priority: data.priority
+        priority: data.priority,
+        show_in_menu: data.show_in_menu,
       });
     }
   }, [data]);
@@ -97,10 +101,21 @@ export const CategoryForm = ({
                 name="priority"
                 control={control}
               />
-
             </div>
           </div>
-
+          <div className="mb-3">
+            <div className="flex-1">
+              <Controller
+                name={`show_in_menu`}
+                control={control}
+                render={({ field }) => (
+                  <Switch checked={field.value} onChange={field.onChange}>
+                    Show this category in menu
+                  </Switch>
+                )}
+              />
+            </div>
+          </div>
           <div>
             <Button type="submit" variant="primary">Save</Button>
           </div>

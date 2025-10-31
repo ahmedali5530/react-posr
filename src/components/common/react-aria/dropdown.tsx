@@ -34,15 +34,24 @@ export function Dropdown<T extends object>(
   );
 }
 
-export function DropdownItem(props: MenuItemProps) {
+export function DropdownItem(props: MenuItemProps & {isActive?: boolean}) {
   const textValue = props.textValue ||
     (typeof props.children === 'string' ? props.children : undefined);
   return (
     <MenuItem
       {...props}
       textValue={textValue}
-      className={({ isFocused, isOpen }) =>
-        `cursor-pointer text-center bg-white hover:bg-neutral-900 hover:text-warning-500 p-3 rounded-lg ${isFocused ? 'focused' : ''} ${isOpen ? 'open' : ''} ${props.className}`}
+      isDisabled={props.isDisabled}
+      className={({ isFocused, isOpen }) => {
+        return cn(
+          'cursor-pointer text-center bg-white p-3 rounded-lg',
+          isFocused ? 'focused' : '',
+          isOpen ? 'open' : '',
+          props.isDisabled ? 'text-neutral-400' : 'hover:bg-neutral-900 hover:text-warning-500',
+          props.isActive ? 'bg-neutral-900 text-warning-500' : '',
+          props.className
+        )
+      }}
     >
       {({ hasSubmenu }) => (
         <>

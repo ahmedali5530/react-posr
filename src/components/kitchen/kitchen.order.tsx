@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils.ts";
 import { Button } from "@/components/common/input/button.tsx";
 import { useDB } from "@/api/db/db.ts";
 import { OrderItemName } from "@/components/common/order/order.item.tsx";
+import {getInvoiceNumber} from "@/lib/order.ts";
 
 interface Props {
   order: KitchenOrderModel
@@ -32,7 +33,6 @@ export const KitchenOrder = ({
   }
 
   const isAddon = () => {
-    console.log(order.items)
     return order.items.filter(item => item.order_item.is_addition).length > 0
   }
 
@@ -52,7 +52,7 @@ export const KitchenOrder = ({
           }}>{order.order?.table?.name}{order.order?.table?.number}</span>
 
           <div className="flex flex-col items-start gap-1">
-            <span className="font-bold text-xl">{order.order?.order_type?.name} / {order.order?.invoice_number}</span>
+            <span className="font-bold text-xl">{order.order?.order_type?.name} / {getInvoiceNumber(order.order)}</span>
             <span className="text-xl font-bold">
               <Countdown time={order.items[0].created_at} />
             </span>
