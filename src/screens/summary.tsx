@@ -80,7 +80,7 @@ export const Summary = () => {
               >Print</Button>
             </div>
           </div>
-          <div className="max-h-[calc(100vh_-_30px)] overflow-y-auto w-[450px] py-10">
+          <div className="max-h-[calc(100vh_-_30px)] overflow-y-auto flex-1 flex-basis-[500px] py-10">
             {isLoading ? (
               <div className="flex h-screen w-full justify-center items-center flex-1">
                 <FontAwesomeIcon icon={faSpinner} spin size="5x"/>

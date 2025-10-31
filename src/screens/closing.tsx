@@ -364,12 +364,11 @@ export const Closing = () => {
           {/* Notes */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">Notes</h2>
-            <Input
+            <Textarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => setNotes(e.currentTarget.value)}
               placeholder="Add any additional notes..."
               enableKeyboard
-              inputSize="lg"
             />
           </div>
 

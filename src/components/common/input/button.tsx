@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
-import { Button as AriaButton, ButtonProps as BaseProps, PressEvent } from 'react-aria-components';
+import { Button as AriaButton, ButtonProps as BaseProps } from 'react-aria-components';
 
 interface ButtonProps extends BaseProps {
   size?: "lg" | "xl" | "sm"
@@ -16,7 +16,7 @@ interface ButtonProps extends BaseProps {
   isLoading?: boolean;
   disabled?: boolean;
   tabIndex?: number;
-  onClick?: (event: PressEvent) => void;
+  onClick?: (event: any) => void;
   filled?: boolean;
 }
 
@@ -43,7 +43,7 @@ export const Button = (props: ButtonProps) => {
       isDisabled={props.disabled || isLoading}
     >
       {icon && (
-        <span className="mr-2">
+        <span className={children === undefined ? '' : 'mr-2'}>
           <FontAwesomeIcon icon={icon}/>
         </span>
       )}
@@ -52,7 +52,7 @@ export const Button = (props: ButtonProps) => {
       )}
       {children as ReactNode}
       {rightIcon && (
-        <span className="ml-2">
+        <span className={children === undefined ? '' : 'ml-2'}>
           <FontAwesomeIcon icon={rightIcon}/>
         </span>
       )}

@@ -41,7 +41,7 @@ export const FloorLayout = () => {
 
   const {
     data: categories
-  } = useApi<SettingsData<Category>>(Tables.categories, [], ['priority asc'], 0, 99999);
+  } = useApi<SettingsData<Category>>(Tables.categories, ['show_in_menu = true'], ['priority asc'], 0, 99999);
 
   const {
     data: orderTypes

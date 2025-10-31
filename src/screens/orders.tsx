@@ -2,23 +2,36 @@ import { Layout } from "@/screens/partials/layout.tsx";
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Order as OrderModel, OrderStatus } from "@/api/model/order.ts";
 import { Tables } from "@/api/db/tables.ts";
-import { useEffect, useState } from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import { useDB } from "@/api/db/db.ts";
 import { OrderBox } from "@/components/orders/order.box.tsx";
 import ScrollContainer from "react-indiana-drag-scroll";
 import { Floor } from "@/api/model/floor.ts";
 import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
 import { User } from "@/api/model/user.ts";
-import { useAtom } from "jotai/index";
-import { appSettings } from "@/store/jotai.ts";
+import { useAtom } from "jotai";
+import {appAlert, appSettings} from "@/store/jotai.ts";
 import { OrderType } from "@/api/model/order_type.ts";
 import { DatePicker } from "@/components/common/react-aria/datepicker.tsx";
 import { getLocalTimeZone, today } from '@internationalized/date';
 import { DateValue } from "react-aria-components";
 import { Button } from "@/components/common/input/button.tsx";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faTableColumns } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBars,
+  faChair,
+  faCodeBranch,
+  faEllipsisV,
+  faMoneyBillTransfer, faObjectGroup, faPrint, faTable,
+  faTableColumns
+} from "@fortawesome/free-solid-svg-icons";
 import {OrderRow} from "@/components/orders/order.row.tsx";
+import {Table} from "@/api/model/table.ts";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {dispatchPrint} from "@/lib/print.service.ts";
+import {PRINT_TYPE} from "@/lib/print.registry.tsx";
+import {Dropdown, DropdownItem, DropdownSeparator} from "@/components/common/react-aria/dropdown.tsx";
+import {RecordId, StringRecordId} from "surrealdb";
+import {toast} from "sonner";
 
 export const Orders = () => {
   const db = useDB();
@@ -27,6 +40,12 @@ export const Orders = () => {
   const [params, setParams] = useAtom(appSettings);
   const [date, setDate] = useState<DateValue>(today(getLocalTimeZone()));
   const [view, setView] = useState<'row' | 'column'>('column');
+
+  const [merging, setMerging] = useState<boolean>(false);
+  const [mergingOrders, setMergingOrders] = useState<OrderModel[]>([]);
+  const [mergingTable, setMergingTable] = useState<string>();
+
+  const [alert, setAlert] = useAtom(appAlert);
 
 
   const {
@@ -41,12 +60,15 @@ export const Orders = () => {
   } = useApi<SettingsData<Floor>>(Tables.floors, [], ['priority asc'], 0, 99999);
 
   const {
+    data: tables,
+  } = useApi<SettingsData<Table>>(Tables.tables, [], ['floor.name asc'], 0, 99999);
+
+  const {
     data: users,
   } = useApi<SettingsData<User>>(Tables.users, [], [], 0, 99999);
 
   const {
     data: orderTypes,
-
   } = useApi<SettingsData<OrderType>>(Tables.order_types, [], [], 0, 99999);
 
   const runLiveQuery = async () => {
@@ -106,13 +128,98 @@ export const Orders = () => {
     }
   }, [params.ordersFilters, date]);
 
+  const selectedTable = useMemo(() => {
+    return tables?.data.find(item => item.id.toString() === mergingTable);
+  }, [mergingTable, tables?.data]);
+
+  const nextInvoiceNumber = async () => {
+    return await db.query(`SELECT math::max(invoice_number) as invoice_number from ${Tables.orders} group all`);
+  }
+
+  const [isSaving, setIsSaving] = useState(false);
+  const confirmMerge = async () => {
+
+    if(!mergingTable){
+      setAlert(prev => ({
+        ...prev,
+        opened: true,
+        type: 'error',
+        message: 'Please choose a new table'
+      }))
+
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+
+      let items = [];
+      for (const order of mergingOrders) {
+
+        // Create order items for this split
+        items = [
+          ...items,
+          ...order.items.map(item => item.id)
+        ];
+
+        // Mark orders as merged
+        await db.merge(order.id, {
+          status: OrderStatus['Merged'],
+          tags: [...(order.tags || []), OrderStatus['Merged']]
+        });
+      }
+
+      const baseInvoiceNumber = await nextInvoiceNumber();
+
+      const orderData = {
+        floor: new RecordId('floor', selectedTable.floor.id),
+        covers: mergingOrders.reduce((prev, item) => prev + item.covers, 0) || 1, // Distribute covers
+        // tax: order.tax ? new StringRecordId(order.tax.id.toString()) : null,
+        // tax_amount: 0, // Will be calculated per split
+        tags: ['Merge order'],
+        // discount: order.discount ? new StringRecordId(order.discount.id.toString()) : null,
+        // discount_amount: 0, // Will be calculated per split
+        // customer: order.customer ? new StringRecordId(order.customer.id.toString()) : null,
+        order_type: mergingOrders[0].order_type.id,
+        status: OrderStatus["In Progress"],
+        invoice_number: baseInvoiceNumber[0][0].invoice_number,
+        items: items,
+        table: new StringRecordId(mergingTable),
+        user: mergingOrders[0].user.id,
+        created_at: mergingOrders[0].created_at,
+      };
+
+      const mergedOrder = await db.create(Tables.orders, orderData);
+
+      for ( const item of items ) {
+        await db.merge(item, {
+          order: mergedOrder[0].id
+        });
+      }
+
+      toast.success(`Successfully merged into ${mergedOrder[0].invoice_number}`);
+
+      // reset to default
+      setMerging(false);
+      setMergingTable(undefined);
+      setMergingOrders([]);
+
+    } catch (error) {
+      console.error('Error creating merging orders:', error);
+      toast.error('Failed to create merging orders');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <Layout containerClassName="overflow-hidden">
         <div className="flex gap-5 p-3 flex-col">
           <div className="h-[60px] flex-0 rounded-xl bg-white flex items-center px-3 gap-3">
             <div className="min-w-[200px]">
               <ReactSelect
-                options={[OrderStatus["In Progress"], OrderStatus.Paid, OrderStatus.Cancelled].map(item => ({
+                options={[OrderStatus["In Progress"], OrderStatus.Paid, OrderStatus.Cancelled, OrderStatus.Spilt, OrderStatus.Merged].map(item => ({
                   label: item,
                   value: item
                 }))}
@@ -207,7 +314,18 @@ export const Orders = () => {
               <div className="flex-1 rounded-xl flex gap-3 flex-row">
                 {orders?.data?.map(item => (
                   <div className="w-[400px] flex-shrink-0" key={item.id}>
-                    <OrderBox order={item}/>
+                    <OrderBox order={item} merging={merging} mergingOrders={mergingOrders} onMergeSelect={(order, status) => {
+                      if(status) {
+                        setMerging(true);
+
+                        setMergingOrders(prev => [
+                          ...prev,
+                          order
+                        ]);
+                      }else {
+                        setMergingOrders(prev => prev.filter(order => order.id.toString() !== item.id.toString()));
+                      }
+                    }} />
                   </div>
                 ))}
               </div>
@@ -224,7 +342,43 @@ export const Orders = () => {
             </ScrollContainer>
           )}
 
-          <div className="h-[60px] flex-0 rounded-xl bg-white flex items-center px-3 gap-3"></div>
+          <div className="h-[60px] flex-0 rounded-xl bg-white flex items-center px-3 gap-3">
+            {merging && (
+              <div className="flex gap-5">
+                <Dropdown
+                  label={<><FontAwesomeIcon icon={faChair} className="mr-3"/> Choose a table {selectedTable ? `(${selectedTable.name}${selectedTable.number})` : ''}</>}
+                  btnSize="lg"
+                  className="flex-1"
+                  onAction={(key) => {
+                    setMergingTable(key.toString());
+                  }}
+                >
+                  {tables?.data?.map(item => (
+                    <DropdownItem isActive={item.id.toString() === mergingTable} id={item.id.toString()} key={item.id.toString()} className="min-w-[200px]">
+                      {item.name + '' + item.number}
+                    </DropdownItem>
+                  ))}
+                </Dropdown>
+
+                <Button
+                  variant="success"
+                  size="lg"
+                  disabled={mergingOrders.length <= 1 || isSaving}
+                  onClick={confirmMerge}
+                  isLoading={isSaving}
+                >
+                  {mergingOrders.length <= 1 ? 'Select 2 or more orders' : <>Confirm merging of {mergingOrders.length} orders</>}
+                </Button>
+
+                <Button flat size="lg" variant="danger" onClick={() => {
+                  setMerging(false);
+                  setMergingOrders([]);
+                }}>
+                  Cancel merging
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
     </Layout>
   );

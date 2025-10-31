@@ -1,19 +1,16 @@
-import { useAtom } from "jotai/index";
-import { appSettings, appState } from "@/store/jotai.ts";
-import { Button } from "@/components/common/input/button.tsx";
-import { faArrowLeft, faChevronDown, faUser, faUsers } from "@fortawesome/free-solid-svg-icons";
-import { cn } from "@/lib/utils.ts";
-import React, { useEffect, useState } from "react";
-import { Modal } from "@/components/common/react-aria/modal.tsx";
-import { Input } from "@/components/common/input/input.tsx";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { DialogTrigger } from "react-aria-components";
-import { Popover } from "@/components/common/react-aria/popover.tsx";
-import { Dropdown, DropdownItem } from "@/components/common/react-aria/dropdown.tsx";
-import { useDB } from "@/api/db/db.ts";
-import { MenuItemType } from "@/api/model/cart_item.ts";
-import { Payment } from "@/components/payment/payment.tsx";
-import { Customers } from "@/components/customer/customer.tsx";
+import {useAtom} from "jotai";
+import {appSettings, appState} from "@/store/jotai.ts";
+import {Button} from "@/components/common/input/button.tsx";
+import {faArrowLeft, faUser, faUsers} from "@fortawesome/free-solid-svg-icons";
+import {cn} from "@/lib/utils.ts";
+import React, {useEffect, useState} from "react";
+import {Modal} from "@/components/common/react-aria/modal.tsx";
+import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.tsx";
+import {useDB} from "@/api/db/db.ts";
+import {MenuItemType} from "@/api/model/cart_item.ts";
+import {Payment} from "@/components/payment/payment.tsx";
+import {Customers} from "@/components/customer/customer.tsx";
+import {getInvoiceNumber} from "@/lib/order.ts";
 
 export const MenuHeader = () => {
   const db = useDB();
@@ -24,7 +21,8 @@ export const MenuHeader = () => {
   const [confirmCartAction, setConfirmCartAction] = useState(false);
 
   useEffect(() => {
-    if( !state.orderType ) {
+    console.log(state.orderType, 'order type')
+    if (!state.orderType) {
       setState(prev => ({
         ...prev,
         orderType: setting?.order_types[0]
@@ -33,13 +31,13 @@ export const MenuHeader = () => {
   }, [setting?.order_types, state.orderType]);
 
   useEffect(() => {
-    if( state?.order?.id !== 'new' && state.orders.length > 0 ) {
+    if (state?.order?.id !== 'new' && state.orders.length > 0) {
       onOrderClick(state?.order?.id);
     }
   }, [state.orders, state?.order?.id]);
 
   const reset = async () => {
-    if( state.order.id === 'new' && state.cart.length > 0 ) {
+    if (state.order.id === 'new' && state.cart.length > 0) {
       setConfirmCartAction(true);
       return false;
     }
@@ -59,7 +57,7 @@ export const MenuHeader = () => {
   }
 
   const onOrderClick = (key: string) => {
-    if( key === 'new' ) {
+    if (key === 'new') {
       setState(prev => ({
         ...prev,
         order: {
@@ -72,10 +70,12 @@ export const MenuHeader = () => {
       const order = state.orders.find(item => item.id === key);
       const seats = new Map();
       order?.items.forEach(item => {
-        if( item.seat ) {
+        if (item.seat) {
           seats.set(item.seat, item.seat);
         }
       });
+
+      const seatsArray = Array.from(seats.values());
 
       setState(prev => ({
         ...prev,
@@ -97,7 +97,8 @@ export const MenuHeader = () => {
             deleted_at: item.deleted_at
           }))
         ],
-        seats: Array.from(seats.values()),
+        seats: seatsArray,
+        seat: seatsArray.length > 0 ? seatsArray[0] : '1'
       }));
     }
   }
@@ -131,7 +132,7 @@ export const MenuHeader = () => {
           <Button variant="primary" icon={faArrowLeft} onClick={reset} size="lg">{state?.floor?.name}</Button>
           {state.orders.length > 0 ? (
             <Dropdown
-              label={state?.order?.order ? 'Order# ' + state?.order?.order?.invoice_number : 'New Order'} btnSize="lg"
+              label={state?.order?.order ? 'Order# ' + getInvoiceNumber(state?.order?.order) : 'New Order'} btnSize="lg"
               btnFlat={true}
               onAction={onOrderClick}
             >
@@ -140,7 +141,7 @@ export const MenuHeader = () => {
                   id={order.id}
                   key={index}
                   className="min-w-[50px]"
-                >Order# {order.invoice_number}</DropdownItem>
+                >Order# {getInvoiceNumber(order)}</DropdownItem>
               ))}
               <DropdownItem id="new" key="new" className="min-w-[50px]">New Order</DropdownItem>
             </Dropdown>
@@ -177,7 +178,7 @@ export const MenuHeader = () => {
                 index === 0 && '!rounded-l-lg',
                 index === setting?.order_types?.length - 1 && ' !rounded-r-lg'
               )}
-              active={item.id === state?.orderType?.id}
+              active={item.id.toString() === state?.orderType?.id?.toString()}
               onClick={() => {
                 setState(prev => ({
                   ...prev,
@@ -202,7 +203,7 @@ export const MenuHeader = () => {
       >
         <Customers onAttach={() => {
           setCustomerModal(false)
-        }} />
+        }}/>
       </Modal>
 
       {confirmCartAction && (

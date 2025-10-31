@@ -8,3 +8,4 @@ export const CLOSING = '/closing';
 export const REPORTS = '/reports';
 export const ADMIN = '/admin';
 export const SETTINGS = '/settings';
+export const INVENTORY = '/inventory';

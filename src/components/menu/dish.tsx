@@ -57,7 +57,7 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
   return (
     <>
       <div
-        className="flex justify-center p-1 relative"
+        className="flex justify-center p-1 relative select-none"
         onClick={() => {
           if( modifierGroups.length > 0 && hasAutoOpen ) {
             setModifiersModal(true)

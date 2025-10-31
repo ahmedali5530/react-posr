@@ -1,5 +1,6 @@
 import { Order, OrderStatus } from "@/api/model/order.ts";
 import { cn } from "@/lib/utils.ts";
+import {getInvoiceNumber} from "@/lib/order.ts";
 
 interface Props {
   order: Order
@@ -13,6 +14,8 @@ export const OrderHeader = ({
     [OrderStatus["In Progress"]]: 'bg-warning-100 text-warning-700',
     [OrderStatus["Paid"]]: 'bg-success-100 text-success-700',
     [OrderStatus["Completed"]]: 'bg-success-100 text-success-700',
+    [OrderStatus['Merged']]: 'bg-info-100 text-info-700',
+    [OrderStatus['Spilt']]: 'bg-info-100 text-info-700',
   };
 
   return (
@@ -24,7 +27,7 @@ export const OrderHeader = ({
           }}>{order?.table?.name}{order?.table?.number}</span>
 
         <div className="flex flex-col items-start gap-1">
-          <span className="font-bold">Order# {order?.invoice_number} / {order?.order_type?.name}</span>
+          <span className="font-bold">Order# {getInvoiceNumber(order)} / {order?.order_type?.name}</span>
           <span className={
             cn(
               "uppercase p-1 px-3 rounded-lg text-sm font-bold flex-grow-0 flex-shrink",

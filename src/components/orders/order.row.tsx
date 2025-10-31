@@ -4,6 +4,7 @@ import React, {useMemo, useState} from "react";
 import {cn, withCurrency} from "@/lib/utils.ts";
 import {DateTime} from "luxon";
 import {OrderPayment} from "@/components/orders/order.payment.tsx";
+import {getInvoiceNumber} from "@/lib/order.ts";
 
 interface Props {
   order: OrderModel
@@ -35,7 +36,7 @@ export const OrderRow = ({
           }
         }}
         className="flex flex-1 odd:bg-white even:bg-neutral-300 gap-1 select-none">
-        <div className="basis-[140px] flex-shrink flex-grow-0 p-4">{order?.invoice_number} - {order?.order_type?.name}</div>
+        <div className="basis-[140px] flex-shrink flex-grow-0 p-4">{getInvoiceNumber(order)} - {order?.order_type?.name}</div>
         <div className="basis-[100px] flex flex-col justify-center items-center" style={{
           color: order?.table.color,
           background: order.table?.background

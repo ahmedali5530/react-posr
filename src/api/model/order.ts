@@ -16,6 +16,7 @@ export interface Order extends ID{
   floor: Floor
   table: Table
   invoice_number: number
+  split?: number
   items: OrderItem[]
   order_type: OrderType
   status: string
@@ -50,5 +51,7 @@ export interface OrderExtra extends ID{
 export enum OrderStatus {
   'In Progress' = 'In Progress',
   Paid = 'Paid',
-  Cancelled = 'Cancelled'
+  Cancelled = 'Cancelled',
+  Spilt = 'Spilt',
+  Merged = 'Merged'
 }
