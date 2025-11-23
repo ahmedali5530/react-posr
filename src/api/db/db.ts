@@ -1,5 +1,5 @@
 import { DB_REST_DB, DB_REST_NS, DB_REST_PASS, DB_REST_USER, withApi } from "@/api/db/settings.ts";
-import { ActionResult, Surreal } from "surrealdb";
+import {ActionResult, RecordIdRange, StringRecordId, Surreal, Table} from "surrealdb";
 import { Tables } from "@/api/db/tables.ts";
 import { toast } from "sonner";
 
@@ -44,15 +44,20 @@ export const getDB = async () => {
 export const useDB = () => {
   const query = async <T = any>(sql: string, parameters?: any): Promise<ActionResult<Record<string, T>>[]> => {
     // log sql in dev mode
-    if(import.meta.env.DEV) {
-      console.group('DB Debug')
-      console.info(sql.trim(), parameters);
-      console.groupEnd()
-    }
+
 
     try {
       // Perform a custom advanced query
-      return (await getDB()).query(sql, parameters);
+      const result: ActionResult<Record<string, T>>[] = await (await getDB()).query(sql, parameters);
+
+      if(import.meta.env.DEV) {
+        console.group('DB Debug')
+        console.info(sql.trim(), parameters);
+        console.info(result);
+        console.groupEnd()
+      }
+
+      return result;
     } catch ( e ) {
       console.error('ERROR while query', e, sql);
       toast.error(e);
@@ -111,7 +116,7 @@ export const useDB = () => {
     }
   }
 
-  const merge = async (thing: Tables|string, data: any) => {
+  const merge = async (thing: Tables|string|any, data: any) => {
     try{
       return (await getDB()).merge(thing, data);
     }catch(e){

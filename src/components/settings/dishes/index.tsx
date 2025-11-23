@@ -10,7 +10,7 @@ import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { TableComponent } from "@/components/common/table/table.tsx";
 
 export const AdminDishes = () => {
-  const loadHook = useApi<SettingsData<Dish>>(Tables.dishes, [], [], 0, 10, ['categories']);
+  const loadHook = useApi<SettingsData<Dish>>(Tables.dishes, [], [], 0, 10, ['categories', 'items', 'items.item']);
 
   const [data, setData] = useState<Dish>();
   const [formModal, setFormModal] = useState(false);

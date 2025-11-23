@@ -117,11 +117,6 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
   .table-cell {
     vertical-align: middle;
   }
-  thead {
-    th {
-      text-align: left;
-    }
-  }
   th, td{
     border-collapse: collapse;
     padding: 12px;
@@ -139,6 +134,9 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
       padding: 2px;
     }
   }
+}
+.table:not(.table-loading) thead th{
+  text-align: left;
 }
 .table-borderless {
   th,
@@ -353,6 +351,10 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
     @apply border-neutral-500 focus:ring-neutral-200 focus:border-neutral-500 disabled:bg-neutral-100 read-only:bg-neutral-100;
   }
 }
+select.input{
+  padding: 0;
+}
+
 textarea.form-control,
 textarea.input {
   height: auto;

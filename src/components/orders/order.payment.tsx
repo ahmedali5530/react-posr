@@ -130,7 +130,7 @@ export const OrderPayment = ({
       onClose={closeModal}
       size="full"
     >
-      <div className="grid grid-cols-4 gap-5 mb-5">
+      <div className="grid grid-cols-4 gap-5 mb-5 select-none">
         <div className="bg-white rounded-xl flex flex-col overflow-auto h-[calc(100vh_-_150px)]">
           <div className="p-3 flex gap-3 flex-col">
             <OrderHeader order={order}/>

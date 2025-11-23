@@ -11,7 +11,7 @@ import {
   ValidationResult
 } from 'react-aria-components';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import {faCalendar, faChevronDown} from "@fortawesome/free-solid-svg-icons";
 import { Popover } from "@/components/common/react-aria/popover.tsx";
 import { useContext } from "react";
 import { Calendar } from "@/components/common/react-aria/calendar.tsx";
@@ -44,7 +44,7 @@ export function DatePicker<T extends DateValue>({
           )}
           <Button
             className="outline-none px-3 flex items-center text-gray-700 transition border-0 border-solid border-l border-l-purple-200 bg-transparent rounded-r-lg pressed:bg-purple-100 focus-visible:ring-2 ring-black">
-            <FontAwesomeIcon icon={faChevronDown} size="xs"/>
+            <FontAwesomeIcon icon={faCalendar} size="xs"/>
           </Button>
         </Group>
         <Popover>
