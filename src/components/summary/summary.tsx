@@ -149,10 +149,14 @@ export const Summary = ({
       order.items.forEach(item => {
         if (item.category) {
           if (!list[item.category]) {
-            list[item.category] = 0;
+            list[item.category] = {
+              total: 0,
+              quantity: 0
+            };
           }
 
-          list[item.category] += item.quantity * item.price;
+          list[item.category].total += item.quantity * item.price;
+          list[item.category].quantity += item.quantity;
         }
       })
     });
@@ -166,10 +170,14 @@ export const Summary = ({
       order.items.forEach(item => {
         if (item.item.name) {
           if (!list[item.item.name]) {
-            list[item.item.name] = 0;
+            list[item.item.name] = {
+              total: 0,
+              quantity: 0
+            };
           }
 
-          list[item.item.name] += item.quantity * item.price;
+          list[item.item.name].total += item.quantity * item.price;
+          list[item.item.name].quantity += item.quantity;
         }
       })
     });
@@ -266,9 +274,10 @@ export const Summary = ({
         </div>
         {Object.keys(categories).map(category => (
           <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }} key={category}>
-            <span style={{ width: '33%', textAlign: 'left' }}>{category}</span>
-            <span style={{ width: '33%', textAlign: 'center' }}>{withCurrency(categories[category])}</span>
-            <span style={{ width: '33%', textAlign: 'right' }}>{formatNumber(categories[category] / exclusive * 100)}%</span>
+            <span style={{ width: '40%', textAlign: 'left' }}>{category}</span>
+            <span style={{ width: '20%', textAlign: 'right' }}>{categories[category].quantity}</span>
+            <span style={{ width: '20%', textAlign: 'right' }}>{withCurrency(categories[category].total)}</span>
+            <span style={{ width: '20%', textAlign: 'right' }}>{formatNumber(categories[category].total / exclusive * 100)}%</span>
           </div>
         ))}
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
@@ -280,9 +289,10 @@ export const Summary = ({
         </div>
         {Object.keys(dishes).map(dish => (
           <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }} key={dish}>
-            <span style={{ width: '33%', textAlign: 'left' }}>{dish}</span>
-            <span style={{ width: '33%', textAlign: 'center' }}>{withCurrency(dishes[dish])}</span>
-            <span style={{ width: '33%', textAlign: 'right' }}>{formatNumber(dishes[dish] / exclusive * 100)}%</span>
+            <span style={{ width: '40%', textAlign: 'left' }}>{dish}</span>
+            <span style={{ width: '20%', textAlign: 'right' }}>{dishes[dish].quantity}</span>
+            <span style={{ width: '20%', textAlign: 'right' }}>{withCurrency(dishes[dish].total)}</span>
+            <span style={{ width: '20%', textAlign: 'right' }}>{formatNumber(dishes[dish].total / exclusive * 100)}%</span>
           </div>
         ))}
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
