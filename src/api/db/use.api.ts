@@ -46,12 +46,13 @@ function useApi<T>(
   initialLimit: number = 10,
   initialFetches: string[] = [],
   useApiOptions?: any,
+  initialSelects: string[] = ['*'],
 ): UseApiResult<T> {
   const [filters, setFilters] = useState<string[]>(initialFilters);
   const [sorts, setSorts] = useState<string[]>(initialSort);
   const [page, setPage] = useState<number>(initialOffset);
   const [pageSize, setPageSize] = useState<number>(initialLimit);
-  const [selects, setSelects] = useState<string[]>([]);
+  const [selects, setSelects] = useState<string[]>(initialSelects);
   const [splits, setSplits] = useState<string[]>([]);
   const [groups, setGroups] = useState<string[]>([]);
   const [fetches, setFetches] = useState<string[]>(initialFetches);
@@ -59,7 +60,7 @@ function useApi<T>(
 
   const queryClient = useQueryClient();
   const db = useDB();
-  const queryBuilder = useQueryBuilder(table, '*', initialFilters, initialLimit, initialOffset, initialSort, initialFetches);
+  const queryBuilder = useQueryBuilder(table, initialSelects, initialFilters, initialLimit, initialOffset, initialSort, initialFetches);
 
   const mainQuery = useMemo(() => {
     return queryBuilder.queryString;

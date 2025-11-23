@@ -1,8 +1,19 @@
-import {forwardRef, InputHTMLAttributes, ReactNode, Ref, useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {
+  forwardRef,
+  InputHTMLAttributes,
+  ReactNode,
+  Ref,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import {NumericFormat} from "react-number-format";
 import {cn} from "@/lib/utils.ts";
 import {nanoid} from "nanoid";
 import {VirtualKeyboard} from "@/components/common/input/virtual.keyboard.tsx";
+import {useFormContext} from "react-hook-form";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   inputSize?: "lg"
@@ -15,7 +26,37 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
-  const {selectable, inputSize, hasError, label, error, enableKeyboard, disableDirectInput, ...rest} = props;
+  const {
+    type,
+    selectable,
+    inputSize,
+    hasError,
+    label,
+    error,
+    enableKeyboard,
+    disableDirectInput,
+    className,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    onFocus,
+    readOnly,
+    placeholder,
+    autoFocus,
+    disabled,
+    name,
+    id: providedId,
+    ...inputProps
+  } = props;
+  let formContext: ReturnType<typeof useFormContext> | null = null;
+  try {
+    formContext = useFormContext();
+  } catch (e) {
+    formContext = null;
+  }
+  const registeredValue = formContext && name ? formContext.watch(name) : undefined;
+  const resolvedValue = value !== undefined ? value : (!enableKeyboard ? registeredValue : undefined);
   const onClick = useCallback((event: any) => {
     if (selectable !== false) {
       event.currentTarget.select();
@@ -24,7 +65,7 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
 
   // Keyboard functionality
   const [showKeyboard, setShowKeyboard] = useState(false);
-  const [keyboardValue, setKeyboardValue] = useState(props.value?.toString() || '');
+  const [keyboardValue, setKeyboardValue] = useState(resolvedValue?.toString() || '');
 
   const inputElRef = useRef<HTMLInputElement | null>(null);
   const suppressFocusRef = useRef<boolean>(false);
@@ -45,9 +86,9 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
       suppressFocusRef.current = false;
       return;
     }
-    setKeyboardValue(props.value?.toString() || '');
+    setKeyboardValue(resolvedValue?.toString() || '');
     setShowKeyboard(true);
-  }, [enableKeyboard, props.value]);
+  }, [enableKeyboard, resolvedValue]);
 
   const handleKeyboardClose = useCallback(() => {
     suppressFocusRef.current = true;
@@ -65,54 +106,59 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
     // prevent the input from gaining focus; we'll manage keyboard explicitly
     e.preventDefault();
     e.stopPropagation();
-    setKeyboardValue(props.value?.toString() || '');
+    setKeyboardValue(resolvedValue?.toString() || '');
     setShowKeyboard(true);
-  }, [enableKeyboard, props.value]);
+  }, [enableKeyboard, resolvedValue]);
 
   // Keep internal keyboardValue in sync with external value when keyboard is not open
   useEffect(() => {
     if (!enableKeyboard) return;
     if (!showKeyboard) {
-      const next = props.value?.toString() || '';
+      const next = resolvedValue?.toString() || '';
       if (next !== keyboardValue) {
         setKeyboardValue(next);
       }
     }
-  }, [props.value, enableKeyboard, showKeyboard]);
+  }, [resolvedValue, enableKeyboard, showKeyboard, keyboardValue]);
 
-  const id = nanoid();
+  const id = useMemo(() => providedId ?? nanoid(), [providedId]);
 
   const formattedHelp = useMemo(() => {
     return error && <InputError error={error}/>
   }, [error,]);
 
-  if (props.type === 'number') {
+  if (type === 'number') {
     return (
       <>
         {label && <label htmlFor={id}>{label}</label>}
         <NumericFormat
-          name={props.name}
-          value={enableKeyboard ? keyboardValue : props.value as any}
-          defaultValue={props.defaultValue as any}
-          onChange={enableKeyboard ? undefined : props.onChange}
+          {...inputProps}
+          name={name}
+          defaultValue={defaultValue as any}
+          {...(enableKeyboard
+            ? { value: keyboardValue }
+            : resolvedValue !== undefined
+              ? { value: resolvedValue as any }
+              : {})}
+          onChange={enableKeyboard ? undefined : onChange}
           autoComplete="off"
           className={
             cn(
               'input',
               inputSize === 'lg' && 'lg',
-              props.className && props.className,
+              className && className,
               hasError && 'error',
             )
           }
           getInputRef={assignInputRef}
           onClick={onClick}
-          readOnly={enableKeyboard ? true : props.readOnly}
-          disabled={props.disabled}
-          placeholder={props.placeholder}
-          autoFocus={props.autoFocus}
-          onFocus={props.onFocus}
+          readOnly={enableKeyboard ? true : readOnly}
+          disabled={disabled}
+          placeholder={placeholder}
+          autoFocus={autoFocus}
+          onFocus={onFocus}
           onMouseDown={enableKeyboard ? handleMouseDownOpen : undefined}
-          onBlur={props.onBlur}
+          onBlur={onBlur}
           id={id}
         />
         {formattedHelp}
@@ -120,13 +166,13 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
           <VirtualKeyboard
             open={showKeyboard}
             onClose={handleKeyboardClose}
-            type={props.type}
-            placeholder={props.placeholder}
+            type={type}
+            placeholder={placeholder}
             value={keyboardValue}
             onChange={(v) => {
               setKeyboardValue(v);
-              if (props.onChange) {
-                props.onChange({ target: { value: v } } as any);
+              if (onChange) {
+                onChange({ target: { value: v } } as any);
               }
             }}
           />
@@ -138,24 +184,30 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
       <>
         {label && <label htmlFor={id}>{label}</label>}
         <input
-          type="text"
+          type={type || 'text'}
           onClick={onClick}
           autoComplete="off"
-          {...rest}
-          value={enableKeyboard ? keyboardValue : rest.value}
-          onChange={enableKeyboard ? undefined : rest.onChange}
-          onFocus={rest.onFocus}
+          name={name}
+          defaultValue={defaultValue}
+          {...inputProps}
+          value={enableKeyboard ? keyboardValue : resolvedValue}
+          onChange={enableKeyboard ? undefined : onChange}
+          onFocus={onFocus}
           onMouseDown={enableKeyboard ? handleMouseDownOpen : undefined}
-          readOnly={enableKeyboard ? true : rest.readOnly}
+          readOnly={enableKeyboard ? true : readOnly}
           className={
             cn(
               'input',
               inputSize === 'lg' && 'lg',
-              props.className && props.className,
+              className && className,
               hasError && 'error'
             )
           }
           ref={assignInputRef}
+          placeholder={placeholder}
+          autoFocus={autoFocus}
+          disabled={disabled}
+          onBlur={onBlur}
           id={id}
         />
         {formattedHelp}
@@ -163,13 +215,13 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
           <VirtualKeyboard
             open={showKeyboard}
             onClose={handleKeyboardClose}
-            type={props.type}
-            placeholder={props.placeholder}
+            type={type}
+            placeholder={placeholder}
             value={keyboardValue}
             onChange={(v) => {
               setKeyboardValue(v);
-              if (rest.onChange) {
-                rest.onChange({ target: { value: v } } as any);
+              if (onChange) {
+                onChange({ target: { value: v } } as any);
               }
             }}
           />

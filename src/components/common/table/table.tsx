@@ -18,18 +18,26 @@ import classNames from "classnames";
 import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
 import { Loader } from "@/components/common/loader/loader.tsx";
 import { UseApiResult } from "@/api/db/use.api.ts";
+import {LabelValue} from "@/api/model/common.ts";
 
 interface ButtonProps {
   title?: ReactNode;
   html: ReactNode;
 }
 
+interface DropdownFilter {
+  name: string
+  options: LabelValue[]
+}
+
 interface TableComponentProps {
   columns: any;
   sort?: SortingState;
   buttons?: ReactNode[];
+  dropdownFilters?: DropdownFilter[]
   // selectionButtons?: ButtonProps[];
   enableSearch?: boolean;
+  enableRefresh?: boolean
   loaderHook: UseApiResult;
   loaderLines?: number
   loaderLineItems?: number
@@ -37,10 +45,10 @@ interface TableComponentProps {
 
 export const TableComponent: FC<TableComponentProps> = ({
   columns,
-  buttons,
+  buttons, dropdownFilters,
   enableSearch,
   loaderHook,
-  loaderLines, loaderLineItems
+  loaderLines, loaderLineItems, enableRefresh = true
 }) => {
   const { t } = useTranslation();
 
@@ -159,7 +167,22 @@ export const TableComponent: FC<TableComponentProps> = ({
         'column': values.column.value,
         'value': values.value
       });
-    } else {
+    }
+
+    if(Object.values(values).length > 0) {
+      // for (const value of Object.values(values)) {
+      //   console.log(value)
+      //   if (value.value && value.value.trim() !== '') {
+      //     handleFilterChange([
+      //       `string::lowercase($this[$column]) ~ $value`
+      //     ]);
+      //     handleParameterChange({
+      //       'column': value.name,
+      //       'value': values.value
+      //     });
+      //   }
+      // }
+    }else{
       handleFilterChange([]);
     }
   };
@@ -197,6 +220,22 @@ export const TableComponent: FC<TableComponentProps> = ({
                 )}
                 control={control}
               />
+
+              {dropdownFilters && dropdownFilters.map(item => (
+                <Controller
+                  name={item.name}
+                  render={({ field }) => (
+                    <ReactSelect
+                      onChange={field.onChange}
+                      options={item.options}
+                      className="w-72"
+                      value={field.value}
+                    />
+                  )}
+                  control={control}
+                />
+              ))}
+
               <button className="btn btn-primary w-12" type="submit">
                 <FontAwesomeIcon icon={faSearch}/>
               </button>
@@ -216,9 +255,12 @@ export const TableComponent: FC<TableComponentProps> = ({
         </div>
         <div className="inline-flex justify-end">
           <div className="flex gap-3">
-            <button className="btn btn-primary w-12" onClick={fetchData}>
-              <FontAwesomeIcon icon={faRefresh}/>
-            </button>
+            {enableRefresh && (
+              <button className="btn btn-primary w-12" onClick={fetchData}>
+                <FontAwesomeIcon icon={faRefresh}/>
+              </button>
+            )}
+
             {Object.keys(rowSelection).length > 0 && (
               <>
                 {/*{selectionButtons?.map((button) => (*/}
@@ -239,7 +281,7 @@ export const TableComponent: FC<TableComponentProps> = ({
         <table
           className={classNames(
             "table table-hover table-background table-sm",
-            isLoading && "table-fixed"
+            isLoading && "table-fixed table-loading"
           )}>
           <thead>
           {table.getHeaderGroups().map((headerGroup) => (

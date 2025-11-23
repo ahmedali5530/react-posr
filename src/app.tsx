@@ -19,7 +19,7 @@ import {Reports} from "@/screens/reports.tsx";
 import {BrowserRouter, Route, Routes} from "react-router";
 import {ADMIN, CLOSING, DELIVERY, INVENTORY, KITCHEN, MENU, ORDERS, REPORTS, SETTINGS, SUMMARY} from "@/routes/posr.ts";
 import {Settings} from "@/screens/settings.tsx";
-import {Inventory} from "@/screens/inventory.tsx";
+import {Inventory} from "@/screens/inventory/";
 
 
 // connect to surrealDB via websocket

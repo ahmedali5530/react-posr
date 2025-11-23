@@ -31,9 +31,9 @@ export interface QueryBuilderReturnProps {
   addFetch
 }
 
-export const useQueryBuilder = (tb: string, cols: string = '*', conditions: string[] = [], initialLimit = 10, initialOffset = 0, initialOrders = [], initialFetches = []) => {
+export const useQueryBuilder = (tb: string, cols: string|string[] = '*', conditions: string[] = [], initialLimit = 10, initialOffset = 0, initialOrders = [], initialFetches = []) => {
 
-  const [selects, setSelects] = useState<string[]>([cols]);
+  const [selects, setSelects] = useState<string[]>(Array.isArray(cols) ? cols : [cols]);
   const [table, setTable] = useState(tb);
   const [wheres, setWheres] = useState(conditions);
   const [splits, setSplits] = useState([]);
@@ -57,7 +57,7 @@ export const useQueryBuilder = (tb: string, cols: string = '*', conditions: stri
       const w = [...wheres];
 
       // remove 'and', 'or' from first where condition
-      w[0] = w[0].replace(/\b(and|or)\b/, ' ');
+      w[0] = w[0].replace(/^(and|or)\b\s*/, '');
 
       q.push(w.map(item => item.trim()).join(' '));
     }

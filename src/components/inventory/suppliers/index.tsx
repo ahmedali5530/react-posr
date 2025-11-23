@@ -1,0 +1,87 @@
+import {useState} from "react";
+import {createColumnHelper} from "@tanstack/react-table";
+import useApi, {SettingsData} from "@/api/db/use.api.ts";
+import {Tables} from "@/api/db/tables.ts";
+import {Inventory_supplier} from "@/api/model/inventory_supplier.ts";
+import {TableComponent} from "@/components/common/table/table.tsx";
+import {Button} from "@/components/common/input/button.tsx";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
+import {SupplierForm} from "@/components/inventory/suppliers/form.tsx";
+
+export const InventorySuppliers = () => {
+  const loadHook = useApi<SettingsData<Inventory_supplier>>(Tables.inventory_suppliers, [], [], 0, 10, []);
+
+  const [data, setData] = useState<Inventory_supplier>();
+  const [formModal, setFormModal] = useState(false);
+
+  const columnHelper = createColumnHelper<Inventory_supplier>();
+
+  const columns: any = [
+    columnHelper.accessor("name", {
+      header: "Name"
+    }),
+    columnHelper.accessor("address", {
+      header: "Address",
+    }),
+    columnHelper.accessor("phone", {
+      header: "Phone"
+    }),
+    columnHelper.accessor("email", {
+      header: "Email"
+    }),
+    columnHelper.accessor("id", {
+      id: "actions",
+      header: "Actions",
+      enableSorting: false,
+      enableColumnFilter: false,
+      cell: (info) => {
+        return (
+          <Button
+            variant="primary"
+            onClick={() => {
+              setData(info.row.original);
+              setFormModal(true);
+            }}
+          >
+            <FontAwesomeIcon icon={faPencil}/>
+          </Button>
+        );
+      },
+    }),
+  ];
+
+  return (
+    <>
+      <TableComponent
+        columns={columns}
+        loaderHook={loadHook}
+        loaderLineItems={columns.length}
+        buttons={[
+          <Button
+            key="supplier-create"
+            variant="primary"
+            onClick={() => {
+              setFormModal(true);
+            }}
+            icon={faPlus}
+          >
+            Supplier
+          </Button>
+        ]}
+      />
+
+      {formModal && (
+        <SupplierForm
+          open={true}
+          data={data}
+          onClose={() => {
+            setFormModal(false);
+            setData(undefined);
+            loadHook.fetchData();
+          }}
+        />
+      )}
+    </>
+  );
+};

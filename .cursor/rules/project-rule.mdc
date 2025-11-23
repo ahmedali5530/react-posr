@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+this is a react project, and uses surrealdb as database via surrealdb.js library. for css this uses tailwindcss v3

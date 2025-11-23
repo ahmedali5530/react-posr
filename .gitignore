@@ -25,3 +25,4 @@ dist-ssr
 *.idea
 *.vscode
 posr.db*
+.cursor
