@@ -1,0 +1,156 @@
+import React, { createContext, useContext, useEffect, useMemo, useCallback, useState, ReactNode } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { Surreal } from "surrealdb";
+import { DB_REST_DB, DB_REST_NS, DB_REST_PASS, DB_REST_USER, withApi } from "@/api/db/settings.ts";
+
+interface DatabaseProviderState {
+  /** The Surreal instance */
+  client: Surreal;
+  /** Whether the connection is pending */
+  isConnecting: boolean;
+  /** Whether the connection was successfully established */
+  isConnected: boolean;
+  /** Whether the connection rejected in an error */
+  isError: boolean;
+  /** The connection error, if present */
+  error: unknown;
+  /** Connect to the Surreal instance */
+  connect: () => Promise<void>;
+  /** Close the Surreal instance */
+  close: () => Promise<void>;
+}
+
+const DatabaseContext = createContext<DatabaseProviderState | undefined>(undefined);
+
+interface DatabaseProviderProps {
+  children: ReactNode;
+  /** Auto connect on component mount, defaults to true */
+  autoConnect?: boolean;
+}
+
+export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ 
+  children, 
+  autoConnect = true 
+}) => {
+  // Surreal instance remains stable across re-renders (created once)
+  const [surrealInstance] = useState(() => new Surreal());
+
+  // React Query mutation for connecting to Surreal
+  const {
+    mutateAsync: connectMutation,
+    isPending,
+    isSuccess,
+    isError,
+    error,
+    reset,
+  } = useMutation({
+    mutationFn: async () => {
+      console.log('Connecting to SurrealDB...');
+      await surrealInstance.connect(withApi(''), {
+        namespace: DB_REST_NS,
+        database: DB_REST_DB,
+        auth: {
+          username: DB_REST_USER,
+          password: DB_REST_PASS,
+        }
+      });
+      // Wait for connection to be ready
+      await surrealInstance.ready;
+      console.log('Successfully connected to SurrealDB');
+    },
+  });
+
+  // Wrap mutateAsync in a stable callback
+  const connect = useCallback(async () => {
+    await connectMutation();
+  }, [connectMutation]);
+
+  // Wrap close() in a stable callback
+  const close = useCallback(async () => {
+    await surrealInstance.close();
+    reset();
+  }, [surrealInstance, reset]);
+
+  // Auto-connect on mount (if enabled) and cleanup on unmount
+  useEffect(() => {
+    if (autoConnect) {
+      connect();
+    }
+
+    return () => {
+      reset();
+      surrealInstance.close();
+    };
+  }, [autoConnect, connect, reset, surrealInstance]);
+
+  // Memoize the context value
+  const value: DatabaseProviderState = useMemo(
+    () => ({
+      client: surrealInstance,
+      isConnecting: isPending,
+      isConnected: isSuccess,
+      isError,
+      error,
+      connect,
+      close,
+    }),
+    [surrealInstance, isPending, isSuccess, isError, error, connect, close],
+  );
+
+  // Show loading state while connecting
+  if (isPending || !isSuccess) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Connecting to database...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if connection failed
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-center max-w-md p-6 bg-red-50 border border-red-200 rounded-lg">
+          <h2 className="text-xl font-semibold text-red-800 mb-2">Database Connection Error</h2>
+          <p className="text-red-600 mb-4">{error instanceof Error ? error.message : String(error) || 'Database connection failed'}</p>
+          <button
+            onClick={() => connect()}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Only render children when connection is successful
+  return (
+    <DatabaseContext.Provider value={value}>
+      {children}
+    </DatabaseContext.Provider>
+  );
+};
+
+/**
+ * Access the Surreal connection state from the context.
+ */
+export const useDatabase = () => {
+  const context = useContext(DatabaseContext);
+  if (!context) {
+    throw new Error("useDatabase must be used within a DatabaseProvider");
+  }
+  return context;
+};
+
+/**
+ * Access the Surreal client from the context.
+ */
+export const useDatabaseClient = () => {
+  const { client } = useDatabase();
+  return client;
+};
+
