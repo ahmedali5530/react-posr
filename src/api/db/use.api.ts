@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import { useDB } from "@/api/db/db.ts";
+import { useDatabase } from "@/providers/database.provider.tsx";
 import { useQueryBuilder } from "@/api/db/query-builder.ts";
 
 export interface UseApiResult<T = any> {
@@ -59,6 +60,7 @@ function useApi<T>(
   const [parameters, setParameters] = useState({});
 
   const queryClient = useQueryClient();
+  const { isConnected } = useDatabase();
   const db = useDB();
   const queryBuilder = useQueryBuilder(table, initialSelects, initialFilters, initialLimit, initialOffset, initialSort, initialFetches);
 
@@ -69,13 +71,31 @@ function useApi<T>(
   const queryKeys = [table, { filters, sorts, page, pageSize, selects, splits, groups, fetches, parameters, mainQuery }];
 
   const fetchFilteredData = async () => {
-    const totalQuery = await db.query(`Select count() from ${table} group all`);
-    const listQuery = await db.query(mainQuery, queryBuilder.parameters);
+    // Ensure database is connected before executing queries
+    if (!isConnected) {
+      throw new Error('Database is not connected. Please wait for the connection to be established.');
+    }
+    
+    if (!db) {
+      throw new Error('Database instance is not available.');
+    }
+    
+    try {
+      const totalQuery = await db.query(`Select count() from ${table} group all`);
+      const listQuery = await db.query(mainQuery, queryBuilder.parameters);
 
-    return{
-      total: totalQuery[0][0]?.count || 0,
-      data: listQuery[0] || []
-    };
+      return{
+        total: totalQuery[0][0]?.count || 0,
+        data: listQuery[0] || []
+      };
+    } catch (error: any) {
+      // If we get a "No socket" error, it means the connection was lost
+      if (error?.message?.includes('socket') || error?.message?.includes('connected')) {
+        console.error('Database connection lost during query:', error);
+        throw new Error('Database connection was lost. Please refresh the page.');
+      }
+      throw error;
+    }
   }
 
   const {
@@ -88,6 +108,7 @@ function useApi<T>(
   }: UseQueryResult<T> = useQuery({
     queryKey: queryKeys,
     queryFn: fetchFilteredData,
+    enabled: isConnected && !!db && !!db.db, // Only run query when database is connected
     refetchOnWindowFocus: false,
     retry: false,
     gcTime: 0,

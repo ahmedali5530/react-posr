@@ -1,54 +1,24 @@
-import { DB_REST_DB, DB_REST_NS, DB_REST_PASS, DB_REST_USER, withApi } from "@/api/db/settings.ts";
 import {ActionResult, RecordIdRange, StringRecordId, Surreal, Table} from "surrealdb";
 import { Tables } from "@/api/db/tables.ts";
 import { toast } from "sonner";
-
-let db: Surreal | undefined;
-
-export const connect = async () => {
-  if (db) return db;
-  db = new Surreal();
-  try {
-    await db.connect(withApi(''), {
-      namespace: DB_REST_NS,
-      database: DB_REST_DB,
-      auth: {
-        username: DB_REST_USER,
-        password: DB_REST_PASS,
-      }
-    });
-
-    await db.ready;
-
-    // await db.use({
-    //   namespace: DB_REST_NS,
-    //   database: DB_REST_DB,
-    // });
-    //
-    // await db.signin({
-    //   username: DB_REST_USER,
-    //   password: DB_REST_PASS,
-    // });
-
-    return db;
-  }catch(err){
-    console.error(err);
-    throw err;
-  }
-}
-
-export const getDB = async () => {
-  return await connect();
-}
+import { useDatabase } from "@/providers/database.provider.tsx";
 
 export const useDB = () => {
+  const databaseContext = useDatabase();
+  const { client, isConnected, isConnecting } = databaseContext;
+  
+  // Only throw error if we're not connecting and not connected
+  // The provider ensures children only render when connected, so this should rarely happen
+  if (!isConnected && !isConnecting) {
+    throw new Error('Database is not connected. Please ensure DatabaseProvider is wrapping your app and connection is established.');
+  }
+
   const query = async <T = any>(sql: string, parameters?: any): Promise<ActionResult<Record<string, T>>[]> => {
     // log sql in dev mode
 
-
     try {
       // Perform a custom advanced query
-      const result: ActionResult<Record<string, T>>[] = await (await getDB()).query(sql, parameters);
+      const result: ActionResult<Record<string, T>>[] = await client.query(sql, parameters);
 
       if(import.meta.env.DEV) {
         console.group('DB Debug')
@@ -67,7 +37,7 @@ export const useDB = () => {
 
   const select = async <T>(thing: Tables): Promise<ActionResult<Record<string, T>>[]> => {
     try{
-      return (await getDB()).select(thing);
+      return client.select(thing);
     }catch(e){
       console.log('ERROR while select', e);
       toast.error(e);
@@ -77,7 +47,7 @@ export const useDB = () => {
 
   const del = async (thing: Tables|string) => {
     try{
-      return (await getDB()).delete(thing);
+      return client.delete(thing);
     }catch(e){
       console.error('ERROR while delete', e);
       toast.error(e);
@@ -87,7 +57,7 @@ export const useDB = () => {
 
   async function insert(thing: Tables|string, data: any){
     try{
-      return (await getDB()).insert(thing, data);
+      return client.insert(thing, data);
     }catch(e){
       console.error('ERROR while insert', e);
       toast.error(e);
@@ -98,7 +68,7 @@ export const useDB = () => {
 
   const update = async (thing: Tables|string, data: any) => {
     try{
-      return (await getDB()).update(thing, data);
+      return client.update(thing, data);
     }catch(e){
       console.error('ERROR while updating', e);
       toast.error(e);
@@ -108,7 +78,7 @@ export const useDB = () => {
 
   const patch = async (thing: Tables|string, data: any) => {
     try{
-      return (await getDB()).patch(thing, data);
+      return client.patch(thing, data);
     }catch(e){
       console.error('ERROR while patching', e);
       toast.error(e);
@@ -118,7 +88,7 @@ export const useDB = () => {
 
   const merge = async (thing: Tables|string|any, data: any) => {
     try{
-      return (await getDB()).merge(thing, data);
+      return client.merge(thing, data);
     }catch(e){
       console.error('ERROR while merging', e);
       toast.error(e);
@@ -128,7 +98,7 @@ export const useDB = () => {
 
   const live = async (thing: Tables|string, callback: (action: any, result: any) => void, diff?: boolean) => {
     try{
-      return (await getDB()).live(thing, callback, diff)
+      return client.live(thing, callback, diff)
     }catch(e){
       console.log('ERROR while live query', e);
       toast.error(e);
@@ -138,7 +108,7 @@ export const useDB = () => {
 
   return {
     query,
-    db,
+    db: client, // Expose the client for direct access if needed
     select,
     delete: del,
     insert, create: insert,
