@@ -1,35 +1,26 @@
-import { Layout } from "@/screens/partials/layout.tsx";
-import useApi, { SettingsData } from "@/api/db/use.api.ts";
-import { Order as OrderModel, OrderStatus } from "@/api/model/order.ts";
-import { Tables } from "@/api/db/tables.ts";
+import {Layout} from "@/screens/partials/layout.tsx";
+import useApi, {SettingsData} from "@/api/db/use.api.ts";
+import {Order as OrderModel, OrderStatus} from "@/api/model/order.ts";
+import {Tables} from "@/api/db/tables.ts";
 import React, {useEffect, useMemo, useState} from "react";
-import { useDB } from "@/api/db/db.ts";
-import { OrderBox } from "@/components/orders/order.box.tsx";
+import {useDB} from "@/api/db/db.ts";
+import {OrderBox} from "@/components/orders/order.box.tsx";
 import ScrollContainer from "react-indiana-drag-scroll";
-import { Floor } from "@/api/model/floor.ts";
-import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
-import { User } from "@/api/model/user.ts";
-import { useAtom } from "jotai";
-import {appAlert, appSettings} from "@/store/jotai.ts";
-import { OrderType } from "@/api/model/order_type.ts";
-import { DatePicker } from "@/components/common/react-aria/datepicker.tsx";
-import { getLocalTimeZone, today } from '@internationalized/date';
-import { DateValue } from "react-aria-components";
-import { Button } from "@/components/common/input/button.tsx";
-import {
-  faBars,
-  faChair,
-  faCodeBranch,
-  faEllipsisV,
-  faMoneyBillTransfer, faObjectGroup, faPrint, faTable,
-  faTableColumns
-} from "@fortawesome/free-solid-svg-icons";
+import {Floor} from "@/api/model/floor.ts";
+import {ReactSelect} from "@/components/common/input/custom.react.select.tsx";
+import {User} from "@/api/model/user.ts";
+import {useAtom} from "jotai";
+import {appAlert, appPage, appSettings} from "@/store/jotai.ts";
+import {OrderType} from "@/api/model/order_type.ts";
+import {DatePicker} from "@/components/common/react-aria/datepicker.tsx";
+import {getLocalTimeZone, today} from '@internationalized/date';
+import {DateValue} from "react-aria-components";
+import {Button} from "@/components/common/input/button.tsx";
+import {faBars, faChair, faTableColumns} from "@fortawesome/free-solid-svg-icons";
 import {OrderRow} from "@/components/orders/order.row.tsx";
 import {Table} from "@/api/model/table.ts";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {dispatchPrint} from "@/lib/print.service.ts";
-import {PRINT_TYPE} from "@/lib/print.registry.tsx";
-import {Dropdown, DropdownItem, DropdownSeparator} from "@/components/common/react-aria/dropdown.tsx";
+import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.tsx";
 import {RecordId, StringRecordId} from "surrealdb";
 import {toast} from "sonner";
 
@@ -46,7 +37,7 @@ export const Orders = () => {
   const [mergingTable, setMergingTable] = useState<string>();
 
   const [alert, setAlert] = useAtom(appAlert);
-
+  const [app, setApp] = useAtom(appPage);
 
   const {
     data: orders,
@@ -98,32 +89,32 @@ export const Orders = () => {
     params.ordersFilters.floors.forEach(floor => {
       floorFilters.push(`floor = ${floor.value}`);
     });
-    if( floorFilters.length > 0 ) {
+    if (floorFilters.length > 0) {
       addOrderFilter(`(${floorFilters.join(' or ')})`);
     }
 
     params.ordersFilters.users.forEach(user => {
       userFilters.push(`user = ${user.value}`);
     });
-    if( userFilters.length > 0 ) {
+    if (userFilters.length > 0) {
       addOrderFilter(`(${userFilters.join(' or ')})`);
     }
 
     params.ordersFilters.statuses.forEach(status => {
       statusFilters.push(`status = "${status.value}"`);
     });
-    if( statusFilters.length > 0 ) {
+    if (statusFilters.length > 0) {
       addOrderFilter(`(${statusFilters.join(' or ')})`);
     }
 
     params.ordersFilters.orderTypes.forEach(order_type => {
       orderTypeFilters.push(`order_type = ${order_type.value}`);
     });
-    if( orderTypeFilters.length > 0 ) {
+    if (orderTypeFilters.length > 0) {
       addOrderFilter(`(${orderTypeFilters.join(' or ')})`);
     }
 
-    if( date ) {
+    if (date) {
       addOrderFilter(`time::format(created_at, "%Y-%m-%d") = "${date?.toString()}"`);
     }
   }, [params.ordersFilters, date]);
@@ -133,13 +124,15 @@ export const Orders = () => {
   }, [mergingTable, tables?.data]);
 
   const nextInvoiceNumber = async () => {
-    return await db.query(`SELECT math::max(invoice_number) as invoice_number from ${Tables.orders} group all`);
+    return await db.query(`SELECT math::max(invoice_number) as invoice_number
+                           from ${Tables.orders}
+                           group all`);
   }
 
   const [isSaving, setIsSaving] = useState(false);
   const confirmMerge = async () => {
 
-    if(!mergingTable){
+    if (!mergingTable) {
       setAlert(prev => ({
         ...prev,
         opened: true,
@@ -192,11 +185,19 @@ export const Orders = () => {
 
       const mergedOrder = await db.create(Tables.orders, orderData);
 
-      for ( const item of items ) {
+      for (const item of items) {
         await db.merge(item, {
           order: mergedOrder[0].id
         });
       }
+
+      // create merge entry
+      await db.create(Tables.order_merge, {
+        created_at: new Date(),
+        created_by: app.user.id,
+        new_order: mergedOrder[0].id,
+        old_orders: mergingOrders.map(item => item.id),
+      })
 
       toast.success(`Successfully merged into ${mergedOrder[0].invoice_number}`);
 
@@ -215,171 +216,180 @@ export const Orders = () => {
 
   return (
     <Layout containerClassName="overflow-hidden">
-        <div className="flex gap-5 p-3 flex-col">
-          <div className="h-[60px] flex-0 rounded-xl bg-white flex items-center px-3 gap-3">
-            <div className="min-w-[200px]">
-              <ReactSelect
-                options={[OrderStatus["In Progress"], OrderStatus.Paid, OrderStatus.Cancelled, OrderStatus.Spilt, OrderStatus.Merged].map(item => ({
-                  label: item,
-                  value: item
-                }))}
-                isMulti
-                placeholder="Select order status"
-                value={params.ordersFilters.statuses}
-                onChange={(value: any) => {
-                  setParams(prev => ({
-                    ...prev,
-                    ordersFilters: {
-                      ...prev.ordersFilters,
-                      statuses: value,
-                    }
-                  }))
-                }}
-              />
-            </div>
-            <div className="min-w-[200px]">
-              <ReactSelect
-                options={orderTypes?.data.map(item => ({
-                  label: item.name,
-                  value: item.id
-                }))}
-                isMulti
-                placeholder="Select order types"
-                value={params.ordersFilters.orderTypes}
-                onChange={(value: any) => {
-                  setParams(prev => ({
-                    ...prev,
-                    ordersFilters: {
-                      ...prev.ordersFilters,
-                      orderTypes: value,
-                    }
-                  }))
-                }}
-              />
-            </div>
-            <div className="min-w-[200px]">
-              <ReactSelect
-                options={floors?.data?.map(item => ({
-                  label: item.name,
-                  value: item.id
-                }))}
-                isMulti
-                placeholder="Select floors"
-                value={params.ordersFilters.floors}
-                onChange={(value: any) => {
-                  setParams(prev => ({
-                    ...prev,
-                    ordersFilters: {
-                      ...prev.ordersFilters,
-                      floors: value,
-                    }
-                  }))
-                }}
-              />
-            </div>
-            <div className="min-w-[200px]">
-              <ReactSelect
-                options={users?.data?.map(item => ({
-                  label: item.first_name + ' ' + item.last_name,
-                  value: item.id
-                }))}
-                isMulti
-                placeholder="Select users"
-                value={params.ordersFilters.users}
-                onChange={(value: any) => {
-                  setParams(prev => ({
-                    ...prev,
-                    ordersFilters: {
-                      ...prev.ordersFilters,
-                      users: value,
-                    }
-                  }))
-                }}
-              />
-            </div>
-            <div>
-              <DatePicker value={date} onChange={setDate} maxValue={today(getLocalTimeZone())} isClearable/>
-            </div>
-            <div className="input-group flex-1 justify-end">
-              <Button icon={faTableColumns} variant="primary" onClick={() => setView('column')} active={view === 'column'}>
-                Blocks
-              </Button>
-              <Button icon={faBars} variant="primary" onClick={() => setView('row')} active={view === 'row'}>
-                Table
-              </Button>
-            </div>
+      <div className="flex gap-5 p-3 flex-col">
+        <div className="h-[60px] flex-0 rounded-xl bg-white flex items-center px-3 gap-3">
+          <div className="min-w-[200px]">
+            <ReactSelect
+              options={[OrderStatus["In Progress"], OrderStatus.Paid, OrderStatus.Cancelled, OrderStatus.Spilt, OrderStatus.Merged].map(item => ({
+                label: item,
+                value: item
+              }))}
+              isMulti
+              placeholder="Select order status"
+              value={params.ordersFilters.statuses}
+              onChange={(value: any) => {
+                setParams(prev => ({
+                  ...prev,
+                  ordersFilters: {
+                    ...prev.ordersFilters,
+                    statuses: value,
+                  }
+                }))
+              }}
+            />
           </div>
-          {view === 'column' && (
-            <ScrollContainer className="h-[calc(100vh_-_190px)]">
-              <div className="flex-1 rounded-xl flex gap-3 flex-row">
-                {orders?.data?.map(item => (
-                  <div className="w-[400px] flex-shrink-0" key={item.id}>
-                    <OrderBox order={item} merging={merging} mergingOrders={mergingOrders} onMergeSelect={(order, status) => {
-                      if(status) {
+          <div className="min-w-[200px]">
+            <ReactSelect
+              options={orderTypes?.data.map(item => ({
+                label: item.name,
+                value: item.id
+              }))}
+              isMulti
+              placeholder="Select order types"
+              value={params.ordersFilters.orderTypes}
+              onChange={(value: any) => {
+                setParams(prev => ({
+                  ...prev,
+                  ordersFilters: {
+                    ...prev.ordersFilters,
+                    orderTypes: value,
+                  }
+                }))
+              }}
+            />
+          </div>
+          <div className="min-w-[200px]">
+            <ReactSelect
+              options={floors?.data?.map(item => ({
+                label: item.name,
+                value: item.id
+              }))}
+              isMulti
+              placeholder="Select floors"
+              value={params.ordersFilters.floors}
+              onChange={(value: any) => {
+                setParams(prev => ({
+                  ...prev,
+                  ordersFilters: {
+                    ...prev.ordersFilters,
+                    floors: value,
+                  }
+                }))
+              }}
+            />
+          </div>
+          <div className="min-w-[200px]">
+            <ReactSelect
+              options={users?.data?.map(item => ({
+                label: item.first_name + ' ' + item.last_name,
+                value: item.id
+              }))}
+              isMulti
+              placeholder="Select users"
+              value={params.ordersFilters.users}
+              onChange={(value: any) => {
+                setParams(prev => ({
+                  ...prev,
+                  ordersFilters: {
+                    ...prev.ordersFilters,
+                    users: value,
+                  }
+                }))
+              }}
+            />
+          </div>
+          <div>
+            <DatePicker value={date} onChange={setDate} maxValue={today(getLocalTimeZone())} isClearable/>
+          </div>
+          <div className="input-group flex-1 justify-end">
+            <Button icon={faTableColumns} variant="primary" onClick={() => setView('column')}
+                    active={view === 'column'}>
+              Blocks
+            </Button>
+            <Button icon={faBars} variant="primary" onClick={() => setView('row')} active={view === 'row'}>
+              Table
+            </Button>
+          </div>
+        </div>
+        {view === 'column' && (
+          <ScrollContainer className="h-[calc(100vh_-_190px)]">
+            <div className="flex-1 rounded-xl flex gap-3 flex-row">
+              {orders?.data?.map(item => (
+                <div className="w-[400px] flex-shrink-0" key={item.id}>
+                  <OrderBox
+                    order={item}
+                    merging={merging}
+                    mergingOrders={mergingOrders}
+                    onMergeSelect={(order, status) => {
+                      if (status) {
                         setMerging(true);
 
                         setMergingOrders(prev => [
                           ...prev,
                           order
                         ]);
-                      }else {
+                      } else {
                         setMergingOrders(prev => prev.filter(order => order.id.toString() !== item.id.toString()));
                       }
-                    }} />
-                  </div>
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </ScrollContainer>
+        )}
+
+        {view === 'row' && (
+          <ScrollContainer className="max-h-[calc(100vh_-_190px)]">
+            <div className="flex-1 rounded-xl flex flex-col">
+              {orders?.data?.map(item => (
+                <OrderRow order={item} key={item.id}/>
+              ))}
+            </div>
+          </ScrollContainer>
+        )}
+
+        <div className="h-[60px] flex-0 rounded-xl bg-white flex items-center px-3 gap-3">
+          {merging && (
+            <div className="flex gap-5">
+              <Dropdown
+                label={<><FontAwesomeIcon icon={faChair} className="mr-3"/> Choose a
+                  table {selectedTable ? `(${selectedTable.name}${selectedTable.number})` : ''}</>}
+                btnSize="lg"
+                className="flex-1"
+                onAction={(key) => {
+                  setMergingTable(key.toString());
+                }}
+              >
+                {tables?.data?.map(item => (
+                  <DropdownItem isActive={item.id.toString() === mergingTable} id={item.id.toString()}
+                                key={item.id.toString()} className="min-w-[200px]">
+                    {item.name + '' + item.number}
+                  </DropdownItem>
                 ))}
-              </div>
-            </ScrollContainer>
+              </Dropdown>
+
+              <Button
+                variant="success"
+                size="lg"
+                disabled={mergingOrders.length <= 1 || isSaving}
+                onClick={confirmMerge}
+                isLoading={isSaving}
+              >
+                {mergingOrders.length <= 1 ? 'Select 2 or more orders' : <>Confirm merging
+                  of {mergingOrders.length} orders</>}
+              </Button>
+
+              <Button flat size="lg" variant="danger" onClick={() => {
+                setMerging(false);
+                setMergingOrders([]);
+              }}>
+                Cancel merging
+              </Button>
+            </div>
           )}
-
-          {view === 'row' && (
-            <ScrollContainer className="max-h-[calc(100vh_-_190px)]">
-              <div className="flex-1 rounded-xl flex flex-col">
-                {orders?.data?.map(item => (
-                  <OrderRow order={item} key={item.id} />
-                ))}
-              </div>
-            </ScrollContainer>
-          )}
-
-          <div className="h-[60px] flex-0 rounded-xl bg-white flex items-center px-3 gap-3">
-            {merging && (
-              <div className="flex gap-5">
-                <Dropdown
-                  label={<><FontAwesomeIcon icon={faChair} className="mr-3"/> Choose a table {selectedTable ? `(${selectedTable.name}${selectedTable.number})` : ''}</>}
-                  btnSize="lg"
-                  className="flex-1"
-                  onAction={(key) => {
-                    setMergingTable(key.toString());
-                  }}
-                >
-                  {tables?.data?.map(item => (
-                    <DropdownItem isActive={item.id.toString() === mergingTable} id={item.id.toString()} key={item.id.toString()} className="min-w-[200px]">
-                      {item.name + '' + item.number}
-                    </DropdownItem>
-                  ))}
-                </Dropdown>
-
-                <Button
-                  variant="success"
-                  size="lg"
-                  disabled={mergingOrders.length <= 1 || isSaving}
-                  onClick={confirmMerge}
-                  isLoading={isSaving}
-                >
-                  {mergingOrders.length <= 1 ? 'Select 2 or more orders' : <>Confirm merging of {mergingOrders.length} orders</>}
-                </Button>
-
-                <Button flat size="lg" variant="danger" onClick={() => {
-                  setMerging(false);
-                  setMergingOrders([]);
-                }}>
-                  Cancel merging
-                </Button>
-              </div>
-            )}
-          </div>
         </div>
+      </div>
     </Layout>
   );
 }

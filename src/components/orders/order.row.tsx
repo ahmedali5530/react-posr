@@ -4,7 +4,7 @@ import React, {useMemo, useState} from "react";
 import {cn, withCurrency} from "@/lib/utils.ts";
 import {DateTime} from "luxon";
 import {OrderPayment} from "@/components/orders/order.payment.tsx";
-import {getInvoiceNumber} from "@/lib/order.ts";
+import {getInvoiceNumber, getOrderFilteredItems} from "@/lib/order.ts";
 
 interface Props {
   order: OrderModel
@@ -57,7 +57,7 @@ export const OrderRow = ({
         </div>
         <div className="flex items-center px-3 gap-1">
           <span className="inline-flex h-[24px] min-w-[24px] rounded-full bg-gray-900 text-white justify-center items-center">
-            {order.items.length}
+            {getOrderFilteredItems(order).length}
           </span> Items
         </div>
         <div className="flex px-3 gap-1 items-center basis-[150px]">

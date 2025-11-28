@@ -20,6 +20,7 @@ import {dispatchPrint} from "@/lib/print.service.ts";
 import {PRINT_TYPE} from "@/lib/print.registry.tsx";
 import {useDB} from "@/api/db/db.ts";
 import {OrderPaymentNotes} from "@/components/orders/payment/order.payment.notes.tsx";
+import {getOrderFilteredItems} from "@/lib/order.ts";
 
 interface Props {
   order: Order
@@ -138,7 +139,7 @@ export const OrderPayment = ({
             <div className="separator h-[2px]" style={{'--size': '10px', '--space': '5px'} as CSSProperties}></div>
             <ScrollContainer className="gap-1 flex flex-col">
               <div className="overflow-ellipsis max-h-[250px]">
-                {order.items.map(item => (
+                {getOrderFilteredItems(order).map(item => (
                   <div className="flex gap-3 hover:bg-neutral-100" key={item.id}>
                     <div className="flex-1 whitespace-break-spaces">{item.item.name}</div>
                     <div className="text-right w-[50px] flex-shrink-0">{item.quantity}</div>
@@ -151,7 +152,7 @@ export const OrderPayment = ({
           </div>
           <div className="flex flex-col font-bold text-lg">
             <div className="flex justify-between p-3">
-              <div>Items ({order.items.length})</div>
+              <div>Items ({getOrderFilteredItems(order).length})</div>
               <div className="text-right">{withCurrency(itemsTotal)}</div>
             </div>
             <div className={

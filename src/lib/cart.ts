@@ -1,6 +1,7 @@
 import { CartModifierGroup, MenuItem } from "@/api/model/cart_item.ts";
 import { Order } from "@/api/model/order.ts";
 import { OrderItem } from "@/api/model/order_item.ts";
+import {getOrderFilteredItems} from "@/lib/order.ts";
 
 export const calculateCartItemPrice = (item: MenuItem) => {
   let price =  item.price * item.quantity;
@@ -36,7 +37,7 @@ export const calculateOrderTotal = (order?: Order) => {
     return price;
   }
 
-  for(const item of order.items){
+  for(const item of getOrderFilteredItems(order)){
     price += calculateOrderItemPrice(item);
   }
 
