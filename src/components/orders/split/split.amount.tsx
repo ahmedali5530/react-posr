@@ -2,18 +2,19 @@ import {Order as OrderModel, OrderStatus} from "@/api/model/order.ts";
 import {OrderItem} from "@/api/model/order_item.ts";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {Button} from "@/components/common/input/button.tsx";
+import {Input} from "@/components/common/input/input.tsx";
 import {OrderItemName} from "@/components/common/order/order.item.tsx";
-import {calculateOrderItemPrice} from "@/lib/cart.ts";
-import {formatNumber} from "@/lib/utils.ts";
+import {calculateOrderItemPrice, calculateOrderTotal} from "@/lib/cart.ts";
+import {formatNumber, withCurrency} from "@/lib/utils.ts";
 import React, {useMemo, useState} from "react";
-import {faArrowLeft, faCheck, faPlus, faTrash} from "@fortawesome/free-solid-svg-icons";
+import {faCheck, faPlus, faTrash} from "@fortawesome/free-solid-svg-icons";
 import {useDB} from "@/api/db/db.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {DateTime} from "luxon";
 import {toast} from "sonner";
 import {RecordId, StringRecordId} from "surrealdb";
-import ScrollContainer from "react-indiana-drag-scroll";
 import {nanoid} from "nanoid";
+import {getOrderFilteredItems} from "@/lib/order.ts";
 
 interface Props {
   order: OrderModel
@@ -23,7 +24,7 @@ interface Props {
 interface Split {
   id: string;
   name: string;
-  items: OrderItem[];
+  amount: number;
   number: number;
 }
 
@@ -31,200 +32,241 @@ export const SplitAmount = ({
   order, onClose
 }: Props) => {
   const db = useDB();
-  // Initialize with one split containing all items
+  
+  // Calculate total order amount (same as order.box.tsx)
+  const itemsTotal = useMemo(() => calculateOrderTotal(order), [order]);
+  const orderTotal = useMemo(() => {
+    const extrasTotal = order?.extras ? order?.extras?.reduce((prev, item) => prev + item.value, 0) : 0;
+    return itemsTotal + extrasTotal + Number(order?.tax_amount ?? 0) - Number(order?.discount_amount ?? 0) + Number(order.service_charge_amount ?? 0) + Number(order?.tip_amount ?? 0);
+  }, [itemsTotal, order]);
+
+  const allItems = useMemo(() => getOrderFilteredItems(order), [order]);
+
+  // Initialize with two empty splits
   const [splits, setSplits] = useState<Split[]>([
-    {id: 'split-1', name: 'Split 1', items: [...order.items], number: 1}
+    {id: nanoid(), name: 'Split 1', amount: 0, number: 1},
+    {id: nanoid(), name: 'Split 2', amount: 0, number: 2}
   ]);
   const [isSaving, setIsSaving] = useState(false);
-  const [draggedItem, setDraggedItem] = useState<OrderItem | null>(null);
-  const [dragOverSplit, setDragOverSplit] = useState<string | null>(null);
 
-  // Calculate total for each split
+  // Calculate total assigned amount and remaining
+  const assignedTotal = useMemo(() => {
+    return splits.reduce((sum, split) => sum + (split.amount || 0), 0);
+  }, [splits]);
+
+  const remainingAmount = useMemo(() => {
+    return Math.max(0, orderTotal - assignedTotal);
+  }, [orderTotal, assignedTotal]);
+
+  const isValid = useMemo(() => {
+    return splits.length >= 2 && 
+           splits.every(split => split.amount > 0) && 
+           Math.abs(assignedTotal - orderTotal) < 0.01; // Allow small rounding differences
+  }, [splits, assignedTotal, orderTotal]);
+
+  // Calculate adjusted prices for each split based on ratio
+  const getSplitRatio = (splitAmount: number) => {
+    if (orderTotal === 0) return 1;
+    return splitAmount / orderTotal;
+  };
+
+  // Calculate adjusted item price for a split
+  const getAdjustedItemPrice = (item: OrderItem, ratio: number) => {
+    return calculateOrderItemPrice(item) * ratio;
+  };
+
+  // Calculate split totals with adjusted prices
   const splitTotals = useMemo(() => {
     return splits.map(split => {
-      return split.items.reduce((total, item) => {
-        return total + calculateOrderItemPrice(item);
+      const ratio = getSplitRatio(split.amount);
+      return allItems.reduce((total, item) => {
+        return total + getAdjustedItemPrice(item, ratio);
       }, 0);
     });
-  }, [splits]);
+  }, [splits, allItems, orderTotal]);
 
-  // Get all splits
-  const actualSplits = useMemo(() => {
-    return splits;
-  }, [splits]);
+  const updateSplitAmount = (splitId: string, amount: number) => {
+    const newAmount = Math.max(0, Math.min(amount, orderTotal));
+    setSplits(prev => prev.map(split => 
+      split.id === splitId ? {...split, amount: newAmount} : split
+    ));
+  };
+
+  const distributeEvenly = () => {
+    const splitCount = splits.length;
+    const amountPerSplit = orderTotal / splitCount;
+    setSplits(prev => prev.map(split => ({
+      ...split,
+      amount: amountPerSplit
+    })));
+  };
+
+  const autoFillRemaining = () => {
+    if (remainingAmount > 0) {
+      // Find the first split with amount 0 and fill it with remaining
+      const emptySplit = splits.find(split => split.amount === 0);
+      if (emptySplit) {
+        updateSplitAmount(emptySplit.id, remainingAmount);
+      } else {
+        // If no empty split, distribute remaining evenly
+        const splitCount = splits.length;
+        const additionalPerSplit = remainingAmount / splitCount;
+        setSplits(prev => prev.map(split => ({
+          ...split,
+          amount: split.amount + additionalPerSplit
+        })));
+      }
+    }
+  };
 
   const addSplit = () => {
     const newSplitId = nanoid();
     setSplits(prev => [...prev, {
       id: newSplitId,
       name: `Split ${prev.length + 1}`,
-      number: prev.length + 1,
-      items: []
+      amount: 0,
+      number: prev.length + 1
     }]);
   };
 
   const removeSplit = (splitId: string) => {
-    if (splits.length > 1) {
+    if (splits.length > 2) {
       setSplits(prev => {
         const filtered = prev.filter(split => split.id !== splitId);
-        // Move items back to first split (Split 1)
-        const removedSplit = prev.find(split => split.id === splitId);
-        if (removedSplit) {
-          const firstSplit = filtered.find(split => split.id === 'split-1');
-          if (firstSplit) {
-            firstSplit.items = [...firstSplit.items, ...removedSplit.items];
-          }
-        }
-        // Renumber splits to maintain sequential naming
         return filtered.map((split, index) => ({
           ...split,
-          name: `Split ${index + 1}`
+          name: `Split ${index + 1}`,
+          number: index + 1
         }));
       });
     }
   };
 
-  const moveItemToSplit = (item: OrderItem, splitId: string) => {
-    setSplits(prev => {
-      // Find which split currently contains this item
-      const currentSplit = prev.find(split => split.items.some(splitItem => splitItem.id === item.id));
-      
-      // If the item is already in the target split, do nothing
-      if (currentSplit && currentSplit.id === splitId) {
-        return prev;
-      }
-      
-      // Move the item to the target split
-      return prev.map(split => {
-        if (split.id === splitId) {
-          // Add item to this split
-          return {
-            ...split,
-            items: [...split.items, item]
-          };
-        } else {
-          // Remove item from other splits
-          return {
-            ...split,
-            items: split.items.filter(splitItem => splitItem.id !== item.id)
-          };
-        }
-      });
-    });
-  };
-
-  // Drag and drop handlers
-  const handleDragStart = (e: React.DragEvent, item: OrderItem) => {
-    setDraggedItem(item);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', item.id);
-  };
-
-  const handleDragOver = (e: React.DragEvent, splitId: string) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverSplit(splitId);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOverSplit(null);
-  };
-
-  const handleDrop = (e: React.DragEvent, splitId: string) => {
-    e.preventDefault();
-    if (draggedItem) {
-      moveItemToSplit(draggedItem, splitId);
+  // Recursively adjust modifier prices
+  const adjustModifierPrice = (modifier: any, ratio: number): any => {
+    if (!modifier) return modifier;
+    
+    if (modifier.price !== undefined) {
+      modifier = {
+        ...modifier,
+        price: modifier.price * ratio
+      };
     }
-    setDraggedItem(null);
-    setDragOverSplit(null);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedItem(null);
-    setDragOverSplit(null);
-  };
-
-  const removeItemFromSplit = (itemId: string, splitId: string) => {
-    setSplits(prev => {
-      const itemToMove = prev.find(split => split.id === splitId)?.items.find(item => item.id === itemId);
-      if (!itemToMove) return prev;
-
-      return prev.map(split => {
-        if (split.id === splitId) {
-          // Remove item from current split
-          return {
-            ...split,
-            items: split.items.filter(item => item.id !== itemId)
-          };
-        } else if (split.id === 'split-1') {
-          // Add item to first split
-          return {
-            ...split,
-            items: [...split.items, itemToMove]
-          };
-        }
-        return split;
-      });
-    });
-  };
-
-  const getNextInvoiceNumber = async () => {
-    const result = await db.query(`
-        SELECT math::max(invoice_number) as max_invoice
-        FROM ${Tables.orders}
-    `);
-    return (result[0]?.[0]?.max_invoice || 0) + 1;
+    
+    if (modifier.selectedModifiers && Array.isArray(modifier.selectedModifiers)) {
+      modifier = {
+        ...modifier,
+        selectedModifiers: modifier.selectedModifiers.map((sm: any) => adjustModifierPrice(sm, ratio))
+      };
+    }
+    
+    if (modifier.modifiers && Array.isArray(modifier.modifiers)) {
+      modifier = {
+        ...modifier,
+        modifiers: modifier.modifiers.map((m: any) => adjustModifierPrice(m, ratio))
+      };
+    }
+    
+    return modifier;
   };
 
   const handleSaveSplits = async () => {
-    if (!canSave) return;
+    if (!isValid) return;
 
     setIsSaving(true);
     try {
       const baseInvoiceNumber = order.invoice_number;
       const createdOrders = [];
 
-      for (let i = 0; i < actualSplits.length; i++) {
-        const split = actualSplits[i];
-        if (split.items.length === 0) continue;
+      for (let i = 0; i < splits.length; i++) {
+        const split = splits[i];
+        if (split.amount <= 0) continue;
 
-        // Create order items for this split
-        const items = split.items.map(item => item.id);
+        // Calculate proportional values for tax, discount, etc.
+        const splitRatio = split.amount / orderTotal;
+        const splitTaxAmount = order.tax_amount ? Number(order.tax_amount) * splitRatio : 0;
+        const splitDiscountAmount = order.discount_amount ? Number(order.discount_amount) * splitRatio : 0;
+        const splitServiceChargeAmount = order.service_charge_amount ? Number(order.service_charge_amount) * splitRatio : 0;
+        const splitTipAmount = order.tip_amount ? Number(order.tip_amount) * splitRatio : 0;
+
+        // Create new order items with adjusted prices for this split
+        const newItemIds = [];
+
+        for (const originalItem of allItems) {
+          // Get the base price to adjust from (current price)
+          const basePrice = originalItem.price;
+          const newPrice = basePrice * splitRatio;
+          
+          // Set original_price: use current price if original_price is empty, otherwise keep existing
+          const originalPrice = originalItem.original_price ?? basePrice;
+          
+          // Prepare item data with adjusted price
+          const itemData: any = {
+            item: new StringRecordId(originalItem.item.id.toString()),
+            price: newPrice,
+            quantity: originalItem.quantity,
+            position: originalItem.position,
+            comments: originalItem.comments || undefined,
+            service_charges: originalItem.service_charges ? (originalItem.service_charges * splitRatio) : 0,
+            discount: originalItem.discount ? (originalItem.discount * splitRatio) : 0,
+            modifiers: originalItem.modifiers ? originalItem.modifiers.map((mod: any) => adjustModifierPrice(mod, splitRatio)) : undefined,
+            seat: originalItem.seat || undefined,
+            is_suspended: originalItem.is_suspended || false,
+            level: originalItem.level,
+            category: originalItem.category || undefined,
+            is_addition: false,
+            tax: originalItem.tax ? (originalItem.tax * splitRatio) : 0,
+            created_at: DateTime.now().toJSDate(),
+            // Set original_price: use current price if empty, otherwise keep existing original_price
+            original_price: originalPrice
+          };
+
+          // Create the new order item
+          const [createdItem] = await db.create(Tables.order_items, itemData);
+          newItemIds.push(createdItem.id);
+
+          // Create kitchen entries if needed
+          // const kitchen: any = await db.query(`SELECT * from ${Tables.kitchens} where items ?= ${originalItem.item.id.toString()}`);
+          // if (kitchen[0] && kitchen[0].length > 0) {
+          //   for (const k of kitchen[0]) {
+          //     await db.create(Tables.order_items_kitchen, {
+          //       created_at: DateTime.now().toJSDate(),
+          //       kitchen: new StringRecordId(k.id.toString()),
+          //       order_item: new StringRecordId(createdItem.id.toString())
+          //     });
+          //   }
+          // }
+        }
 
         // Create the split order
         const orderData = {
           floor: new RecordId('floor', order.floor.id),
-          covers: Math.ceil(order.covers / actualSplits.length) || 1, // Distribute covers
-          // tax: order.tax ? new StringRecordId(order.tax.id.toString()) : null,
-          // tax_amount: 0, // Will be calculated per split
+          covers: Math.ceil(order.covers / splits.length) || 1,
           tags: ['Split Order'],
-          // discount: order.discount ? new StringRecordId(order.discount.id.toString()) : null,
-          // discount_amount: 0, // Will be calculated per split
-          // customer: order.customer ? new StringRecordId(order.customer.id.toString()) : null,
           order_type: order.order_type.id,
           status: OrderStatus["In Progress"],
           invoice_number: baseInvoiceNumber,
-          items: items,
+          items: newItemIds,
           table: order.table.id,
           user: order.user.id,
           created_at: order.created_at,
-          split: split.number
+          split: split.number,
+          tax_amount: splitTaxAmount,
+          discount_amount: splitDiscountAmount,
+          service_charge_amount: splitServiceChargeAmount,
+          tip_amount: splitTipAmount,
+          // Distribute extras proportionally if any
+          extras: order.extras?.map(extra => ({
+            name: extra.name,
+            value: extra.value * splitRatio
+          }))
         };
-
-        console.log(orderData)
 
         const splitOrder = await db.create(Tables.orders, orderData);
         createdOrders.push(splitOrder[0]);
-
-        for ( const item of items ) {
-          await db.merge(item, {
-            order: splitOrder[0].id
-          });
-        }
       }
 
-      // // Mark original order as cancelled or completed
+      // Mark original order as split
       await db.merge(order.id, {
         status: OrderStatus['Spilt'],
         tags: [...(order.tags || []), 'Split']
@@ -240,214 +282,222 @@ export const SplitAmount = ({
     }
   };
 
-  const canSave = actualSplits.length > 1 && actualSplits.every(split => split.items.length > 0);
+  const canSave = isValid && splits.length >= 2;
 
   return (
     <>
       <Modal
-        title={`Split order# ${order.invoice_number}`}
+        title={`Split order# ${order.invoice_number} by amount`}
         open={true}
         size="full"
         onClose={onClose}
       >
-         <div className="flex h-full gap-6 p-6 bg-gradient-to-br from-gray-50 to-white select-none">
-           {/* Left Side - First Split (Fixed) */}
-           <div className="flex-shrink-0 w-[400px]">
-             <div className="mb-4">
-               <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                 Split 1 (Fixed)
-               </h3>
-               <p className="text-xs text-gray-400 mt-1">
-                 Main split - items can be dragged from here
-               </p>
-             </div>
-             {actualSplits.length > 0 && (
-               <div
-                 className={`bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 ${
-                   dragOverSplit === actualSplits[0].id ? 'border-green-400 bg-green-50 scale-105' : ''
-                 }`}
-                 onDragOver={(e) => handleDragOver(e, actualSplits[0].id)}
-                 onDragLeave={handleDragLeave}
-                 onDrop={(e) => handleDrop(e, actualSplits[0].id)}
-               >
-                 <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-green-50 to-transparent">
-                   <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                     {actualSplits[0].name}
-                   </h4>
-                   <div className="flex items-center gap-2">
-                     <span className="text-sm font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                       Total: {formatNumber(splitTotals[0])}
-                     </span>
-                   </div>
-                 </div>
-                 <div className="p-4 min-h-[120px] max-h-[calc(100vh-380px)] overflow-y-auto">
-                   {actualSplits[0].items.length === 0 ? (
-                     <div className="text-center py-6 text-gray-400">
-                       <p>No items in this split</p>
-                       <p className="text-xs mt-1">Items removed from other splits will appear here</p>
-                     </div>
-                   ) : (
-                     <div className="space-y-2">
-                       {actualSplits[0].items.map(item => (
-                         <div
-                           key={item.id}
-                           className="p-2 border border-gray-100 rounded-lg bg-gradient-to-r from-gray-50 to-transparent flex justify-between items-center hover:from-green-50 transition-all duration-200"
-                           draggable
-                           onDragStart={(e) => handleDragStart(e, item)}
-                           onDragEnd={handleDragEnd}
-                         >
-                           <div className="flex-1">
-                             <OrderItemName
-                               item={item}
-                               showQuantity={true}
-                               showPrice={true}
-                             />
-                           </div>
-                         </div>
-                       ))}
-                     </div>
-                   )}
-                 </div>
-               </div>
-             )}
-           </div>
+        <div className="flex flex-col h-full gap-6 p-6 bg-gradient-to-br from-gray-50 to-white">
+          {/* Header with Order Total */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-1">
+                  Order Total
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Assign amounts to each split. All amounts must equal the order total.
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold text-green-600">
+                  {withCurrency(orderTotal)}
+                </div>
+                <div className="text-sm text-gray-500 mt-1">
+                  Assigned: {withCurrency(assignedTotal)}
+                </div>
+                <div className={`text-sm font-medium mt-1 ${
+                  remainingAmount === 0 ? 'text-green-600' : 'text-orange-600'
+                }`}>
+                  Remaining: {withCurrency(remainingAmount)}
+                </div>
+              </div>
+            </div>
+          </div>
 
-           {/* Right Side - Other Splits (Scrollable) */}
-           <div className="flex-1 flex flex-col min-w-0">
-             <div className="flex items-center justify-between mb-4 flex-shrink-0">
-               <div>
-                 <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                   <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
-                   Additional Splits
-                 </h3>
-                 <p className="text-xs text-gray-400 mt-1">
-                   💡 Drag empty space to scroll horizontally
-                 </p>
-               </div>
-               <Button
-                 variant="success"
-                 icon={faPlus}
-                 onClick={addSplit}
-                 size="lg"
-                 className="shadow-lg hover:shadow-green-200"
-               >
-                 Add Split
-               </Button>
-             </div>
+          {/* Splits Grid */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {splits.map((split, index) => {
+                const ratio = getSplitRatio(split.amount);
+                const percentage = orderTotal > 0 ? ((split.amount / orderTotal) * 100).toFixed(1) : '0';
+                
+                return (
+                  <div
+                    key={split.id}
+                    className="bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 flex flex-col"
+                  >
+                    <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-transparent flex-shrink-0">
+                      <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                        {split.name}
+                      </h4>
+                      {splits.length > 2 && (
+                        <Button
+                          variant="danger"
+                          icon={faTrash}
+                          iconButton
+                          size="sm"
+                          onClick={() => removeSplit(split.id)}
+                        />
+                      )}
+                    </div>
 
-             {/* Scrollable Splits Container */}
-             <div className="flex-1 min-h-0">
-               {actualSplits.length > 1 ? (
-                 <ScrollContainer className="h-full overflow-x-auto overflow-y-hidden">
-                   <div className="flex flex-row gap-5 pb-4 h-full">
-                     {actualSplits.slice(1).map((split, index) => (
-                       <div
-                         key={split.id}
-                         className={`bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 flex-shrink-0 w-[400px] h-full flex flex-col ${
-                           dragOverSplit === split.id ? 'border-green-400 bg-green-50 scale-105' : ''
-                         }`}
-                         onDragOver={(e) => handleDragOver(e, split.id)}
-                         onDragLeave={handleDragLeave}
-                         onDrop={(e) => handleDrop(e, split.id)}
-                       >
-                         <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-transparent flex-shrink-0">
-                           <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-                             <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                             {split.name}
-                           </h4>
-                           <div className="flex items-center gap-2">
-                             <span className="text-sm font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                               Total: {formatNumber(splitTotals[index + 1])}
-                             </span>
-                             <Button
-                               variant="danger"
-                               icon={faTrash}
-                               iconButton
-                               size="lg"
-                               onClick={() => removeSplit(split.id)}
-                             />
-                           </div>
-                         </div>
+                    <div className="p-4 flex-1 flex flex-col gap-4">
+                      {/* Amount Input */}
+                      <div>
+                        <Input
+                          type="number"
+                          label="Amount"
+                          value={split.amount > 0 ? split.amount : ''}
+                          onChange={(e) => {
+                            const inputValue = e.target.value;
+                            // Handle empty string or numeric input
+                            if (inputValue === '' || inputValue === null || inputValue === undefined) {
+                              updateSplitAmount(split.id, 0);
+                              return;
+                            }
+                            const value = parseFloat(String(inputValue)) || 0;
+                            updateSplitAmount(split.id, value);
+                          }}
+                          placeholder="0.00"
+                          inputSize="lg"
+                        />
+                        {split.amount > 0 && (
+                          <div className="mt-2 text-sm text-gray-600">
+                            Percentage: {percentage}%
+                          </div>
+                        )}
+                      </div>
 
-                         <div className="p-4 flex-1 overflow-y-auto">
-                           {split.items.length === 0 ? (
-                             <div className="text-center py-6 text-gray-400">
-                               <p>No items in this split</p>
-                               <p className="text-xs mt-1">Drag items from Split 1 here</p>
-                             </div>
-                           ) : (
-                             <div className="space-y-2">
-                               {split.items.map(item => (
-                                 <div
-                                   key={item.id}
-                                   className="p-2 border border-gray-100 rounded-lg bg-gradient-to-r from-gray-50 to-transparent flex justify-between items-center hover:from-green-50 transition-all duration-200"
-                                   draggable
-                                   onDragStart={(e) => handleDragStart(e, item)}
-                                   onDragEnd={handleDragEnd}
-                                 >
-                                   <div className="flex-1">
-                                     <OrderItemName
-                                       item={item}
-                                       showQuantity={true}
-                                       showPrice={true}
-                                     />
-                                   </div>
-                                   <div title="Move back to Split 1">
-                                   <Button
-                                     variant="danger"
-                                     icon={faArrowLeft}
-                                     iconButton
-                                     size="lg"
-                                     onClick={() => removeItemFromSplit(item.id, split.id)}
-                                     className="ml-2"
-                                   />
-                                   </div>
-                                 </div>
-                               ))}
-                             </div>
-                           )}
-                         </div>
-                       </div>
-                     ))}
-                   </div>
-                 </ScrollContainer>
-               ) : (
-                 <div className="flex items-center justify-center h-full text-gray-500">
-                   <div className="text-center">
-                     <p className="text-lg">No additional splits yet</p>
-                     <p className="text-sm">Click "Add Split" to create more splits</p>
-                   </div>
-                 </div>
-               )}
-             </div>
+                      {/* All Items Display */}
+                      <div className="flex-1 min-h-[100px]">
+                        <div className="text-xs font-medium text-gray-500 mb-2">
+                          Items ({allItems.length})
+                        </div>
+                        <div className="max-h-[300px] overflow-y-auto space-y-1">
+                          {allItems.length === 0 ? (
+                            <div className="text-center py-4 text-gray-400 text-sm">
+                              No items in this order
+                            </div>
+                          ) : (
+                            allItems.map(item => {
+                              const originalPrice = calculateOrderItemPrice(item);
+                              const adjustedPrice = getAdjustedItemPrice(item, ratio);
+                              const priceChange = adjustedPrice - originalPrice;
+                              const priceChangePercent = originalPrice > 0 ? ((priceChange / originalPrice) * 100) : 0;
+                              
+                              return (
+                                <div
+                                  key={item.id}
+                                  className="p-2 border border-gray-100 rounded-lg bg-gradient-to-r from-gray-50 to-transparent text-sm"
+                                >
+                                  <div className="flex justify-between items-center mb-1">
+                                    <span className="flex-1 truncate">{item.item?.name || 'Item'}</span>
+                                    <span className="text-gray-400 text-xs line-through ml-2">
+                                      {formatNumber(originalPrice)}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-xs text-gray-500">
+                                      {priceChangePercent !== 0 && (
+                                        <span className={priceChangePercent > 0 ? 'text-green-600' : 'text-orange-600'}>
+                                          {priceChangePercent > 0 ? '+' : ''}{priceChangePercent.toFixed(1)}%
+                                        </span>
+                                      )}
+                                    </span>
+                                    <span className="text-sm font-bold text-green-600">
+                                      {formatNumber(adjustedPrice)}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                        {split.amount > 0 && (
+                          <div className="mt-2 pt-2 border-t border-gray-200">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-gray-700">Subtotal:</span>
+                              <span className="text-sm font-bold text-green-600">
+                                {formatNumber(splitTotals[index])}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
-             {/* Save Button - Fixed at bottom */}
-             <div className="pt-4 border-t border-gray-200 mt-4 flex-shrink-0">
-               <Button
-                 variant="success"
-                 icon={faCheck}
-                 onClick={handleSaveSplits}
-                 disabled={!canSave || isSaving}
-                 isLoading={isSaving}
-                 size="lg"
-                 className="w-full shadow-lg hover:shadow-green-200 transition-all duration-300"
-                 filled
-               >
-                 {isSaving ? 'Creating Split Orders...' : `Save Split Orders (${actualSplits.length} orders)`}
-               </Button>
-               {!canSave && (
-                 <p className="text-sm text-gray-500 mt-2 text-center">
-                   {actualSplits.length <= 1
-                     ? "Add more splits and move items to them"
-                     : "All splits must have at least one item"
-                   }
-                 </p>
-               )}
-             </div>
-           </div>
-         </div>
+          {/* Footer Actions */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="primary"
+                icon={faPlus}
+                onClick={addSplit}
+                size="lg"
+                className="shadow-lg"
+              >
+                Add Split
+              </Button>
+              {remainingAmount > 0 && (
+                <Button
+                  variant="primary"
+                  onClick={autoFillRemaining}
+                  size="lg"
+                  className="shadow-lg"
+                  flat
+                >
+                  Auto-Fill Remaining
+                </Button>
+              )}
+              {assignedTotal === 0 && (
+                <Button
+                  variant="primary"
+                  onClick={distributeEvenly}
+                  size="lg"
+                  className="shadow-lg"
+                  flat
+                >
+                  Distribute Evenly
+                </Button>
+              )}
+            </div>
+
+            <div className="flex-1 flex items-center justify-end gap-4">
+              {!isValid && (
+                <div className="text-sm text-red-600">
+                  {assignedTotal < orderTotal 
+                    ? `Please assign the remaining ${withCurrency(remainingAmount)}`
+                    : `Total exceeds order amount by ${withCurrency(assignedTotal - orderTotal)}`
+                  }
+                </div>
+              )}
+              <Button
+                variant="success"
+                icon={faCheck}
+                onClick={handleSaveSplits}
+                disabled={!canSave || isSaving}
+                isLoading={isSaving}
+                size="lg"
+                className="shadow-lg hover:shadow-green-200 transition-all duration-300"
+                filled
+              >
+                {isSaving ? 'Creating Split Orders...' : `Save Split Orders (${splits.length} orders)`}
+              </Button>
+            </div>
+          </div>
+        </div>
       </Modal>
     </>
   );

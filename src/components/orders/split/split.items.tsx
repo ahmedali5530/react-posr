@@ -14,7 +14,7 @@ import {toast} from "sonner";
 import {RecordId, StringRecordId} from "surrealdb";
 import ScrollContainer from "react-indiana-drag-scroll";
 import {nanoid} from "nanoid";
-import {getInvoiceNumber} from "@/lib/order.ts";
+import {getInvoiceNumber, getOrderFilteredItems} from "@/lib/order.ts";
 
 interface Props {
   order: OrderModel
@@ -34,7 +34,7 @@ export const SplitItems = ({
   const db = useDB();
   // Initialize with one split containing all items
   const [splits, setSplits] = useState<Split[]>([
-    {id: 'split-1', name: 'Split 1', items: [...order.items], number: 1}
+    {id: 'split-1', name: 'Split 1', items: [...getOrderFilteredItems(order)], number: 1}
   ]);
   const [isSaving, setIsSaving] = useState(false);
   const [draggedItem, setDraggedItem] = useState<OrderItem | null>(null);
