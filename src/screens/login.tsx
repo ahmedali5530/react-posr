@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBackspace, faCircle } from "@fortawesome/free-solid-svg-icons";
+import { faBackspace, faCircle, faClock } from "@fortawesome/free-solid-svg-icons";
 import {faCircle as circleRegular} from '@fortawesome/free-regular-svg-icons';
-import { useEffect, useState } from "react";
+import {useEffect, useLayoutEffect, useState} from "react";
 import { useAtom } from "jotai";
 import { appPage } from "@/store/jotai.ts";
 import { cn } from "@/lib/utils.ts";
@@ -9,6 +9,12 @@ import { useDB } from "@/api/db/db.ts";
 import { User } from "@/api/model/user.ts";
 import {useNavigate} from "react-router";
 import {MENU} from "@/routes/posr.ts";
+import { Modal } from "@/components/common/react-aria/modal.tsx";
+import { Button } from "@/components/common/input/button.tsx";
+import { Tables } from "@/api/db/tables.ts";
+import { DateTime } from "luxon";
+import { StringRecordId } from "surrealdb";
+import { toast } from "sonner";
 
 export const Login = () => {
   const db = useDB();
@@ -16,6 +22,8 @@ export const Login = () => {
   const [code, setCode] = useState('');
   const [page, setPage] = useAtom(appPage);
   const [error, setError] = useState(false);
+  const [showClockInModal, setShowClockInModal] = useState(false);
+  const [pendingUser, setPendingUser] = useState<User | null>(null);
 
   const navigation = useNavigate();
 
@@ -45,7 +53,19 @@ export const Login = () => {
           return false;
         }
 
-        allowLogin(record[0][0]);
+        // Check for active time entry
+        const timeEntryCheck: any = await db.query(`SELECT * from ${Tables.time_entries} where user = $userId and clock_out = NONE`, {
+          userId: record[0][0].id,
+        });
+
+        if(timeEntryCheck[0].length === 0){
+          // No active time entry, show clock-in modal
+          setPendingUser(record[0][0]);
+          setShowClockInModal(true);
+        } else {
+          // Active time entry exists, proceed with login
+          allowLogin(record[0][0]);
+        }
       }else{
         denyLogin();
       }
@@ -62,9 +82,29 @@ export const Login = () => {
     }));
 
     setCode('');
+    setShowClockInModal(false);
+    setPendingUser(null);
 
     // redirect to menu
     navigation(MENU);
+  }
+
+  const handleClockIn = async () => {
+    if(!pendingUser) return;
+
+    try {
+      const now = DateTime.now().toJSDate();
+      await db.create(Tables.time_entries, {
+        clock_in: now,
+        user: (pendingUser.id),
+      });
+
+      toast.success('Clocked in successfully');
+      allowLogin(pendingUser);
+    } catch (error) {
+      toast.error('Failed to clock in');
+      console.error(error);
+    }
   }
 
   const denyLogin = () => {
@@ -81,6 +121,12 @@ export const Login = () => {
       setTimeout(() => setError(false), 400);
     }
   }, [error]);
+
+  useLayoutEffect(() => {
+    if(page.user && !page.locked){
+      navigation(MENU);
+    }
+  }, [page.user]);
 
   return (
     <div className="relative">
@@ -122,6 +168,35 @@ export const Login = () => {
       <div className="size-[200px] bg-primary-500/10 animate-bounce absolute top-20 left-[20%] rounded-full pointer-events-none transition-all blur-2xl"></div>
       <div className="size-[200px] bg-white/20 absolute bottom-[100px] transition-all right-24 pointer-events-none rotate-45 blur-2xl"></div>
       <div className="size-[200px] bg-[tomato]/20 absolute bottom-[30%] transition-all left-[150px] pointer-events-none blur-2xl"></div>
+
+      {showClockInModal && (
+        <Modal
+          open={showClockInModal}
+          onClose={() => {
+            setShowClockInModal(false);
+            setPendingUser(null);
+            setCode('');
+          }}
+          title="Clock In Required"
+          shouldCloseOnOverlayClick={false}
+          shouldCloseOnEsc={false}
+        >
+          <div className="flex flex-col gap-4 items-center">
+            <p className="text-lg">
+              You need to clock in before accessing the system.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="primary"
+                onClick={handleClockIn}
+                icon={faClock}
+              >
+                Clock In
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
