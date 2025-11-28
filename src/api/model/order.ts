@@ -53,5 +53,6 @@ export enum OrderStatus {
   Paid = 'Paid',
   Cancelled = 'Cancelled',
   Spilt = 'Spilt',
-  Merged = 'Merged'
+  Merged = 'Merged',
+  Refunded = 'Refunded'
 }

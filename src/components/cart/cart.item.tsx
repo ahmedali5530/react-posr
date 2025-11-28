@@ -1,7 +1,7 @@
-import React, {useState} from "react";
+import React, {useMemo, useState} from "react";
 import {MenuItem, MenuItemType} from "@/api/model/cart_item.ts";
 import {useAtom} from "jotai";
-import {appState} from "@/store/jotai.ts";
+import {appPage, appState} from "@/store/jotai.ts";
 import {cn} from "@/lib/utils.ts";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faMinus, faPencil, faPlus, faTrash, faComment} from "@fortawesome/free-solid-svg-icons";
@@ -11,6 +11,8 @@ import {Input} from "@/components/common/input/input.tsx";
 import {VirtualKeyboard} from "@/components/common/input/virtual.keyboard.tsx";
 import {useDB} from "@/api/db/db.ts";
 import {DateTime} from "luxon";
+import {Tables} from "@/api/db/tables.ts";
+import {StringRecordId} from "surrealdb";
 
 interface Props {
   item: MenuItem
@@ -19,10 +21,19 @@ interface Props {
 
 export const CartItem = ({ item, index }: Props) => {
   const db = useDB();
-  const [, setState] = useAtom(appState);
+  const [state, setState] = useAtom(appState);
+  const [page, ] = useAtom(appPage);
   const [isModifiersOpen, setModifiersOpen] = useState(false);
   const [isCommentKeyboardOpen, setCommentKeyboardOpen] = useState(false);
   const [commentText, setCommentText] = useState(item.comments || "");
+
+  const [deleteReason, setDeleteReason] = useState('');
+  const [deleteComments, setDeleteComments] = useState('');
+
+  const hasOldItems = useMemo(() => {
+    return state.cart.filter(item => item.newOrOld === MenuItemType.old && item.isSelected).length > 0
+  }, [state.cart]);
+
 
   const deleteOrderItem = async (item: MenuItem) => {
     // TODO: ask for pin to confirm deletion
@@ -30,15 +41,27 @@ export const CartItem = ({ item, index }: Props) => {
       deleted_at: DateTime.now().toJSDate()
     });
 
+    // TODO: ask for reason and comments
+    await db.create(Tables.order_voids, {
+      comments: deleteComments,
+      created_at: new Date(),
+      deleted_by: new StringRecordId(page.user.id),
+      items: [item.id],
+      quantity: item.quantity,
+      reason: deleteReason,
+      logged_in_user: new StringRecordId(page.user.id)
+    });
 
-    // setState(prev => ({
-    //   ...prev,
-    //   cart: prev.cart.filter((_item) => {
-    //     if( item.id !== _item.id ) {
-    //       return _item;
-    //     }
-    //   })
-    // }))
+    setState(prev => ({
+      ...prev,
+      cart: prev.cart.map((_item) => {
+        if( item.id === _item.id ) {
+          _item.deleted_at = (new Date()).toISOString();
+        }
+
+        return _item;
+      })
+    }))
   }
 
   return (

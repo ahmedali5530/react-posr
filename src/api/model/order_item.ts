@@ -13,6 +13,7 @@ export interface OrderItem extends ID {
   modifiers: OrderItemModifier[]
   position: number
   price: number
+  original_price?: number
   quantity: number
   service_charges?: number
   tax?: number
@@ -21,6 +22,7 @@ export interface OrderItem extends ID {
   level?: number
   category?: string
   is_addition?: boolean
+  is_refunded?: boolean
 }
 
 export interface OrderItemModifier extends ID, DishModifierGroup{

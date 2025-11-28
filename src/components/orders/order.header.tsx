@@ -16,6 +16,7 @@ export const OrderHeader = ({
     [OrderStatus["Completed"]]: 'bg-success-100 text-success-700',
     [OrderStatus['Merged']]: 'bg-info-100 text-info-700',
     [OrderStatus['Spilt']]: 'bg-info-100 text-info-700',
+    [OrderStatus['Cancelled']]: 'bg-danger-100 text-danger-700',
   };
 
   return (

@@ -18,6 +18,9 @@ import {SplitBySeats} from "@/components/orders/split/split.seats.tsx";
 import {SplitItems} from "@/components/orders/split/split.items.tsx";
 import {SplitAmount} from "@/components/orders/split/split.amount.tsx";
 import {Checkbox} from "@/components/common/input/checkbox.tsx";
+import {OrderCancelModal} from "@/components/orders/order.cancel.modal.tsx";
+import {OrderRefundModal} from "@/components/orders/order.refund.modal.tsx";
+import {getOrderFilteredItems} from "@/lib/order.ts";
 
 interface Props {
   order: OrderModel
@@ -35,6 +38,8 @@ export const OrderBox = ({
   const [splitBySeats, setSplitBySeats] = useState(false);
   const [splitByManually, setSplitByManually] = useState(false);
   const [splitByAmount, setSplitByAmount] = useState(false);
+  const [cancelOrderOpen, setCancelOrderOpen] = useState(false);
+  const [refundOrderOpen, setRefundOrderOpen] = useState(false);
 
   const total = useMemo(() => {
     const extrasTotal = order?.extras ? order?.extras?.reduce((prev, item) => prev + item.value, 0) : 0;
@@ -42,7 +47,7 @@ export const OrderBox = ({
   }, [itemsTotal, order]);
 
   const hasSeats = useMemo(() => {
-    const items = order.items.filter((item) => item.seat !== undefined);
+    const items = getOrderFilteredItems(order).filter((item) => item.seat !== undefined);
     return items.length > 1
   }, [order]);
 
@@ -58,7 +63,7 @@ export const OrderBox = ({
         <div className="separator h-[2px]" style={{'--size': '10px', '--space': '5px'} as CSSProperties}></div>
         <ScrollContainer>
           <div className="overflow-auto max-h-[400px]">
-            {order.items.map(item => (
+            {getOrderFilteredItems(order).map(item => (
               <OrderItemName item={item} showPrice showQuantity key={item.id}/>
             ))}
           </div>
@@ -66,7 +71,7 @@ export const OrderBox = ({
         <div className="separator h-[2px]" style={{'--size': '10px', '--space': '5px'} as CSSProperties}></div>
         <div className="flex flex-col gap-1">
           <div className="flex font-bold">
-            <div className="flex-1">Items ({order.items.length})</div>
+            <div className="flex-1">Items ({getOrderFilteredItems(order).length})</div>
             <div className="text-right">{withCurrency(itemsTotal)}</div>
           </div>
           {order?.tax && (
@@ -161,8 +166,18 @@ export const OrderBox = ({
                     setSplitByAmount(true);
                   }
 
+                  if(key === 'cancel') {
+                    setCancelOrderOpen(true);
+                    return;
+                  }
+
                   if(key === 'merge'){
                     onMergeSelect(order, true);
+                  }
+
+                  if(key === 'refund') {
+                    setRefundOrderOpen(true);
+                    return;
                   }
                 }}
               >
@@ -240,6 +255,22 @@ export const OrderBox = ({
         <SplitAmount order={order} onClose={() => {
           setSplitByAmount(false);
         }} />
+      )}
+
+      {cancelOrderOpen && (
+        <OrderCancelModal
+          order={order}
+          open={cancelOrderOpen}
+          onClose={() => setCancelOrderOpen(false)}
+        />
+      )}
+
+      {refundOrderOpen && (
+        <OrderRefundModal
+          order={order}
+          open={refundOrderOpen}
+          onClose={() => setRefundOrderOpen(false)}
+        />
       )}
     </>
   );

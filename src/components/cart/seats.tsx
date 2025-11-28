@@ -3,7 +3,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { nanoid } from "nanoid";
 import ScrollContainer from "react-indiana-drag-scroll";
 import React, { useMemo } from "react";
-import { useAtom } from "jotai/index";
+import { useAtom } from "jotai";
 import { appState } from "@/store/jotai.ts";
 
 export const Seats = () => {

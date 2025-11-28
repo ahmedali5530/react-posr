@@ -3,7 +3,7 @@ import {appSettings, appState} from "@/store/jotai.ts";
 import {Button} from "@/components/common/input/button.tsx";
 import {faArrowLeft, faUser, faUsers} from "@fortawesome/free-solid-svg-icons";
 import {cn} from "@/lib/utils.ts";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.tsx";
 import {useDB} from "@/api/db/db.ts";
@@ -21,7 +21,6 @@ export const MenuHeader = () => {
   const [confirmCartAction, setConfirmCartAction] = useState(false);
 
   useEffect(() => {
-    console.log(state.orderType, 'order type')
     if (!state.orderType) {
       setState(prev => ({
         ...prev,
@@ -77,6 +76,8 @@ export const MenuHeader = () => {
 
       const seatsArray = Array.from(seats.values());
 
+      const noSeat = state.cart.some(item => item.seat === undefined);
+
       setState(prev => ({
         ...prev,
         order: {
@@ -98,7 +99,7 @@ export const MenuHeader = () => {
           }))
         ],
         seats: seatsArray,
-        seat: seatsArray.length > 0 ? seatsArray[0] : '1'
+        seat: noSeat ? undefined : (seatsArray.length > 0 ? seatsArray[0] : undefined)
       }));
     }
   }

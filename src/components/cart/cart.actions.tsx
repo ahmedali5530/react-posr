@@ -1,17 +1,21 @@
-import { Button } from "@/components/common/input/button.tsx";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCopy, faSquareCheck } from "@fortawesome/free-regular-svg-icons";
-import { faPause, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { Dropdown, DropdownItem } from "@/components/common/react-aria/dropdown.tsx";
-import React, { useState } from "react";
-import { useAtom } from "jotai/index";
-import { appState } from "@/store/jotai.ts";
-import { nanoid } from "nanoid";
-import { MenuItemType } from "@/api/model/cart_item.ts";
+import {Button} from "@/components/common/input/button.tsx";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faCopy, faSquareCheck} from "@fortawesome/free-regular-svg-icons";
+import {faPause, faTrash} from "@fortawesome/free-solid-svg-icons";
+import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.tsx";
+import React, {useMemo, useState} from "react";
+import {useAtom} from "jotai";
+import {appState} from "@/store/jotai.ts";
+import {nanoid} from "nanoid";
+import {MenuItemType} from "@/api/model/cart_item.ts";
 
 export const CartActions = () => {
   const [state, setState] = useAtom(appState);
   const [selected, setSelected] = useState(false);
+
+  const hasOldItems = useMemo(() => {
+    return state.cart.filter(item => item.newOrOld === MenuItemType.old && item.isSelected).length > 0
+  }, [state.cart]);
 
   const onClickSeatItem = (seat: string) => {
     if( seat === 'new' ) {

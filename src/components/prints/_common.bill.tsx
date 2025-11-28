@@ -4,6 +4,7 @@ import React from "react";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
 import {DateTime} from "luxon";
 import {DiscountType} from "@/api/model/discount.ts";
+import {getOrderFilteredItems} from "@/lib/order.ts";
 
 interface Props {
   order: Order
@@ -26,7 +27,7 @@ export const CommonBillParts = ({
       </div>
       <hr/>
       <div>
-        {order.items?.map((it, idx: number) => (
+        {getOrderFilteredItems(order)?.map((it, idx: number) => (
           <div key={idx} style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>{it.item.name} x{it.quantity}</span>
             <span>{withCurrency(calculateOrderItemPrice(it))}</span>
@@ -42,7 +43,7 @@ export const CommonBillParts = ({
           display: 'flex',
           fontWeight: 'bold'
         }}>
-          <div style={{ flex: 1 }}>Items ({order.items.length})</div>
+          <div style={{ flex: 1 }}>Items ({getOrderFilteredItems(order).length})</div>
           <div style={{ textAlign: 'right' }}>{withCurrency(itemsTotal)}</div>
         </div>
         {order?.tax && (
