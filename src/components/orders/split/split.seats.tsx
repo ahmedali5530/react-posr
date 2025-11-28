@@ -14,7 +14,7 @@ import {toast} from "sonner";
 import {RecordId, StringRecordId} from "surrealdb";
 import ScrollContainer from "react-indiana-drag-scroll";
 import {nanoid} from "nanoid";
-import {getInvoiceNumber} from "@/lib/order.ts";
+import {getInvoiceNumber, getOrderFilteredItems} from "@/lib/order.ts";
 
 interface Props {
   order: OrderModel
@@ -46,8 +46,6 @@ export const SplitBySeats = ({
       }, 0);
     });
   }, [splits]);
-
-  console.log(splitTotals)
 
   // Get all splits
   const actualSplits = useMemo(() => {
@@ -186,7 +184,7 @@ export const SplitBySeats = ({
 
     // Build groups: seat label -> items
     const seatToItems: Record<string, OrderItem[]> = {};
-    for (const item of order.items) {
+    for (const item of getOrderFilteredItems(order)) {
       const seatKey = item.seat ?? 'No Seat';
       if (!seatToItems[seatKey]) seatToItems[seatKey] = [];
       seatToItems[seatKey].push(item);
