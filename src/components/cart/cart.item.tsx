@@ -2,7 +2,7 @@ import React, {useMemo, useState} from "react";
 import {MenuItem, MenuItemType} from "@/api/model/cart_item.ts";
 import {useAtom} from "jotai";
 import {appPage, appState} from "@/store/jotai.ts";
-import {cn} from "@/lib/utils.ts";
+import {cn, formatNumber} from "@/lib/utils.ts";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faMinus, faPencil, faPlus, faTrash, faComment} from "@fortawesome/free-solid-svg-icons";
 import {Button} from "@/components/common/input/button.tsx";
@@ -280,7 +280,7 @@ export const CartItemName = ({ item }: Omit<Props, "index">) => {
         '--padding': (item.level * 0.875) + 'rem'
       } as any}>
         <span>{item.dish.name}</span>
-        <span>{item.price * item.quantity}</span>
+        <span>{formatNumber(item.price * item.quantity)}</span>
       </div>
       {item?.selectedGroups?.map(group =>
         <div className="border-[3px] border-l-warning-500 border-r-0 border-y-0 mb-2" key={group.out?.id}>
