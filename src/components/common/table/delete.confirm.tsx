@@ -58,19 +58,19 @@ export const DeleteConfirm = ({
               >
                 <Heading
                   slot="title"
-                  className="text-2xl font-semibold leading-6 my-0 text-slate-700"
+                  className="text-2xl font-semibold leading-6 my-0 text-neutral-700"
                 >
                   Confirm deletion
                 </Heading>
                 <div className="w-6 h-6 text-danger-500 absolute right-6 top-6 stroke-2">
                   <AlertTriangle className="w-6 h-6"/>
                 </div>
-                <p className="mt-3 text-slate-500">
+                <p className="mt-3 text-neutral-500">
                   {message ? message : 'Are you sure you want to delete this? All contents will be permanently destroyed.'}
                 </p>
                 <div className="mt-6 flex justify-end gap-2">
                   <Button
-                    className="bg-slate-200 text-slate-800 hover:border-slate-300 pressed:bg-slate-300"
+                    className="bg-neutral-200 text-neutral-800 hover:border-neutral-300 pressed:bg-neutral-300"
                     onClick={cancel}
                     size="lg"
                   >

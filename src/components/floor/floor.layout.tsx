@@ -131,6 +131,17 @@ export const FloorLayout = () => {
         cart = [];
       }
 
+      const seats = new Map();
+      order?.items.forEach(item => {
+        if (item.seat) {
+          seats.set(item.seat, item.seat);
+        }
+      });
+
+      const seatsArray = Array.from(seats.values());
+
+      const noSeat = state.cart.some(item => item.seat === undefined);
+
       setState(prev => ({
         ...prev,
         table: item,
@@ -139,7 +150,8 @@ export const FloorLayout = () => {
         persons: tableOrder(item.id) ? tableOrder(item.id)?.covers?.toString() : '1',
         orders: tableOrders(item.id),
         cart: cart,
-        seat: undefined,
+        seats: seatsArray,
+        seat: noSeat ? undefined : (seatsArray.length > 0 ? seatsArray[0] : undefined),
         order: {
           order: order,
           id: order ? order.id : 'new'

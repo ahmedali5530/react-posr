@@ -22,7 +22,7 @@ export const Layout = (props: Props) => {
         </div>
         <div className={
           cn(
-            "flex-auto overflow-auto", props.containerClassName
+            "flex-auto overflow-auto max-h-[100vh]", props.containerClassName
           )
         }>
           {props.children}

@@ -563,7 +563,7 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
                   render={({field}) => (
                     <DatePicker
                       label="Date"
-                      value={field.value}
+                      value={field.value as DateValue}
                       onChange={field.onChange}
                       maxValue={getToday()}
                       isClearable={false}
@@ -786,7 +786,7 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
                           render={({field}) => (
                             <DatePicker
                               label="Expiry date"
-                              value={field.value}
+                              value={field.value as DateValue}
                               onChange={field.onChange}
                               isClearable
                             />
@@ -800,7 +800,7 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
                           render={({field}) => (
                             <DatePicker
                               label="Manufacturing date"
-                              value={field.value}
+                              value={field.value as DateValue}
                               onChange={field.onChange}
                               isClearable
                             />

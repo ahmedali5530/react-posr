@@ -5,7 +5,7 @@ import ScrollContainer from "react-indiana-drag-scroll";
 import React, {CSSProperties, useEffect, useMemo, useState} from "react";
 import {OrderTimes} from "@/components/orders/order.times.tsx";
 import {calculateOrderTotal} from "@/lib/cart.ts";
-import {cn, withCurrency} from "@/lib/utils.ts";
+import {cn, formatNumber, withCurrency} from "@/lib/utils.ts";
 import {OrderPaymentReceiving} from "@/components/orders/payment/order.payment.receiving.tsx";
 import {OrderPaymentTax} from "@/components/orders/payment/order.payment.tax.tsx";
 import {Tax} from "@/api/model/tax.ts";
@@ -142,8 +142,8 @@ export const OrderPayment = ({
                 {getOrderFilteredItems(order).map(item => (
                   <div className="flex gap-3 hover:bg-neutral-100" key={item.id}>
                     <div className="flex-1 whitespace-break-spaces">{item.item.name}</div>
-                    <div className="text-right w-[50px] flex-shrink-0">{item.quantity}</div>
-                    <div className="text-right w-[80px] flex-shrink-0">{item.price}</div>
+                    <div className="text-right w-[50px] flex-shrink-0">{formatNumber(item.quantity)}</div>
+                    <div className="text-right w-[80px] flex-shrink-0">{formatNumber(item.price)}</div>
                   </div>
                 ))}
               </div>
