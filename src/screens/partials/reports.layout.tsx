@@ -1,15 +1,16 @@
 import { ReactNode, useRef, useState } from "react";
 import { Button } from "@/components/common/input/button.tsx";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPrint,
-  faDownload,
   faFile,
   faRefresh,
   faChevronLeft,
-  faChevronRight,
+  faChevronRight, faImage,
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils.ts";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import * as XLSX from "xlsx";
 
 export interface ReportsLayoutProps {
   /** Report title */
@@ -36,6 +37,8 @@ export interface ReportsLayoutProps {
   onExportExcel?: () => void;
   /** Callback for PDF export */
   onExportPdf?: () => void;
+  /** Callback for PDF export */
+  onExportImage?: () => void;
   /** Callback for refresh action */
   onRefresh?: () => void;
   /** Additional className for the container */
@@ -45,14 +48,15 @@ export interface ReportsLayoutProps {
 export const ReportsLayout = ({
   title,
   subtitle,
-  restaurantName,
-  restaurantAddress,
+  restaurantName = "Test Restaurant",
+  restaurantAddress = "Hawks bay, Seaview",
   children,
   pagination,
   customActions,
   onPrint,
   onExportExcel,
   onExportPdf,
+  onExportImage,
   onRefresh,
   className,
 }: ReportsLayoutProps) => {
@@ -68,27 +72,91 @@ export const ReportsLayout = ({
     }
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (onExportExcel) {
       onExportExcel();
     } else {
       // Default: Export as CSV (can be opened in Excel)
       const table = reportRef.current?.querySelector("table");
-      if (table) {
-        const csv = tableToCSV(table);
-        downloadCSV(csv, `${title.replace(/\s+/g, "_")}_${Date.now()}.csv`);
+      if(table) {
+        // Convert HTML table to SheetJS worksheet
+        const ws = XLSX.utils.table_to_sheet(table);
+
+        // Create workbook
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Report");
+
+        // Download file
+        XLSX.writeFile(wb, "report.xlsx");
       }
     }
   };
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
     if (onExportPdf) {
       onExportPdf();
     } else {
       // Default: Use browser print to PDF
-      handlePrint();
+      const element = reportRef.current;
+
+      // render element → canvas
+      const canvas = await html2canvas(element, {
+        scale: 2,        // better quality
+        useCORS: true,
+        scrollY: -window.scrollY,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      const pageWidth = 210;
+      const pageHeight = 297;
+
+      // convert px → mm
+      const imgWidth = pageWidth;
+      const imgHeight =
+        (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add extra pages if needed
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save("report.pdf");
     }
   };
+
+  const handleExportImage = async () => {
+    if (onExportImage) {
+      onExportImage();
+    } else {
+      const element = reportRef.current;
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        scrollY: -window.scrollY,
+      });
+
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "report.png";
+        link.click();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    }
+  }
 
   const handleRefresh = () => {
     if (onRefresh) {
@@ -102,7 +170,7 @@ export const ReportsLayout = ({
   return (
     <div className={cn("flex flex-col h-full", className)}>
       {/* Action Buttons */}
-      <div className="flex items-center justify-between gap-3 p-4 bg-white shadow-sm border-b">
+      <div className="flex items-center justify-between gap-3 p-4 bg-white shadow-sm border-b print:hidden">
         <div className="flex items-center gap-2">
           <Button
             variant="primary"
@@ -130,6 +198,14 @@ export const ReportsLayout = ({
           </Button>
           <Button
             variant="primary"
+            onClick={handleExportImage}
+            icon={faImage}
+            size="sm"
+          >
+            Download as Image
+          </Button>
+          <Button
+            variant="primary"
             onClick={handleRefresh}
             icon={faRefresh}
             size="sm"
@@ -142,14 +218,14 @@ export const ReportsLayout = ({
 
       {/* Report Container */}
       <div className="flex-1 overflow-auto bg-gray-50">
-        <div className="max-w-full p-6">
+        <div className="max-w-full">
           {/* Header Section */}
-          <div className="bg-white shadow-sm rounded-lg p-6 mb-6 print:shadow-none">
-            <h1 className="text-3xl font-bold mb-2">{title}</h1>
+          <div className="bg-white shadow-sm rounded-lg p-3 mb-3 print:shadow-none text-center">
+            <h1 className="text-3xl font-bold mb-1">{title}</h1>
             {subtitle && (
-              <p className="text-lg text-gray-600 mb-4">{subtitle}</p>
+              <p className="text-lg text-gray-600 mb-1">{subtitle}</p>
             )}
-            <div className="space-y-1 text-sm text-gray-700">
+            <div className="space-y-[3px] text-sm text-gray-700">
               {restaurantName && (
                 <p className="font-semibold">{restaurantName}</p>
               )}
@@ -235,4 +311,3 @@ function downloadCSV(csv: string, filename: string): void {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
-

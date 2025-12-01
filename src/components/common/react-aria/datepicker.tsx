@@ -11,7 +11,7 @@ import {
   ValidationResult
 } from 'react-aria-components';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {faCalendar, faChevronDown} from "@fortawesome/free-solid-svg-icons";
+import {faCalendar} from "@fortawesome/free-solid-svg-icons";
 import { Popover } from "@/components/common/react-aria/popover.tsx";
 import { useContext } from "react";
 import { Calendar } from "@/components/common/react-aria/calendar.tsx";

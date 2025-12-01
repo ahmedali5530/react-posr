@@ -48,7 +48,7 @@ export function Calendar<T extends DateValue> (
   );
 }
 
-function RoundButton(props: ButtonProps) {
+export function RoundButton(props: ButtonProps) {
   return (
     <Button
       {...props}
