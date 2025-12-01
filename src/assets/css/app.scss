@@ -27,10 +27,10 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-neutral-300 rounded;
+  @apply bg-warning-100 rounded;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-neutral-500;
+  @apply bg-warning-500;
 }
 
 @font-face {
@@ -41,6 +41,16 @@ body {
 @font-face {
   font-family: "Quicksand";
   src: url("../fonts/Quicksand-Bold.ttf");
+}
+
+@font-face {
+  font-family: "Urbanist";
+  src: url("../fonts/Urbanist-SemiBold.ttf");
+}
+
+@font-face {
+  font-family: "Orbitron";
+  src: url("../fonts/Orbitron-Regular.ttf");
 }
 
 html,
@@ -55,11 +65,11 @@ input,
 optgroup,
 select,
 textarea {
-  font-family: "Poppins", sans-serif;
+  font-family: "Urbanist", sans-serif;
 }
 
 .digital {
-  font-family: "Digital", "Poppins", "sans-serif";
+  font-family: "Orbitron", "Poppins", "sans-serif";
 }
 
 a {
@@ -253,6 +263,19 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
     }
     &.btn-filled{
       @apply bg-neutral-900 text-warning-500;
+    }
+  }
+  &.btn-secondary {
+    @apply border-white text-neutral-900 focus:outline-none focus:border-white
+    hover:bg-neutral-200;
+    &:disabled {
+      @apply bg-neutral-200;
+    }
+    &.active, &:active {
+      @apply bg-neutral-900 text-neutral-100 shadow-none;
+    }
+    &.btn-filled{
+      @apply bg-neutral-900 text-neutral-100;
     }
   }
   &.btn-warning {

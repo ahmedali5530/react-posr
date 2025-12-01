@@ -2,6 +2,7 @@ import {useMemo} from "react";
 import {calculateOrderItemPrice, calculateOrderTotal} from "@/lib/cart.ts";
 import {Order} from "@/api/model/order.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
+import {getOrderFilteredItems} from "@/lib/order.ts";
 
 interface Props {
   orders: { data?: Order[] }
@@ -133,7 +134,7 @@ export const Summary = ({
   const voids = useMemo(() => {
     let total = 0;
     orders?.data?.forEach(order => {
-      total += order.items.filter(item => item?.deleted_at !== undefined)
+      total += getOrderFilteredItems(order)
         .reduce((prev, item) => prev + calculateOrderItemPrice(item), 0)
     });
     return total;
@@ -146,7 +147,7 @@ export const Summary = ({
   const categories = useMemo(() => {
     const list = {};
     orders?.data?.forEach(order => {
-      order.items.forEach(item => {
+      getOrderFilteredItems(order).forEach(item => {
         if (item.category) {
           if (!list[item.category]) {
             list[item.category] = {
@@ -167,7 +168,7 @@ export const Summary = ({
   const dishes = useMemo(() => {
     const list = {};
     orders?.data?.forEach(order => {
-      order.items.forEach(item => {
+      getOrderFilteredItems(order).forEach(item => {
         if (item.item.name) {
           if (!list[item.item.name]) {
             list[item.item.name] = {

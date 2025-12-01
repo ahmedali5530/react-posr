@@ -13,6 +13,7 @@ import { OrderType } from "@/api/model/order_type.ts";
 import { User } from "@/api/model/user.ts";
 import { LabelValue } from "@/api/model/common.ts";
 import { DateValue } from "react-aria-components";
+import {undefined} from "zod";
 
 export interface AppStateInterface {
   loggedIn: boolean
@@ -44,8 +45,7 @@ export const appState = atomWithStorage<AppStateInterface>(
     orders: [],
     showFloor: true,
     cart: [],
-    seats: [],
-    seat: '1'
+    seats: []
   }
 );
 

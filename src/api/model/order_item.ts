@@ -2,6 +2,7 @@ import { ID } from "@/api/model/common.ts";
 import { Dish } from "@/api/model/dish.ts";
 import { DishModifierGroup } from "@/api/model/dish_modifier_group.ts";
 import { MenuItemType } from "@/api/model/cart_item.ts";
+import {User} from "@/api/model/user.ts";
 
 export interface OrderItem extends ID {
   comments?: string
@@ -23,6 +24,7 @@ export interface OrderItem extends ID {
   category?: string
   is_addition?: boolean
   is_refunded?: boolean
+  created_by?: User
 }
 
 export interface OrderItemModifier extends ID, DishModifierGroup{

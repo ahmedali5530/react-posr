@@ -11,17 +11,23 @@ export enum Tables {
   modifier_groups = 'modifier_group',
   modifiers = 'modifier',
   dish_modifier_groups = 'menu_item_modifier_group',
+
   orders = 'order',
   order_extras = 'order_extras',
   order_items = 'order_item',
   order_items_kitchen = 'order_item_kitchen',
   order_meta = 'order_meta',
   order_payment = 'order_payment',
+  order_merge = 'order_merge',
+  order_voids = 'order_void',
+  order_refunds = 'order_refund',
+
   order_types = 'order_type',
   payment_types = 'payment_type',
   printers = 'printer',
   taxes = 'tax',
   users = 'user',
+  time_entries = 'time_entry',
 
   inventory_items = 'inventory_item',
   inventory_suppliers = 'inventory_supplier',

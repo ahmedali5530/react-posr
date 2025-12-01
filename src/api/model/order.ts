@@ -36,6 +36,7 @@ export interface Order extends ID{
   tip_type?: DiscountType
 
   user: User
+  cashier?: User
   tags?: string[]
 
   extras?: OrderExtra[]

@@ -1,7 +1,7 @@
 import { Button } from "@/components/common/input/button.tsx";
 import { faCopy } from "@fortawesome/free-regular-svg-icons";
 import { faCodeBranch, faPencil, faSearch, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { useAtom } from "jotai/index";
+import { useAtom } from "jotai";
 import { appState } from "@/store/jotai.ts";
 
 export const MenuActions = () => {

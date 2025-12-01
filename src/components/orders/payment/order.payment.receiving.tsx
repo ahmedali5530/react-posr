@@ -323,7 +323,7 @@ export const OrderPaymentReceiving = ({
   return (
     <div className="grid grid-cols-2 gap-5 h-[calc(100vh_-_150px)]">
       <div className="bg-white rounded-xl h-full">
-        <div className="mb-3 text-5xl p-5 text-center">
+        <div className="mb-3 text-5xl p-5 text-center ">
           {withCurrency(tendered)}
         </div>
         <div className={
@@ -333,7 +333,7 @@ export const OrderPaymentReceiving = ({
             changeDue > 0 && 'text-success-700'
           )
         }>
-          {changeDue < 0 ? 'Remaining' : 'Change'}: {withCurrency(changeDue)}
+          {changeDue < 0 ? 'Remaining' : 'Change'}: <span className="">{withCurrency(changeDue)}</span>
         </div>
         <div className="relative">
           <ScrollContainer className="gap-3 flex overflow-x-auto mb-5">
