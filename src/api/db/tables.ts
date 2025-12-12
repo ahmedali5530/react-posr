@@ -47,4 +47,6 @@ export enum Tables {
   inventory_item_group_items = 'inventory_item_group_item',
   inventory_wastes = 'inventory_item_waste',
   inventory_waste_items = 'inventory_item_waste_item',
+
+  settings = 'setting'
 }

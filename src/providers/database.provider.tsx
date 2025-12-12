@@ -2,8 +2,9 @@ import React, { createContext, useContext, useEffect, useMemo, useCallback, useS
 import { useMutation } from "@tanstack/react-query";
 import { Surreal } from "surrealdb";
 import { DB_REST_DB, DB_REST_NS, DB_REST_PASS, DB_REST_USER, withApi } from "@/api/db/settings.ts";
+import _ from "lodash";
 
-interface DatabaseProviderState {
+export interface DatabaseProviderState {
   /** The Surreal instance */
   client: Surreal;
   /** Whether the connection is pending */
@@ -20,9 +21,9 @@ interface DatabaseProviderState {
   close: () => Promise<void>;
 }
 
-const DatabaseContext = createContext<DatabaseProviderState | undefined>(undefined);
+export const DatabaseContext = createContext<DatabaseProviderState | undefined>(undefined);
 
-interface DatabaseProviderProps {
+export interface DatabaseProviderProps {
   children: ReactNode;
   /** Auto connect on component mount, defaults to true */
   autoConnect?: boolean;
@@ -102,8 +103,8 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Connecting to database...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Connecting to server...</p>
         </div>
       </div>
     );
@@ -114,8 +115,8 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="text-center max-w-md p-6 bg-red-50 border border-red-200 rounded-lg">
-          <h2 className="text-xl font-semibold text-red-800 mb-2">Database Connection Error</h2>
-          <p className="text-red-600 mb-4">{error instanceof Error ? error.message : String(error) || 'Database connection failed'}</p>
+          <h2 className="text-xl font-semibold text-red-800 mb-2">Connection Error</h2>
+          <p className="text-red-600 mb-4">{String(error) || 'Connection failed'}</p>
           <button
             onClick={() => connect()}
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
@@ -133,24 +134,5 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({
       {children}
     </DatabaseContext.Provider>
   );
-};
-
-/**
- * Access the Surreal connection state from the context.
- */
-export const useDatabase = () => {
-  const context = useContext(DatabaseContext);
-  if (!context) {
-    throw new Error("useDatabase must be used within a DatabaseProvider");
-  }
-  return context;
-};
-
-/**
- * Access the Surreal client from the context.
- */
-export const useDatabaseClient = () => {
-  const { client } = useDatabase();
-  return client;
 };
 
