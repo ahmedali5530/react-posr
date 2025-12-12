@@ -15,12 +15,14 @@ import { AdminPaymentTypes } from "@/components/settings/payment_types";
 import { AdminTaxes } from "@/components/settings/taxes";
 import { AdminUsers } from "@/components/settings/users";
 import ScrollContainer from "react-indiana-drag-scroll";
+import {AdminMenus} from "@/components/settings/menu";
 
 export const Admin = () => {
   const [selected, setSelected] = useState('dishes');
 
   const pages = {
     'dishes': { component: <AdminDishes/>, title: 'Dishes' },
+    'menus': { component: <AdminMenus/>, title: 'Menus' },
     'categories': { component: <AdminCategories/>, title: 'Categories' },
     'modifier_groups': { component: <AdminModifierGroups/>, title: 'Modifier Groups' },
     'tables': { component: <AdminTables/>, title: 'Tables' },

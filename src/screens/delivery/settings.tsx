@@ -12,6 +12,10 @@ import * as yup from "yup";
 import {yupResolver} from "@hookform/resolvers/yup";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faPlus, faTrash} from "@fortawesome/free-solid-svg-icons";
+import useApi, {SettingsData} from "@/api/db/use.api.ts";
+import {ReactSelect} from "@/components/common/input/custom.react.select.tsx";
+import {Menu} from "@/api/model/menu.ts";
+import {StringRecordId} from "surrealdb";
 
 interface DeliveryTimingEntry {
   id: string;
@@ -31,6 +35,10 @@ interface DeliverySettingsForm {
     lng: number;
   };
   delivery_timing: DeliveryTimingEntry[];
+  delivery_menu: {
+    label: string
+    value: string
+  }
 }
 
 const DAYS_OF_WEEK = [
@@ -56,6 +64,10 @@ const getDefaultDeliveryTiming = (): DeliveryTimingEntry[] => {
 
 const validationSchema = yup.object({
   enable_delivery: yup.boolean(),
+  delivery_menu: yup.object({
+    label: yup.string(),
+    value: yup.string()
+  }).required('This is required'),
   delivery_charges: yup.number().min(0, "Delivery charges must be positive").required("This is required"),
   minimum_order: yup.number().min(0, "Minimum order must be positive").required("This is required"),
   map_center: yup.object({
@@ -77,6 +89,9 @@ const validationSchema = yup.object({
 export const DeliverySettings = () => {
   const db = useDB();
   const [loading, setLoading] = useState(true);
+  const {
+    data: menus
+  } = useApi<SettingsData<Menu>>(Tables.menus, ['active = true']);
 
   const {control, handleSubmit, reset, formState: {errors, isSubmitting}} = useForm({
     resolver: yupResolver(validationSchema),
@@ -104,18 +119,18 @@ export const DeliverySettings = () => {
     const loadDeliverySettings = async () => {
       try {
         setLoading(true);
-        const settingsKeys = ['enable_delivery', 'delivery_charges', 'minimum_order', 'map_center', 'delivery_timing'];
+        const settingsKeys = ['enable_delivery', 'delivery_charges', 'minimum_order', 'map_center', 'delivery_timing', 'delivery_menu'];
         const formValues: Partial<DeliverySettingsForm> = {};
         
         for (const key of settingsKeys) {
           const [result] = await db.query(
-            `SELECT * FROM ${Tables.settings} WHERE key = $key LIMIT 1`,
+            `SELECT * FROM ${Tables.settings} WHERE key = $key LIMIT 1 FETCH values`,
             { key }
           );
 
           if (result.length > 0) {
             const setting = result[0];
-            const value = setting.values;
+            const value = setting?.values;
             
             if (key === 'enable_delivery') {
               formValues.enable_delivery = value === true || value === 'true' || value === 1;
@@ -134,6 +149,12 @@ export const DeliverySettings = () => {
               if (Array.isArray(value) && value.length > 0) {
                 formValues.delivery_timing = value;
               }
+            } else if(key === 'delivery_menu' && typeof value === 'object'){
+
+              formValues.delivery_menu = {
+                label: value.name,
+                value: value.id
+              };
             }
           }
         }
@@ -144,7 +165,8 @@ export const DeliverySettings = () => {
           delivery_charges: formValues.delivery_charges ?? 0,
           minimum_order: formValues.minimum_order ?? 0,
           map_center: formValues.map_center ?? { lat: 31.512196, lng: 74.322242 },
-          delivery_timing: formValues.delivery_timing ?? getDefaultDeliveryTiming()
+          delivery_timing: formValues.delivery_timing ?? getDefaultDeliveryTiming(),
+          delivery_menu: formValues.delivery_menu ? formValues.delivery_menu : null
         });
       } catch (error) {
         console.error("Error loading delivery settings:", error);
@@ -165,7 +187,8 @@ export const DeliverySettings = () => {
         {key: 'delivery_charges', value: values.delivery_charges},
         {key: 'minimum_order', value: values.minimum_order},
         {key: 'map_center', value: values.map_center},
-        {key: 'delivery_timing', value: values.delivery_timing}
+        {key: 'delivery_timing', value: values.delivery_timing},
+        {key: 'delivery_menu', value: values.delivery_menu.value ? new StringRecordId(values.delivery_menu.value) : null},
       ];
 
       for (const setting of settings) {
@@ -280,6 +303,24 @@ export const DeliverySettings = () => {
                         min="0"
                         step="0.01"
                         error={errors.minimum_order?.message}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="delivery_menu">Delivery menu</label>
+                  <Controller
+                    name="delivery_menu"
+                    control={control}
+                    render={({field}) => (
+                      <ReactSelect
+                        value={field.value}
+                        onChange={field.onChange}
+                        options={menus?.data?.map(item => ({
+                          label: item.name,
+                          value: item.id
+                        }))}
                       />
                     )}
                   />
