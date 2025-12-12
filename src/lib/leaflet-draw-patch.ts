@@ -10,7 +10,7 @@ if (typeof window !== 'undefined') {
     // Patch L.Draw.readableArea if it exists
     if (L.Draw && typeof L.Draw.readableArea === 'function') {
       const originalReadableArea = L.Draw.readableArea;
-      L.Draw.readableArea = function(area: number, isMetric: boolean, precision?: number) {
+      L.Draw.readableArea = function(area: number, isMetric: boolean, _precision?: number) {
         try {
           // Ensure type is defined
           const type = isMetric !== undefined ? (isMetric ? 'metric' : 'imperial') : 'metric';

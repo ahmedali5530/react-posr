@@ -1,0 +1,132 @@
+import { useState } from "react";
+import { Menu } from "@/api/model/menu.ts";
+import { Tables } from "@/api/db/tables.ts";
+import { Button } from "@/components/common/input/button.tsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPencil, faPlus, faList, faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { createColumnHelper } from "@tanstack/react-table";
+import useApi, { SettingsData } from "@/api/db/use.api.ts";
+import { TableComponent } from "@/components/common/table/table.tsx";
+import { MenuForm } from "@/components/settings/menu/menu.form.tsx";
+import { MenuItems } from "@/components/settings/menu/menu.items.tsx";
+
+export const AdminMenus = () => {
+  const loadHook = useApi<SettingsData<Menu>>(Tables.menus, [], [], 0, 10, ['items', 'items.menu_item', 'items.tax']);
+
+  const [data, setData] = useState<Menu>();
+  const [formModal, setFormModal] = useState(false);
+  const [itemsModal, setItemsModal] = useState(false);
+  const [selectedMenu, setSelectedMenu] = useState<Menu>();
+
+  const columnHelper = createColumnHelper<Menu>();
+
+  // Helper function to format Date to time string (HH:mm)
+  const formatTime = (date: Date | string | undefined): string => {
+    if (!date) return '-';
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return '-';
+    const hours = dateObj.getHours().toString().padStart(2, '0');
+    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  const columns: any = [
+    columnHelper.accessor("name", {
+      header: 'Name'
+    }),
+    columnHelper.accessor("start_from", {
+      header: 'Start Time',
+      cell: info => formatTime(info.getValue())
+    }),
+    columnHelper.accessor("end_time", {
+      header: 'End Time',
+      cell: info => formatTime(info.getValue())
+    }),
+    columnHelper.accessor("ends_on_next_day", {
+      header: 'Ends Next Day',
+      cell: info => info.getValue() ? 'Yes' : 'No'
+    }),
+    columnHelper.accessor("active", {
+      header: 'Active',
+      cell: info => info.getValue() !== false ? <FontAwesomeIcon icon={faCheck} className="text-success-500" /> : <FontAwesomeIcon icon={faTimes} className="text-danger-500" />
+    }),
+    columnHelper.accessor("items", {
+      header: 'Items Count',
+      cell: info => {
+        const inactiveItems = info.getValue()?.filter(item => item.active === true)?.length || 0;
+        const total = info.getValue()?.length || 0;
+        return (
+          <>
+            {inactiveItems !== total ? `${inactiveItems}/` : ''}
+            {total}
+          </>
+        )
+      }
+    }),
+    columnHelper.accessor("id", {
+      id: "actions",
+      header: "Actions",
+      enableSorting: false,
+      enableColumnFilter: false,
+      cell: (info) => {
+        return (
+          <div className="flex gap-3 items-center">
+            <Button
+              variant="primary"
+              onClick={() => {
+                setData(info.row.original);
+                setFormModal(true);
+              }}
+            ><FontAwesomeIcon icon={faPencil}/></Button>
+            <div className="separator"></div>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setSelectedMenu(info.row.original);
+                setItemsModal(true);
+              }}
+            ><FontAwesomeIcon icon={faList}/></Button>
+          </div>
+        );
+      },
+    }),
+  ];
+
+  return (
+    <>
+      <TableComponent
+        columns={columns}
+        loaderHook={loadHook}
+        loaderLineItems={columns.length}
+        buttons={[
+          <Button variant="primary" onClick={() => {
+            setFormModal(true);
+          }} icon={faPlus}> Menu</Button>
+        ]}
+      />
+
+      <MenuForm
+        open={formModal}
+        data={data}
+        onClose={() => {
+          setFormModal(false);
+          setData(undefined);
+          loadHook.fetchData();
+        }}
+      />
+
+      {itemsModal && (
+        <MenuItems
+          open={true}
+          menu={selectedMenu}
+          onClose={() => {
+            setItemsModal(false);
+            setSelectedMenu(undefined);
+            loadHook.fetchData();
+          }}
+        />
+      )}
+    </>
+  )
+}
+
