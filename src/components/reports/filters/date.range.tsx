@@ -46,7 +46,7 @@ export function DateRange<T extends DateValue>({
         className="input bg-white self-center"
       >
         {Object.keys(dates).map(item => (
-          <option value={dates[item]}>{item}</option>
+          <option key={item} value={dates[item]}>{item}</option>
         ))}
       </select>
       {!isCustom && (

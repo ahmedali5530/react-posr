@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import { useDB } from "@/api/db/db.ts";
-import { useDatabase } from "@/providers/database.provider.tsx";
 import { useQueryBuilder } from "@/api/db/query-builder.ts";
+import {useDatabase} from "@/hooks/useDatabase.ts";
 
 export interface UseApiResult<T = any> {
   data: T | undefined;

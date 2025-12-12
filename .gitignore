@@ -26,3 +26,4 @@ dist-ssr
 *.vscode
 posr.db*
 .cursor
+cert

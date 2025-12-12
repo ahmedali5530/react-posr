@@ -129,7 +129,8 @@ export const OrderPaymentReceiving = ({
         service_charge_amount: serviceChargeAmount,
         service_charge_type: serviceChargeType,
         cashier: new StringRecordId(page?.user?.id.toString()),
-        notes: notes
+        notes: notes,
+        completed_at: new Date()
       });
 
       onComplete();

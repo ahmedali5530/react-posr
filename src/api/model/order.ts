@@ -12,6 +12,7 @@ import { OrderPayment } from "@/api/model/order_payment.ts";
 export interface Order extends ID{
   covers?: number
   created_at: Date
+  completed_at?: Date
   customer?: Customer
   floor: Floor
   table: Table
@@ -38,6 +39,8 @@ export interface Order extends ID{
   user: User
   cashier?: User
   tags?: string[]
+
+  delivery?: object
 
   extras?: OrderExtra[]
 

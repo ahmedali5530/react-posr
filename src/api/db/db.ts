@@ -1,7 +1,7 @@
 import {ActionResult, RecordIdRange, StringRecordId, Surreal, Table} from "surrealdb";
 import { Tables } from "@/api/db/tables.ts";
 import { toast } from "sonner";
-import { useDatabase } from "@/providers/database.provider.tsx";
+import {useDatabase} from "@/hooks/useDatabase.ts";
 
 export const useDB = () => {
   const databaseContext = useDatabase();
@@ -66,7 +66,7 @@ export const useDB = () => {
   }
 
 
-  const update = async (thing: Tables|string, data: any) => {
+  const update = async (thing: Tables|string|any, data: any) => {
     try{
       return client.update(thing, data);
     }catch(e){
@@ -76,7 +76,7 @@ export const useDB = () => {
     }
   }
 
-  const patch = async (thing: Tables|string, data: any) => {
+  const patch = async (thing: Tables|string|any, data: any) => {
     try{
       return client.patch(thing, data);
     }catch(e){
@@ -91,6 +91,16 @@ export const useDB = () => {
       return client.merge(thing, data);
     }catch(e){
       console.error('ERROR while merging', e);
+      toast.error(e);
+      throw e;
+    }
+  }
+
+  const upsert = async (thing: Tables|string|any, data: any) => {
+    try{
+      return client.upsert(thing, data);
+    }catch(e){
+      console.error('ERROR while upserting', e);
       toast.error(e);
       throw e;
     }
@@ -115,6 +125,7 @@ export const useDB = () => {
     update,
     patch,
     merge,
+    upsert,
     live
   }
 }
