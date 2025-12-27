@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {Order as OrderModel, OrderStatus} from "@/api/model/order.ts";
 import {OrderItem} from "@/api/model/order_item.ts";
@@ -12,9 +12,11 @@ import {useAtom} from "jotai";
 import {appPage} from "@/store/jotai.ts";
 import {toast} from "sonner";
 import {OrderItemName} from "@/components/common/order/order.item.tsx";
-import {calculateOrderItemPrice} from "@/lib/cart.ts";
+import {calculateOrderItemPrice, calculateOrderTotal} from "@/lib/cart.ts";
 import {withCurrency} from "@/lib/utils.ts";
 import {getOrderFilteredItems} from "@/lib/order.ts";
+import {dispatchPrint} from "@/lib/print.service.ts";
+import {PRINT_TYPE} from "@/lib/print.registry.tsx";
 
 interface OrderRefundModalProps {
   order: OrderModel
@@ -58,7 +60,48 @@ export const OrderRefundModal = ({
   }
 
   const selectedItemsList = getOrderFilteredItems(order).filter(item => selectedItems.has(item.id));
-  const refundTotal = selectedItemsList.reduce((sum, item) => sum + calculateOrderItemPrice(item), 0);
+  const selectedItemsTotal = selectedItemsList.reduce((sum, item) => sum + calculateOrderItemPrice(item), 0);
+  const originalOrderTotal = calculateOrderTotal(order);
+
+  // Calculate proportional charges based on selected items ratio
+  const refundCharges = useMemo(() => {
+    if (selectedItemsList.length === 0 || originalOrderTotal === 0) {
+      return {
+        itemsTotal: 0,
+        taxAmount: 0,
+        discountAmount: 0,
+        serviceChargeAmount: 0,
+        extras: [] as Array<{ name: string; value: number }>,
+        tipAmount: 0,
+        total: 0,
+      };
+    }
+
+    const ratio = selectedItemsTotal / originalOrderTotal;
+    const taxAmount = order.tax_amount ? Number(order.tax_amount) * ratio : 0;
+    const discountAmount = order.discount_amount ? Number(order.discount_amount) * ratio : 0;
+    const serviceChargeAmount = order.service_charge_amount ? Number(order.service_charge_amount) * ratio : 0;
+    const tipAmount = order.tip_amount ? Number(order.tip_amount) * ratio : 0;
+    const extras = order.extras ? order.extras.map(extra => ({
+      name: extra.name,
+      value: extra.value * ratio
+    })) : [];
+
+    const extrasTotal = extras.reduce((sum, extra) => sum + extra.value, 0);
+    const total = selectedItemsTotal + taxAmount + serviceChargeAmount + tipAmount + extrasTotal - discountAmount;
+
+    return {
+      itemsTotal: selectedItemsTotal,
+      taxAmount,
+      discountAmount,
+      serviceChargeAmount,
+      extras,
+      tipAmount,
+      total,
+    };
+  }, [selectedItemsList, selectedItemsTotal, originalOrderTotal, order]);
+
+  const refundTotal = refundCharges.total;
 
   const handleRefund = async () => {
     if (selectedItems.size === 0) {
@@ -97,8 +140,31 @@ export const OrderRefundModal = ({
         tags: Array.from(new Set([...(order.tags || []), OrderStatus.Refunded])),
       });
 
+      // Create refund order object for printing
+      const refundOrder: OrderModel = {
+        ...order,
+        items: selectedItemsList,
+        tax_amount: refundCharges.taxAmount,
+        discount_amount: refundCharges.discountAmount,
+        service_charge_amount: refundCharges.serviceChargeAmount,
+        tip_amount: refundCharges.tipAmount,
+        extras: refundCharges.extras.map((extra, idx) => ({
+          id: `refund-extra-${idx}`,
+          name: extra.name,
+          value: extra.value
+        })),
+      };
+
       toast.success(`Successfully refunded ${selectedItems.size} item(s)`);
       onClose();
+
+      // Trigger refund print
+      setTimeout(() => {
+        dispatchPrint(PRINT_TYPE.refund_bill, {
+          order: refundOrder,
+          originalOrder: order,
+        });
+      }, 300);
     } catch (error) {
       console.error('Failed to refund order', error);
       toast.error('Failed to refund order');
@@ -142,10 +208,46 @@ export const OrderRefundModal = ({
               ))}
             </div>
             {selectedItems.size > 0 && (
-              <div className="mt-3 p-3 bg-primary-50 rounded-lg flex-shrink-0">
+              <div className="mt-3 p-3 bg-primary-50 rounded-lg flex-shrink-0 space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold">Refund Total:</span>
-                  <span className="font-bold text-lg">{withCurrency(refundTotal)}</span>
+                  <span className="font-semibold">Items Total:</span>
+                  <span className="font-semibold">{withCurrency(refundCharges.itemsTotal)}</span>
+                </div>
+                {order.tax && refundCharges.taxAmount > 0 && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span>Tax ({order.tax.name} {order.tax.rate}%):</span>
+                    <span>{withCurrency(refundCharges.taxAmount)}</span>
+                  </div>
+                )}
+                {order.discount && refundCharges.discountAmount > 0 ? (
+                  <div className="flex justify-between items-center text-sm">
+                    <span>Discount:</span>
+                    <span>{withCurrency(refundCharges.discountAmount)}</span>
+                  </div>
+                ) : null}
+                {order.service_charge && order.service_charge > 0 && refundCharges.serviceChargeAmount > 0 ? (
+                  <div className="flex justify-between items-center text-sm">
+                    <span>Service Charges ({order.service_charge}{order.service_charge_type === 'Percent' ? '%' : ''}):</span>
+                    <span>{withCurrency(refundCharges.serviceChargeAmount)}</span>
+                  </div>
+                ) : null}
+                {refundCharges.extras.length > 0 && refundCharges.extras.map((extra, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-sm">
+                    <span>{extra.name}:</span>
+                    <span>{withCurrency(extra.value)}</span>
+                  </div>
+                ))}
+                {order.tip_amount && refundCharges.tipAmount > 0 ? (
+                  <div className="flex justify-between items-center text-sm">
+                    <span>Tip:</span>
+                    <span>{withCurrency(refundCharges.tipAmount)}</span>
+                  </div>
+                ) : null}
+                <div className="border-t border-primary-200 pt-2 mt-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Refund Total:</span>
+                    <span className="font-bold text-lg">{withCurrency(refundTotal)}</span>
+                  </div>
                 </div>
                 <div className="text-sm text-neutral-600 mt-1">
                   {selectedItems.size} item(s) selected

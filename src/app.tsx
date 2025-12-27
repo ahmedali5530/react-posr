@@ -8,6 +8,7 @@ import {Menu} from "@/screens/menu";
 import React, {useEffect} from "react";
 import {PrintProvider} from "@/providers/print.provider.tsx";
 import {DatabaseProvider} from "@/providers/database.provider.tsx";
+import {DeliveryOrdersProvider} from "@/providers/delivery-orders.provider.tsx";
 import {initializePrintTemplates} from "@/lib/print.registry.tsx";
 import {Orders} from "@/screens/orders.tsx";
 import {Summary} from "@/screens/summary.tsx";
@@ -101,8 +102,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <DatabaseProvider>
-        <PrintProvider>
-          <BrowserRouter>
+        <DeliveryOrdersProvider>
+          <PrintProvider>
+            <BrowserRouter>
             <Routes>
               <Route path="/" element={<Login/>}/>
               <Route path={MENU} element={<Menu/>}/>
@@ -146,6 +148,7 @@ function App() {
             </Routes>
           </BrowserRouter>
         </PrintProvider>
+        </DeliveryOrdersProvider>
 
         <Alert/>
         <Toaster richColors position="top-right" closeButton={true}/>

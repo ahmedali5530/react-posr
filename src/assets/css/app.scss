@@ -55,7 +55,7 @@ body {
 
 html,
 body {
-  @apply bg-neutral-100;
+  @apply bg-neutral-50 text-neutral-700;
 }
 
 html,
@@ -79,8 +79,9 @@ a {
   align-items: center;
   text-decoration: underline;
 }
-h1, h2, h3, h4, h5, h6, .title, .card-title{
+h1, h2, h3, h4, h5, h6, .title, .card-title, th{
   font-family: "Quicksand", sans-serif;
+  @apply text-neutral-900;
 }
 
 .fade-highlight {
@@ -126,6 +127,9 @@ h1, h2, h3, h4, h5, h6, .title, .card-title{
   width: 100%;
   .table-cell {
     vertical-align: middle;
+  }
+  th{
+    font-weight: 500;
   }
   th, td{
     border-collapse: collapse;

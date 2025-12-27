@@ -93,7 +93,7 @@ export const MenuForm = ({
 
     try {
       if(vals.id){
-        await db.update(vals.id, {
+        await db.merge(vals.id, {
           name: vals.name,
           start_from: vals.start_from,
           end_time: vals.end_time,

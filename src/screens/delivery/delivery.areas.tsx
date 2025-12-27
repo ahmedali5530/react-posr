@@ -94,15 +94,53 @@ export const DeliveryAreas = () => {
     }
   };
 
+  // Convert circle to polygon (circular polygon)
+  const circleToPolygon = (layer: any) => {
+    if (!(layer instanceof L.Circle)) {
+      return null;
+    }
+
+    const center = layer.getLatLng();
+    const radius = layer.getRadius();
+    const points = 64; // Number of points to approximate circle
+
+    const coordinates: number[][] = [];
+    for (let i = 0; i <= points; i++) {
+      const angle = (i * 360) / points;
+      const rad = (angle * Math.PI) / 180;
+      const lat = center.lat + (radius / 111320) * Math.cos(rad); // 111320 meters per degree latitude
+      const lng = center.lng + (radius / (111320 * Math.cos(center.lat * Math.PI / 180))) * Math.sin(rad);
+      coordinates.push([lng, lat]);
+    }
+
+    return {
+      type: "Polygon",
+      coordinates: [coordinates]
+    };
+  };
+
   // Handle when a feature is created
   const onCreated = (e: any) => {
     const {layer} = e;
-    const geoJson = layer.toGeoJSON();
+    
+    let geometry: any;
+
+    // Check if it's a circle and convert to polygon
+    if (layer instanceof L.Circle) {
+      geometry = circleToPolygon(layer);
+      if (!geometry) {
+        toast.error("Failed to process circle");
+        return;
+      }
+    } else {
+      const geoJson = layer.toGeoJSON();
+      geometry = geoJson.geometry;
+    }
 
     // Store the geometry, not the Feature wrapper
     const newArea: MapArea = {
-      type: geoJson.geometry.type,
-      geometry: geoJson.geometry
+      type: geometry.type,
+      geometry: geometry
     };
 
     const updatedAreas = [...mapAreas, newArea];
@@ -117,11 +155,21 @@ export const DeliveryAreas = () => {
 
     const updatedAreas: MapArea[] = [];
     featureGroup.eachLayer((layer: any) => {
-      const geoJson = layer.toGeoJSON();
+      let geometry: any;
+
+      // Check if it's a circle and convert to polygon
+      if (layer instanceof L.Circle) {
+        geometry = circleToPolygon(layer);
+        if (!geometry) return;
+      } else {
+        const geoJson = layer.toGeoJSON();
+        geometry = geoJson.geometry;
+      }
+
       // Store the geometry, not the Feature wrapper
       updatedAreas.push({
-        type: geoJson.geometry.type,
-        geometry: geoJson.geometry
+        type: geometry.type,
+        geometry: geometry
       });
     });
 
@@ -136,11 +184,21 @@ export const DeliveryAreas = () => {
 
     const updatedAreas: MapArea[] = [];
     featureGroup.eachLayer((layer: any) => {
-      const geoJson = layer.toGeoJSON();
+      let geometry: any;
+
+      // Check if it's a circle and convert to polygon
+      if (layer instanceof L.Circle) {
+        geometry = circleToPolygon(layer);
+        if (!geometry) return;
+      } else {
+        const geoJson = layer.toGeoJSON();
+        geometry = geoJson.geometry;
+      }
+
       // Store the geometry, not the Feature wrapper
       updatedAreas.push({
-        type: geoJson.geometry.type,
-        geometry: geoJson.geometry
+        type: geometry.type,
+        geometry: geometry
       });
     });
 

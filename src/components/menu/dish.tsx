@@ -1,5 +1,6 @@
 import { withCurrency } from "@/lib/utils.ts";
 import { Dish } from "@/api/model/dish.ts";
+import {detectMimeType, toArrayBuffer} from "@/utils/files.ts";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAtom } from "jotai";
 import { appState } from "@/store/jotai.ts";
@@ -10,7 +11,6 @@ import { images } from "@/components/menu/image.ts";
 import { Tables } from "@/api/db/tables.ts";
 import { useDB } from "@/api/db/db.ts";
 import { DishModifierGroup } from "@/api/model/dish_modifier_group.ts";
-
 
 interface Props {
   onClick: (item: MenuItem, groups?: CartModifierGroup[]) => void
@@ -51,7 +51,25 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
   }, [state.cart]);
 
   const image = useMemo(() => {
-    return item.photo ? item.photo : images[Math.floor(Math.random() * images.length)]
+    try {
+      if (item.photo) {
+        if (item.photo instanceof ArrayBuffer) {
+          const buffer = item.photo;
+          const mimeType = detectMimeType(buffer, "image/png");
+          const blob = new Blob([buffer], { type: mimeType });
+          return URL.createObjectURL(blob);
+        }
+
+        if (typeof item.photo === "string") {
+          // could be a data URL or a base64 string; try to use as-is
+          return item.photo;
+        }
+      }
+    } catch (e) {
+      console.log("Failed to prepare dish image", e);
+    }
+
+    return images[Math.floor(Math.random() * images.length)];
   }, [item]);
 
   return (
