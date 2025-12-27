@@ -6,6 +6,11 @@ import { useDB } from "@/api/db/db.ts";
 import { Tables } from "@/api/db/tables.ts";
 import type { FeatureGroup as LeafletFeatureGroup } from "leaflet";
 import L from "leaflet";
+import { getInvoiceNumber } from "@/lib/order.ts";
+import { DateTime } from "luxon";
+import {useDeliveryOrders} from "@/hooks/useDeliveryOrders.ts";
+import { useFetchDeliveryOrders } from "@/hooks/useFetchDeliveryOrders.ts";
+import { DeliveryOrderPopup } from "@/components/delivery/delivery-order-popup.tsx";
 
 interface MapArea {
   type: string;
@@ -17,10 +22,22 @@ interface MapArea {
 
 export const Delivery = () => {
   const db = useDB();
+  const { selectedOrder, openOrderPopup, closeOrderPopup, isPopupOpen } = useDeliveryOrders();
+  const { deliveryOrders, refetch: fetchDeliveryOrders } = useFetchDeliveryOrders();
   const [mapAreas, setMapAreas] = useState<MapArea[]>([]);
   const [loading, setLoading] = useState(true);
   const featureGroupRef = useRef<LeafletFeatureGroup>(null);
   const [center, setCenter] = useState({lat: 0, lng: 0});
+
+  // Create custom icon for delivery markers
+  const deliveryIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
 
   const colorSettings = { color: 'black' }
 
@@ -139,23 +156,82 @@ export const Delivery = () => {
     });
   }, [mapAreas, loading]);
 
+  useEffect(() => {
+    fetchDeliveryOrders();
+  }, []);
+
   if(loading){
     return;
   }
 
   return (
-    <MapContainer
-      center={center}
-      zoom={13}
-      scrollWheelZoom={true}
-      className="h-[calc(100vh_-_70px_-_25px)]"
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      {/* Delivery areas from settings (readonly) */}
-      <FeatureGroup ref={featureGroupRef} />
-    </MapContainer>
+    <>
+      <MapContainer
+        center={center}
+        zoom={14}
+        scrollWheelZoom={true}
+        className="h-[calc(100vh_-_70px_-_25px)] relative z-0"
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {/* Delivery areas from settings (readonly) */}
+        <FeatureGroup ref={featureGroupRef} />
+        {/* Delivery order markers */}
+        {deliveryOrders.map((order) => {
+          const customer = order.customer;
+          const delivery = order.delivery as any;
+          
+          // Check for location in delivery object first, then customer
+          const lat = delivery?.lat || customer?.lat;
+          const lng = delivery?.lng || customer?.lng;
+          const address = delivery?.address || customer?.address;
+          const name = customer?.name || "Unknown Customer";
+          
+          if (lat && lng) {
+            return (
+              <Marker
+                key={order.id.toString()}
+                position={[lat, lng] as LatLngTuple}
+                icon={deliveryIcon}
+                eventHandlers={{
+                  click: () => {
+                    openOrderPopup(order);
+                  }
+                }}
+              >
+                <Popup>
+                  <div className="p-2">
+                    <h3 className="font-semibold text-sm mb-1">Order {getInvoiceNumber(order)}</h3>
+                    <p className="text-xs text-neutral-600">Customer: {name}</p>
+                    {address && (
+                      <p className="text-xs text-neutral-600">{address}</p>
+                    )}
+                    <p className="text-xs text-neutral-500 mt-1">
+                      {DateTime.fromJSDate(new Date(order.created_at)).toFormat("MMM dd, hh:mm a")}
+                    </p>
+                    <button
+                      onClick={() => openOrderPopup(order)}
+                      className="mt-2 text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+                    >
+                      View Details
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          }
+          return null;
+        })}
+      </MapContainer>
+      {selectedOrder && (
+        <DeliveryOrderPopup
+          order={selectedOrder}
+          open={isPopupOpen}
+          onClose={closeOrderPopup}
+        />
+      )}
+    </>
   )
 }

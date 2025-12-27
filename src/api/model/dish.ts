@@ -11,7 +11,7 @@ export interface Dish extends ID, Name, Priority {
   number: string
   position?: number
   price: number
-  photo?: string
+  photo?: ArrayBuffer
   modifier_groups?: DishModifierGroup[]
   items?: MenuItemRecipe[]
   allow_service_charges?: boolean

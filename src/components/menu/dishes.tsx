@@ -22,7 +22,7 @@ export const MenuDishes = () => {
 
   const {
     data: allDishes,
-  } = useApi<SettingsData<Dish>>(Tables.dishes, [], ['priority asc'], 0, 99999, ['categories', 'modifier_groups']);
+  } = useApi<SettingsData<Dish>>(Tables.dishes, [], ['priority asc'], 0, 99999, ['categories']);
 
   const dishes = useMemo(() => {
     if( state.category ) {

@@ -22,6 +22,7 @@ import { ModifierGroupForm } from "@/components/settings/modifier_groups/modifie
 import { RecordId, StringRecordId } from "surrealdb";
 import { InventoryItem } from "@/api/model/inventory_item.ts";
 import { MenuItemRecipe } from "@/api/model/dish.ts";
+import { detectMimeType } from "@/utils/files";
 
 interface Props {
   open: boolean
@@ -75,6 +76,10 @@ export const DishForm = ({
   open, onClose, data
 }: Props) => {
 
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoData, setPhotoData] = useState<ArrayBuffer | null>(null);
+
   const closeModal = () => {
     onClose();
     reset({
@@ -87,6 +92,9 @@ export const DishForm = ({
       modifier_groups: [],
       recipes: []
     });
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setPhotoData(null);
   }
 
   useEffect(() => {
@@ -108,8 +116,21 @@ export const DishForm = ({
         }))
       });
 
+      setPhotoFile(null);
+      setPhotoData(null);
+      if(data.photo) {
+        const buffer = data.photo;
+        const mimeType = detectMimeType(buffer, "image/png");
+        const blob = new Blob([buffer], { type: mimeType });
+        setPhotoPreview(URL.createObjectURL(blob));
+      }
+
       getModifierGroups(data.id);
       getRecipes(data.id);
+    } else {
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      setPhotoData(null);
     }
   }, [data]);
 
@@ -216,7 +237,7 @@ export const DishForm = ({
 
   const onSubmit = async (values: any) => {
     try {
-      const data = {
+      const formData = {
         ...values,
         // position: parseInt(values.position),
         priority: parseInt(values.priority),
@@ -226,41 +247,45 @@ export const DishForm = ({
       };
 
       const dishData: any = {
-        name: data.name,
-        number: data.number,
+        name: formData.name,
+        number: formData.number,
         // position: data.position,
-        priority: data.priority,
-        price: data.price,
-        cost: data.cost,
-        categories: data.categories
+        priority: formData.priority,
+        price: formData.price,
+        cost: formData.cost,
+        categories: formData.categories,
       };
+
+      if (photoData) {
+        dishData.photo = photoData;
+      }
 
       let menuId: any;
       if( data.id ) {
         menuId = data.id;
-        await db.update(data.id, dishData);
+        await db.merge(data.id, dishData);
       } else {
         const [record] = await db.create(Tables.dishes, dishData);
         menuId = record.id;
       }
 
-      if( data.modifier_groups ) {
+      if( formData.modifier_groups ) {
         // delete graph edges and create again
         await db.query(`DELETE ${menuId}->${Tables.dish_modifier_groups} where in = ${menuId}`);
 
-        for ( const modifierGroup of data.modifier_groups ) {
+        for ( const modifierGroup of formData.modifier_groups ) {
           await db.query(`RELATE ${menuId}->${Tables.dish_modifier_groups}->${modifierGroup.modifier_group.value} set has_required_modifiers = ${modifierGroup.has_required_modifiers}, should_auto_open = ${modifierGroup.should_auto_open}, required_modifiers = ${modifierGroup.required_modifiers}`);
         }
       }
 
       // Save recipes as separate records in dishes_recipes table
-      if( data.recipes ) {
+      if( formData.recipes ) {
         // Delete existing recipe records
         await db.query(`DELETE ${Tables.dishes_recipes} WHERE menu_item = $dish`, { dish: menuId });
 
         // Create new recipe records and collect their IDs
         const recipeIds: RecordId[] = [];
-        for ( const recipe of data.recipes ) {
+        for ( const recipe of formData.recipes ) {
           const recipeData = {
             menu_item: menuId,
             item: new StringRecordId(recipe.item.value.toString()),
@@ -279,7 +304,7 @@ export const DishForm = ({
       } else {
         // Clear recipes if none provided
         await db.query(`DELETE ${Tables.dishes_recipes} WHERE menu_item = $dish`, { dish: menuId });
-        await db.update(menuId, {
+        await db.merge(menuId, {
           items: []
         });
       }
@@ -289,6 +314,7 @@ export const DishForm = ({
       toast.success(`Dish ${values.name} saved`);
     } catch ( e ) {
       toast.error(e);
+      console.log(e)
     }
   }
 
@@ -304,7 +330,32 @@ export const DishForm = ({
     name: 'recipes',
     defaultValue: []
   });
-  
+
+  const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    if (!file) {
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      setPhotoData(null);
+      return;
+    }
+
+    setPhotoFile(file);
+
+    try {
+      const buffer = await file.arrayBuffer();
+      setPhotoData(buffer);
+
+      const blob = new Blob([buffer], { type: file.type || 'application/octet-stream' });
+      const objectUrl = URL.createObjectURL(blob);
+      setPhotoPreview(objectUrl);
+    } catch (err) {
+      console.log('Failed to read photo file', err);
+      setPhotoData(null);
+      setPhotoPreview(null);
+    }
+  };
+
   useEffect(() => {
     if (watchedRecipes && watchedRecipes.length > 0) {
       const totalCost = watchedRecipes.reduce((sum: number, recipe: any) => {
@@ -432,6 +483,32 @@ export const DishForm = ({
                 <FontAwesomeIcon icon={faPlus}/>
               </Button>
             </div>
+          </div>
+
+          <div className="flex gap-3 mb-3 items-end">
+            <div className="flex-1">
+              <label className="block mb-1">Photo</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                className="block w-full text-sm text-neutral-700
+                           file:mr-4 file:py-2 file:px-4
+                           file:rounded-full file:border-0
+                           file:text-sm file:font-semibold
+                           file:bg-neutral-600 file:text-white
+                           hover:file:bg-neutral-700"
+              />
+            </div>
+            {photoPreview && (
+              <div className="w-24 h-24 rounded-lg overflow-hidden border border-neutral-300 flex items-center justify-center bg-neutral-100">
+                <img
+                  src={photoPreview}
+                  alt="Dish photo preview"
+                  className="object-cover w-full h-full"
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex mb-3">

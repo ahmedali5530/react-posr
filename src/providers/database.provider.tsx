@@ -98,6 +98,23 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({
     [surrealInstance, isPending, isSuccess, isError, error, connect, close],
   );
 
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-center max-w-md p-6 bg-danger-50 border border-danger-200 rounded-lg">
+          <h2 className="text-xl font-semibold text-danger-800 mb-2">Connection Error</h2>
+          <p className="text-danger-600 mb-4">{String(error) || 'Connection failed'}</p>
+          <button
+            onClick={() => connect()}
+            className="px-4 py-2 bg-danger-600 text-white rounded hover:bg-danger-700"
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Show loading state while connecting
   if (isPending || !isSuccess) {
     return (
@@ -105,24 +122,6 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Connecting to server...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state if connection failed
-  if (isError) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-center max-w-md p-6 bg-red-50 border border-red-200 rounded-lg">
-          <h2 className="text-xl font-semibold text-red-800 mb-2">Connection Error</h2>
-          <p className="text-red-600 mb-4">{String(error) || 'Connection failed'}</p>
-          <button
-            onClick={() => connect()}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            Retry Connection
-          </button>
         </div>
       </div>
     );

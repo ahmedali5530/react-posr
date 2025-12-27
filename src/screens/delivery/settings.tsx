@@ -417,7 +417,7 @@ export const DeliverySettings = () => {
                                     label="Start Time"
                                     value={timeField.value}
                                     onChange={timeField.onChange}
-                                    disabled={isDayOff}
+                                    // disabled={isDayOff}
                                     error={errors.delivery_timing?.[index]?.start_time?.message}
                                   />
                                 )}
@@ -433,7 +433,7 @@ export const DeliverySettings = () => {
                                     label="End Time"
                                     value={timeField.value}
                                     onChange={timeField.onChange}
-                                    disabled={isDayOff}
+                                    // disabled={isDayOff}
                                     error={errors.delivery_timing?.[index]?.end_time?.message}
                                   />
                                 )}

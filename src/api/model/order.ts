@@ -58,5 +58,6 @@ export enum OrderStatus {
   Cancelled = 'Cancelled',
   Spilt = 'Spilt',
   Merged = 'Merged',
-  Refunded = 'Refunded'
+  Refunded = 'Refunded',
+  Pending = 'Pending'
 }
