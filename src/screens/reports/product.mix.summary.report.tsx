@@ -351,7 +351,7 @@ export const ProductMixSummaryReport = () => {
       category.items.sort((a, b) => b.amount - a.amount);
 
       // Add rank and calculate sale percent
-      category.items.forEach((item, index) => {
+      category.items.forEach((item) => {
         item.salePercent = totalSales > 0 ? (item.amount / totalSales) * 100 : 0;
       });
 

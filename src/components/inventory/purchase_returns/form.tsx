@@ -506,7 +506,7 @@ export const InventoryPurchaseReturnForm = ({open, onClose, data}: Props) => {
                 render={({field}) => (
                   <DatePicker
                     label="Date"
-                    value={field.value}
+                    value={field.value as any}
                     onChange={field.onChange}
                     maxValue={getToday()}
                     isClearable={false}

@@ -138,7 +138,7 @@ export const SalesWeeklyReport = () => {
     const metrics: Record<string, DayMetrics> = {};
 
     // Initialize metrics for each day of the week
-    WEEK_DAYS.forEach((day, index) => {
+    WEEK_DAYS.forEach((_, index) => {
       const date = weekStart.plus({days: index});
       const dateKey = date.toISODate() || '';
       metrics[dateKey] = {

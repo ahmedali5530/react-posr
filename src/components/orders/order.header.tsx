@@ -22,10 +22,12 @@ export const OrderHeader = ({
   return (
     <div className="flex justify-between">
       <div className="flex gap-3">
+        {order?.table && (
           <span className="p-3 text-lg rounded-xl min-w-[56px] flex justify-center items-center" style={{
-            color: order?.table.color,
-            background: order.table?.background
+            color: order?.table?.color,
+            background: order?.table?.background
           }}>{order?.table?.name}{order?.table?.number}</span>
+        )}
 
         <div className="flex flex-col items-start gap-1">
           <span className="font-bold">Order# {getInvoiceNumber(order)} / {order?.order_type?.name}</span>

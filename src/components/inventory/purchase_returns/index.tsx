@@ -63,18 +63,21 @@ export const InventoryPurchaseReturns = () => {
               const mimeType = detectMimeType(buffer);
               const extension = mimeType.split('/')[1] || 'bin';
               return (
-                <Button
-                  key={index}
-                  variant="primary"
-                  size="sm"
-                  iconButton
-                  onClick={() => {
-                    downloadArrayBuffer(buffer, `document-${info.row.original.invoice_number}-${index + 1}.${extension}`, mimeType);
-                  }}
+                <span
                   title={`Download document ${index + 1}`}
                 >
-                  <FontAwesomeIcon icon={faDownload} />
-                </Button>
+                  <Button
+                    key={index}
+                    variant="primary"
+                    size="sm"
+                    iconButton
+                    onClick={() => {
+                      downloadArrayBuffer(buffer, `document-${info.row.original.invoice_number}-${index + 1}.${extension}`, mimeType);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faDownload} />
+                  </Button>
+                </span>
               );
             })}
           </div>
