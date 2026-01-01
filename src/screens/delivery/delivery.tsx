@@ -11,6 +11,7 @@ import { DateTime } from "luxon";
 import {useDeliveryOrders} from "@/hooks/useDeliveryOrders.ts";
 import { useFetchDeliveryOrders } from "@/hooks/useFetchDeliveryOrders.ts";
 import { DeliveryOrderPopup } from "@/components/delivery/delivery-order-popup.tsx";
+import {OrderStatus} from "@/api/model/order.ts";
 
 interface MapArea {
   type: string;
@@ -32,6 +33,15 @@ export const Delivery = () => {
   // Create custom icon for delivery markers
   const deliveryIcon = L.icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+
+  const acceptedDeliveryIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
@@ -179,7 +189,8 @@ export const Delivery = () => {
         {/* Delivery areas from settings (readonly) */}
         <FeatureGroup ref={featureGroupRef} />
         {/* Delivery order markers */}
-        {deliveryOrders.map((order) => {
+        {deliveryOrders.filter(item => item.delivery?.onTheWay !== true)
+          .map((order) => {
           const customer = order.customer;
           const delivery = order.delivery as any;
           
@@ -194,31 +205,13 @@ export const Delivery = () => {
               <Marker
                 key={order.id.toString()}
                 position={[lat, lng] as LatLngTuple}
-                icon={deliveryIcon}
+                icon={order.status === OrderStatus.Pending ? deliveryIcon : acceptedDeliveryIcon}
                 eventHandlers={{
                   click: () => {
                     openOrderPopup(order);
                   }
                 }}
               >
-                <Popup>
-                  <div className="p-2">
-                    <h3 className="font-semibold text-sm mb-1">Order {getInvoiceNumber(order)}</h3>
-                    <p className="text-xs text-neutral-600">Customer: {name}</p>
-                    {address && (
-                      <p className="text-xs text-neutral-600">{address}</p>
-                    )}
-                    <p className="text-xs text-neutral-500 mt-1">
-                      {DateTime.fromJSDate(new Date(order.created_at)).toFormat("MMM dd, hh:mm a")}
-                    </p>
-                    <button
-                      onClick={() => openOrderPopup(order)}
-                      className="mt-2 text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
-                    >
-                      View Details
-                    </button>
-                  </div>
-                </Popup>
               </Marker>
             );
           }
@@ -229,7 +222,10 @@ export const Delivery = () => {
         <DeliveryOrderPopup
           order={selectedOrder}
           open={isPopupOpen}
-          onClose={closeOrderPopup}
+          onClose={() => {
+            closeOrderPopup();
+            fetchDeliveryOrders();
+          }}
         />
       )}
     </>

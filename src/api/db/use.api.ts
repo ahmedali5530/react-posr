@@ -40,7 +40,7 @@ export interface SettingsData<T = any> {
 }
 
 function useApi<T>(
-  table: string,
+  thing?: string,
   initialFilters: string[] = [],
   initialSort: string[] = [],
   initialOffset: number = 0,
@@ -49,6 +49,7 @@ function useApi<T>(
   useApiOptions?: any,
   initialSelects: string[] = ['*'],
 ): UseApiResult<T> {
+  const [table, setTable] = useState<string|undefined>(thing);
   const [filters, setFilters] = useState<string[]>(initialFilters);
   const [sorts, setSorts] = useState<string[]>(initialSort);
   const [page, setPage] = useState<number>(initialOffset);
@@ -66,7 +67,7 @@ function useApi<T>(
 
   const mainQuery = useMemo(() => {
     return queryBuilder.queryString;
-  }, [filters, sorts, page, pageSize, selects, splits, groups, fetches, parameters]);
+  }, [filters, sorts, page, pageSize, selects, splits, groups, fetches, parameters, table]);
 
   const queryKeys = [table, { filters, sorts, page, pageSize, selects, splits, groups, fetches, parameters, mainQuery }];
 

@@ -19,6 +19,7 @@ export const useFetchDeliveryOrders = () => {
         `SELECT * FROM ${Tables.orders} 
          WHERE delivery != NONE 
            AND status IN $status
+         AND delivery.onTheWay != true
          ORDER BY created_at DESC
          FETCH customer, items, items.item, table, user, order_type, discount, tax, payments, payments.payment_type, extras
          `,
@@ -27,11 +28,7 @@ export const useFetchDeliveryOrders = () => {
         }
       );
 
-      // SurrealDB returns ActionResult[] - handle both result[0] and result[0].result structures
-      // const ordersData = (result?.[0]?.result ?? result?.[0] ?? result) as any[];
       const ordersData = result;
-
-      console.log(result)
       
       if (ordersData && ordersData.length > 0) {
         const orders = ordersData.map((r: any) => r as Order);

@@ -22,8 +22,8 @@ export const CommonBillParts = ({
         <span>{DateTime.fromJSDate(order.created_at).toFormat('y-MM-dd hh:mm a')}</span>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span>{order.table.name}{order.table.number}</span>
-        <span>{order.user.first_name} {order.user.last_name}</span>
+        <span>{order?.table?.name}{order?.table?.number}</span>
+        <span>{order?.user?.first_name} {order?.user?.last_name}</span>
       </div>
       <hr/>
       <div>

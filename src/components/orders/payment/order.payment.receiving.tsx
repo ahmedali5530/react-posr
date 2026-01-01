@@ -67,7 +67,7 @@ export const OrderPaymentReceiving = ({
 
   const {
     data: table
-  } = useApi<SettingsData<Table>>(order.table.id as unknown as string, [], [], 0, 1, ['payment_types', 'payment_types.tax', 'payment_types.discounts']);
+  } = useApi<SettingsData<Table>>(order?.table?.id as unknown as string, [], [], 0, 1, ['payment_types', 'payment_types.tax', 'payment_types.discounts']);
 
   const paymentTypes: PaymentType[] = useMemo(() => {
     if (table?.data?.[0]?.payment_types && table?.data?.[0]?.payment_types?.length > 0) {

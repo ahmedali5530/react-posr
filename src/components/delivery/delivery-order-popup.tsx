@@ -2,7 +2,7 @@ import React, {useMemo} from "react";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {Order, OrderStatus} from "@/api/model/order.ts";
 import {Button} from "@/components/common/input/button.tsx";
-import {faCheck, faChevronLeft, faChevronRight, faMapMarkerAlt, faTimes} from "@fortawesome/free-solid-svg-icons";
+import {faCheck, faChevronLeft, faChevronRight, faMapMarkerAlt, faTimes, faPersonBiking} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {calculateOrderItemPrice, calculateOrderTotal} from "@/lib/cart.ts";
 import {getInvoiceNumber, getOrderFilteredItems} from "@/lib/order.ts";
@@ -57,10 +57,30 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
     }
   };
 
+  const sendForDelivery = async () => {
+    try {
+      await db.merge(order.id, {
+        // status: OrderStatus["In Progress"],
+        delivery: {
+          ...order.delivery,
+          onTheWay: true
+        }
+      });
+
+      toast.success(`Order ${getInvoiceNumber(order)} sent for delivery`);
+      onClose();
+    } catch (error) {
+      console.error("Error sending order:", error);
+      toast.error("Failed to send order");
+    }
+  }
+
   const handleAccept = async () => {
     try {
-      // You can add custom logic here for accepting the order
-      // For example, update order status or add a tag
+      await db.merge(order.id, {
+        status: OrderStatus["In Progress"],
+      });
+
       toast.success(`Order ${getInvoiceNumber(order)} accepted`);
       onClose();
     } catch (error) {
@@ -76,7 +96,8 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
         status: OrderStatus.Cancelled,
         tags: Array.from(new Set([...(order.tags || []), OrderStatus.Cancelled])),
       });
-      toast.success(`Order ${getInvoiceNumber(order)} rejected`);
+
+      toast.error(`Order ${getInvoiceNumber(order)} rejected`);
       onClose();
     } catch (error) {
       console.error("Error rejecting order:", error);
@@ -127,7 +148,7 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
 
         {/* Customer Information */}
         {customer && (
-          <div className="bg-neutral-50 p-4 rounded-lg">
+          <div className="bg-gray-200 p-4 rounded-lg border-2 border-gray-300">
             <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
               <span>Customer Information</span>
             </h3>
@@ -139,13 +160,13 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
               {customer.phone && (
                 <div>
                   <label className="text-sm font-medium text-neutral-600">Phone</label>
-                  <p className="text-base">{customer.phone}</p>
+                  <p className="text-base"><a href={`tel:${customer.phone}`}>{customer.phone}</a></p>
                 </div>
               )}
               {customer.email && (
                 <div>
                   <label className="text-sm font-medium text-neutral-600">Email</label>
-                  <p className="text-base">{customer.email}</p>
+                  <p className="text-base"><a href={`mailto:${customer.email}`}>{customer.email}</a></p>
                 </div>
               )}
             </div>
@@ -153,7 +174,7 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
         )}
 
         {/* Delivery Address Section */}
-        <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+        <div className="bg-primary-100 p-4 rounded-lg border-2 border-primary-200">
           <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <FontAwesomeIcon icon={faMapMarkerAlt} className="text-blue-600"/>
             <span>Delivery Address</span>
@@ -202,13 +223,9 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
         </div>
 
         {/* Order Information */}
-        <div className="bg-neutral-50 p-4 rounded-lg">
+        <div className="bg-success-100 p-4 rounded-lg border-2 border-success-200">
           <h3 className="text-lg font-semibold mb-3">Order Details</h3>
           <div className="space-y-2 mb-4">
-            <div className="flex justify-between">
-              <span className="text-sm font-medium text-neutral-600">Order Type:</span>
-              <span className="text-base">{order.order_type?.name || "N/A"}</span>
-            </div>
             <div className="flex justify-between">
               <span className="text-sm font-medium text-neutral-600">Status:</span>
               <span className="text-base font-semibold">{order.status}</span>
@@ -219,10 +236,6 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
                 {DateTime.fromJSDate(new Date(order.created_at)).toFormat("yyyy-MM-dd hh:mm a")}
               </span>
             </div>
-            {/*<div className="flex justify-between">
-              <span className="text-sm font-medium text-neutral-600">Order Taker:</span>
-              <span className="text-base">{order.user?.first_name || "N/A"}</span>
-            </div>*/}
           </div>
 
           {/* Order Items */}
@@ -231,22 +244,6 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
             <div className="space-y-2">
               {items.map((item, index) => (
                 <OrderItemName item={item} key={index} showGroups={true} showPrice={true} showQuantity={true} />
-                /*<div key={item.id || index} className="flex justify-between items-start p-2 bg-white rounded">
-                  <div className="flex-1">
-                    <p className="font-medium">{item.item?.name || "Unknown Item"}</p>
-                    {item.comments && (
-                      <p className="text-sm text-neutral-500">Note: {item.comments}</p>
-                    )}
-                    <p className="text-sm text-neutral-600">
-                      Qty: {item.quantity} × {item.price.toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">
-                      {(calculateOrderItemPrice(item)).toFixed(2)}
-                    </p>
-                  </div>
-                </div>*/
               ))}
             </div>
           </div>
@@ -258,32 +255,32 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
                 <span className="text-sm font-medium">Subtotal:</span>
                 <span className="text-base">{itemsTotal.toFixed(2)}</span>
               </div>
-              {order.discount_amount && order.discount_amount > 0 && (
+              {order.discount_amount && order.discount_amount > 0 ? (
                 <div className="flex justify-between text-red-600">
                   <span className="text-sm font-medium">Discount:</span>
                   <span className="text-base">-{order.discount_amount.toFixed(2)}</span>
                 </div>
-              )}
-              {order.tax_amount && order.tax_amount > 0 && (
+              ) : null}
+              {order.tax_amount && order.tax_amount > 0 ? (
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Tax:</span>
                   <span className="text-base">{order.tax_amount.toFixed(2)}</span>
                 </div>
-              )}
-              {order.service_charge_amount && order.service_charge_amount > 0 && (
+              ) : null}
+              {order.service_charge_amount && order.service_charge_amount > 0 ? (
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Service Charge:</span>
                   <span className="text-base">{order.service_charge_amount.toFixed(2)}</span>
                 </div>
-              )}
-              {order.extras && order.extras.length > 0 && (
+              ) : null}
+              {order.extras && order.extras.length > 0 ? (
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Extras:</span>
                   <span className="text-base">
                     {order.extras.reduce((prev, item) => prev + Number(item.value), 0).toFixed(2)}
                   </span>
                 </div>
-              )}
+              ) : null}
               <div className="flex justify-between pt-2 border-t border-neutral-300">
                 <span className="text-lg font-bold">Total:</span>
                 <span className="text-lg font-bold">{total.toFixed(2)}</span>
@@ -294,27 +291,38 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
 
         {/* Action Buttons */}
         <div className="flex gap-3 justify-end pt-4 border-t border-neutral-200">
-          <Button
-            variant="danger"
-            onClick={handleReject}
-            icon={faTimes}
-          >
-            Reject
-          </Button>
-          {/*<Button*/}
-          {/*  variant="warning"*/}
-          {/*  onClick={handleViewDetails}*/}
-          {/*  icon={faEye}*/}
-          {/*>*/}
-          {/*  View Details*/}
-          {/*</Button>*/}
-          <Button
-            variant="success"
-            onClick={handleAccept}
-            icon={faCheck}
-          >
-            Accept
-          </Button>
+          {order.status === OrderStatus.Pending && (
+            <>
+              <Button
+                variant="danger"
+                onClick={handleReject}
+                icon={faTimes}
+                size="lg"
+              >
+                Reject
+              </Button>
+              <Button
+                variant="success"
+                onClick={handleAccept}
+                icon={faCheck}
+                size="lg"
+              >
+                Accept
+              </Button>
+            </>
+          )}
+
+          {order.status === OrderStatus["In Progress"] && (
+            <Button
+              variant="success"
+              onClick={sendForDelivery}
+              icon={faPersonBiking}
+              size="lg"
+            >
+              Send for delivery
+            </Button>
+          )}
+
         </div>
       </div>
     </Modal>

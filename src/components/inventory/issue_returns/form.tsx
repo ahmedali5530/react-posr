@@ -106,7 +106,7 @@ const createValidationSchema = (db: ReturnType<typeof useDB>, currentId?: string
 }).required();
 
 export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
-  const db = useMemo(() => useDB(), []);
+  const db = useDB();
   const validationSchema = useMemo(() => createValidationSchema(db, data?.id), [db, data?.id]);
   const resolver = useMemo(() => yupResolver(validationSchema), [validationSchema]);
 
@@ -161,7 +161,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
   } = useForm({
     resolver,
     defaultValues: {
-      invoice_number: "",
+      invoice_number: 0,
       issuance: null,
       issued_to: null,
       kitchen: null,
@@ -223,7 +223,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
       });
     } else if (open) {
       reset({
-        invoice_number: "",
+        invoice_number: 0,
         issuance: null,
         issued_to: null,
         kitchen: null,
@@ -316,7 +316,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
   const closeModal = () => {
     onClose();
     reset({
-      invoice_number: "",
+      invoice_number: 0,
       issuance: null,
       issued_to: null,
       kitchen: null,
@@ -520,7 +520,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
                 render={({field}) => (
                   <DatePicker
                     label="Date"
-                    value={field.value}
+                    value={field.value as any}
                     onChange={field.onChange}
                     maxValue={getToday()}
                     isClearable={false}

@@ -2,7 +2,7 @@ import {useState} from "react";
 import {createColumnHelper} from "@tanstack/react-table";
 import useApi, {SettingsData} from "@/api/db/use.api.ts";
 import {Tables} from "@/api/db/tables.ts";
-import {Inventory_supplier} from "@/api/model/inventory_supplier.ts";
+import {InventorySupplier} from "@/api/model/inventory_supplier.ts";
 import {TableComponent} from "@/components/common/table/table.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
@@ -10,12 +10,12 @@ import {faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
 import {SupplierForm} from "@/components/inventory/suppliers/form.tsx";
 
 export const InventorySuppliers = () => {
-  const loadHook = useApi<SettingsData<Inventory_supplier>>(Tables.inventory_suppliers, [], [], 0, 10, []);
+  const loadHook = useApi<SettingsData<InventorySupplier>>(Tables.inventory_suppliers, [], [], 0, 10, []);
 
-  const [data, setData] = useState<Inventory_supplier>();
+  const [data, setData] = useState<InventorySupplier>();
   const [formModal, setFormModal] = useState(false);
 
-  const columnHelper = createColumnHelper<Inventory_supplier>();
+  const columnHelper = createColumnHelper<InventorySupplier>();
 
   const columns: any = [
     columnHelper.accessor("name", {
