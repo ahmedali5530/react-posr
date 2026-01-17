@@ -16,6 +16,7 @@ import { AdminTaxes } from "@/components/settings/taxes";
 import { AdminUsers } from "@/components/settings/users";
 import ScrollContainer from "react-indiana-drag-scroll";
 import {AdminMenus} from "@/components/settings/menu";
+import {AdminPrints} from "@/components/settings/prints";
 
 export const Admin = () => {
   const [selected, setSelected] = useState('dishes');
@@ -29,11 +30,12 @@ export const Admin = () => {
     'floors': { component: <AdminFloors/>, title: 'Floors' },
     'discounts': { component: <AdminDiscounts/>, title: 'Discounts' },
     'kitchens': { component: <AdminKitchens/>, title: 'Kitchens' },
-    'Printers': { component: <AdminPrinters/>, title: 'Printers' },
+    'printers': { component: <AdminPrinters/>, title: 'Printers' },
+    'print_settings': { component: <AdminPrints/>, title: 'Print settings' },
     'order_types': { component: <AdminOrderTypes/>, title: 'Order Types' },
     'payment_types': { component: <AdminPaymentTypes/>, title: 'Payment types' },
-    'Taxes': { component: <AdminTaxes/>, title: 'Taxes' },
-    'Users': { component: <AdminUsers/>, title: 'Users' },
+    'taxes': { component: <AdminTaxes/>, title: 'Taxes' },
+    'users': { component: <AdminUsers/>, title: 'Users' },
   };
 
   return (

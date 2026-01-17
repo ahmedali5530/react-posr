@@ -41,8 +41,14 @@ export const OrderHeader = ({
         </div>
       </div>
       <div className="flex flex-col">
-        <span className="text-lg font-bold bg-neutral-100 px-1 rounded">{order?.user?.first_name}</span>
-        <span></span>
+        <span className="text-lg font-bold bg-neutral-200 px-2 rounded">{order?.user?.first_name}</span>
+        {order?.customer && (
+          <>
+            <span>{order?.customer?.name}</span>
+            <span>{order?.customer?.phone}</span>
+          </>
+        )}
+
       </div>
     </div>
   )
