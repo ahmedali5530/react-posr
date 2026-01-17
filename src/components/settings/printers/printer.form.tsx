@@ -10,6 +10,7 @@ import { Input } from "@/components/common/input/input.tsx";
 import { Button } from "@/components/common/input/button.tsx";
 import * as z from "zod";
 import { transformValue } from "@/lib/utils.ts";
+import {ReactSelect} from "@/components/common/input/custom.react.select.tsx";
 
 interface Props {
   open: boolean
@@ -19,10 +20,14 @@ interface Props {
 
 const validationSchema = z.object({
   name: z.string().min(1, "This is required"),
-  ip_address: z.string().ip({message: 'Invalid IP Address'}).min(1, "This is required"),
+  ip_address: z.string().min(1, "This is required"),
   port: z.number({message: "Invalid Port number"}).min(1, "This is required"),
   prints: z.number({message: "This is required"}).min(1, "This is required"),
   priority: z.number({message: "This is required"}),
+  type: z.object({
+    label: z.string(),
+    value: z.string()
+  }).nullable().optional(),
 });
 
 export const PrinterForm = ({
@@ -36,8 +41,13 @@ export const PrinterForm = ({
       port: null,
       prints: null,
       priority: null,
+      type: null
     });
   }
+
+  const { getValues, register, control, handleSubmit, formState: {errors}, reset } = useForm({
+    resolver: zodResolver(validationSchema)
+  });
 
   useEffect(() => {
     if(data){
@@ -48,23 +58,26 @@ export const PrinterForm = ({
         ip_address: data.ip_address,
         port: data.port,
         prints: data.prints,
+        type: data.type ? {
+          label: data.type,
+          value: data.type
+        } : null
       });
     }
   }, [data]);
 
   const db = useDB();
 
-  const { register, control, handleSubmit, formState: {errors}, reset } = useForm({
-    resolver: zodResolver(validationSchema)
-  });
-
   const onSubmit = async (values: any) => {
-    const vals = {...values};
+    const vals = {
+      ...values,
+      type: values?.type ? values.type.value : null
+    };
 
     try {
       if(data?.id){
         await db.update(data.id, {
-          ...vals
+          ...vals,
         })
       }else{
         await db.create(Tables.printers, {
@@ -92,9 +105,26 @@ export const PrinterForm = ({
             <div className="flex-1">
               <Input label="Name" {...register('name')} autoFocus error={errors?.name?.message}/>
             </div>
+            <div className="flex-1">
+              <label htmlFor="type">Type</label>
+              <Controller
+                render={({field}) => (
+                  <ReactSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={['Network', 'USB', 'Serial', 'Bluetooth'].map(item => ({
+                      label: item,
+                      value: item
+                    }))}
+                  />
+                )}
+                name="type"
+                control={control}
+              />
+            </div>
             <div className="flex-1 flex gap-3">
               <div className="flex-1">
-                <Input label="IP Address" {...register('ip_address')} error={errors?.ip_address?.message}/>
+                <Input label="Path" {...register('ip_address')} error={errors?.ip_address?.message}/>
               </div>
               <div className="flex-1">
                 <Controller
@@ -124,21 +154,6 @@ export const PrinterForm = ({
                   />
                 )}
                 name="prints"
-                control={control}
-              />
-            </div>
-            <div className="flex-1">
-              <Controller
-                render={({ field }) => (
-                  <Input
-                    type="number"
-                    label="Priority"
-                    error={errors?.priority?.message}
-                    value={transformValue.input(field.value)}
-                    onChange={(e) => field.onChange(transformValue.output(e))}
-                  />
-                )}
-                name="priority"
                 control={control}
               />
             </div>

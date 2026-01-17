@@ -98,12 +98,12 @@ export const FloorLayout = () => {
   }, [state.floor]);
 
   const tableOrders = useCallback((tableId: string) => {
-    return orders?.data?.filter(item => item.table.id.toString() === tableId.toString())
+    return orders?.data?.filter(item => item?.table?.id?.toString() === tableId.toString())
   }, [orders]);
 
   const tableOrder = useCallback((tableId: string) => {
     return orders?.data?.find(item =>
-      item.table.id.toString() === tableId.toString()
+      item?.table?.id?.toString() === tableId.toString()
     )
   }, [orders]);
 
@@ -210,7 +210,7 @@ export const FloorLayout = () => {
               className={
                 cn(
                   "flex-1 relative z-10 outline-none",
-                  item.id === state?.floor?.id && 'bg-gradient'
+                  state?.floor && item.id.toString() === state?.floor?.id?.toString() && 'bg-gradient'
                 )
               }
               onClick={() => setState(prev => ({

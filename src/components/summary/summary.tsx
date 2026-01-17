@@ -1,6 +1,6 @@
 import {useMemo} from "react";
 import {calculateOrderItemPrice, calculateOrderTotal} from "@/lib/cart.ts";
-import {Order} from "@/api/model/order.ts";
+import {Order, OrderStatus} from "@/api/model/order.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
 import {getOrderFilteredItems} from "@/lib/order.ts";
 
@@ -9,42 +9,141 @@ interface Props {
   date: string
 }
 
+const safeNumber = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
 export const Summary = ({
   orders, date
 }: Props) => {
-  const exclusive = useMemo(() => {
-    let total = 0;
-    orders?.data?.forEach(order => {
-      total += calculateOrderTotal(order);
-    });
-
-    return total;
+  // Calculate sale price without tax (items total)
+  const salePriceWithoutTax = useMemo(() => {
+    return safeNumber(
+      orders?.data?.reduce((sum, order) => {
+        const itemsTotal = safeNumber(
+          order.items?.reduce((itemSum, item) => {
+            const price = calculateOrderItemPrice(item);
+            return itemSum + safeNumber(price);
+          }, 0) ?? 0
+        );
+        return sum + itemsTotal;
+      }, 0) ?? 0
+    );
   }, [orders]);
 
-  const gSales = useMemo(() => {
-    return exclusive;
-  }, [exclusive]);
+  const exclusive = salePriceWithoutTax;
 
-  const gross = useMemo(() => {
-    return exclusive;
-  }, [exclusive]);
+  // Tax collected
+  const taxCollected = useMemo(() => {
+    return safeNumber(
+      orders?.data?.reduce((sum, order) => sum + safeNumber(order.tax_amount), 0) ?? 0
+    );
+  }, [orders]);
 
-  const refunds = useMemo(() => {
-    return 0; // TODO: get real refund values from db
-  }, [exclusive]);
-
+  // Service charges
   const serviceCharges = useMemo(() => {
-    return orders?.data?.filter(item => item.service_charge_amount !== undefined)
-      ?.reduce((prev, order) => prev + Number(order?.service_charge_amount), 0);
+    return safeNumber(
+      orders?.data?.reduce((sum, order) => sum + safeNumber(order.service_charge_amount), 0) ?? 0
+    );
   }, [orders]);
 
-  const discounts = useMemo(() => {
-    return orders?.data?.filter(item => item.discount_amount !== undefined)
-      ?.reduce((prev, order) => prev + order.discount_amount, 0);
+  // Item-level discounts
+  const itemDiscounts = useMemo(() => {
+    return safeNumber(
+      orders?.data?.reduce((sum, order) => {
+        return sum + safeNumber(order.items?.reduce((itemSum, item) => itemSum + safeNumber(item?.discount), 0) ?? 0);
+      }, 0) ?? 0
+    );
   }, [orders]);
 
+  // Subtotal-level discounts (order discounts minus item discounts)
+  const subtotalDiscounts = useMemo(() => {
+    return safeNumber(
+      orders?.data?.reduce((sum, order) => {
+        const lineDiscounts = safeNumber(
+          order.items?.reduce((itemSum, item) => itemSum + safeNumber(item?.discount), 0) ?? 0
+        );
+        const orderDiscount = safeNumber(order.discount_amount);
+        const extraDiscount = Math.max(0, safeNumber(orderDiscount - lineDiscounts));
+        return sum + extraDiscount;
+      }, 0) ?? 0
+    );
+  }, [orders]);
+
+  // Total discounts
+  const discounts = safeNumber(itemDiscounts + subtotalDiscounts);
+
+  // Total extras
+  const totalExtras = useMemo(() => {
+    return safeNumber(
+      orders?.data?.reduce((sum, order) => {
+        return sum + safeNumber(
+          order?.extras?.reduce((extraSum, extra) => extraSum + safeNumber(extra.value), 0) ?? 0
+        );
+      }, 0) ?? 0
+    );
+  }, [orders]);
+
+  // Amount due (including extras)
+  const amountDue = useMemo(() => {
+    return safeNumber(salePriceWithoutTax + taxCollected + serviceCharges + totalExtras - itemDiscounts - subtotalDiscounts);
+  }, [salePriceWithoutTax, taxCollected, serviceCharges, totalExtras, itemDiscounts, subtotalDiscounts]);
+
+  // Amount collected
+  const amountCollected = useMemo(() => {
+    return safeNumber(
+      orders?.data?.reduce((sum, order) => {
+        return sum + safeNumber(order.payments?.reduce((paySum, payment) => paySum + safeNumber(payment?.amount), 0) ?? 0);
+      }, 0) ?? 0
+    );
+  }, [orders]);
+
+  // Rounding (difference between amount collected and amount due)
+  const rounding = useMemo(() => {
+    return safeNumber(amountCollected - amountDue);
+  }, [amountCollected, amountDue]);
+
+  // Net (amount collected minus service charges and taxes)
+  const net = useMemo(() => {
+    return safeNumber(amountCollected - serviceCharges - taxCollected);
+  }, [amountCollected, serviceCharges, taxCollected]);
+
+  // Refunds (from negative payment amounts or cancelled orders)
+  const refunds = useMemo(() => {
+    return safeNumber(
+      orders?.data?.reduce((sum, order) => {
+        if (order.status === OrderStatus.Cancelled) {
+          return sum + safeNumber(
+            order.payments?.reduce((paySum, payment) => {
+              const amount = safeNumber(payment?.amount);
+              return paySum + Math.abs(Math.min(0, amount));
+            }, 0) ?? 0
+          );
+        }
+        return sum + safeNumber(
+          order.payments?.reduce((paySum, payment) => {
+            const amount = safeNumber(payment?.amount);
+            return paySum + (amount < 0 ? Math.abs(amount) : 0);
+          }, 0) ?? 0
+        );
+      }, 0) ?? 0
+    );
+  }, [orders]);
+
+  // Gross (amount collected + refunds + total discounts)
+  const gross = useMemo(() => {
+    return safeNumber(amountCollected + refunds + discounts);
+  }, [amountCollected, refunds, discounts]);
+
+  // G Sales (Gross Sales) = sale price without tax
+  const gSales = salePriceWithoutTax;
+
+  // Tips
   const tips = useMemo(() => {
-    return orders?.data.reduce((prev, item) => prev + item.tip_amount, 0);
+    return safeNumber(
+      orders?.data?.reduce((prev, item) => prev + safeNumber(item.tip_amount), 0) ?? 0
+    );
   }, [orders]);
 
   const discountsList = useMemo(() => {
@@ -55,15 +154,13 @@ export const Summary = ({
           list[`${order?.discount?.name}`] = 0;
         }
 
-        list[`${order?.discount?.name}`] += order?.discount_amount;
+        list[`${order?.discount?.name}`] += safeNumber(order?.discount_amount);
       }
     });
     return list;
   }, [orders]);
 
-  const taxes = useMemo(() => {
-    return orders?.data?.filter(item => item.tax_amount !== undefined)?.reduce((prev, order) => prev + order.tax_amount, 0);
-  }, [orders]);
+  const taxes = taxCollected;
 
   const taxesList = useMemo(() => {
     const list = {};
@@ -73,41 +170,22 @@ export const Summary = ({
           list[`${order?.tax?.name} ${order?.tax?.rate}`] = 0;
         }
 
-        list[`${order?.tax?.name} ${order?.tax?.rate}`] += order?.tax_amount;
+        list[`${order?.tax?.name} ${order?.tax?.rate}`] += safeNumber(order?.tax_amount);
       }
     });
     return list;
   }, [orders]);
 
-  const net = useMemo(() => {
-    return exclusive
-  }, [exclusive]);
-
-  const amountDue = useMemo(() => {
-    let total = 0;
-    orders?.data?.forEach(order => {
-      total += order.payments.reduce((prev, payment) => prev + payment.payable, 0);
-    });
-    return total;
-  }, [orders]);
-
-  const amountCollected = useMemo(() => {
-    let total = 0;
-    orders?.data?.forEach(order => {
-      total += order.payments.reduce((prev, payment) => prev + payment.amount, 0);
-    });
-    return total;
-  }, [orders]);
-
   const paymentTypes = useMemo(() => {
     const list = {};
     orders?.data?.forEach(order => {
-      order.payments.forEach(payment => {
-        if (!list[payment.payment_type.name]) {
-          list[payment.payment_type.name] = 0;
+      order.payments?.forEach(payment => {
+        const paymentTypeName = payment.payment_type?.name || 'Unknown';
+        if (!list[paymentTypeName]) {
+          list[paymentTypeName] = 0;
         }
 
-        list[payment.payment_type.name] += payment.payable;
+        list[paymentTypeName] += safeNumber(payment.payable);
       });
     });
     return list;
@@ -121,23 +199,33 @@ export const Summary = ({
           list[extra.name] = 0;
         }
 
-        list[extra.name] += extra.value;
+        list[extra.name] += safeNumber(extra.value);
       });
     });
     return list;
   }, [orders]);
 
-  const rounding = useMemo(() => {
-    return amountDue - amountCollected
-  }, [amountDue, amountCollected]);
-
+  // Voids - calculate from items that are deleted/voided (items not in getOrderFilteredItems)
   const voids = useMemo(() => {
-    let total = 0;
-    orders?.data?.forEach(order => {
-      total += getOrderFilteredItems(order)
-        .reduce((prev, item) => prev + calculateOrderItemPrice(item), 0)
-    });
-    return total;
+    return safeNumber(
+      orders?.data?.reduce((sum, order) => {
+        // Get all items including voided/deleted ones
+        const allItems = order.items || [];
+        // Get filtered items (non-voided)
+        const filteredItems = getOrderFilteredItems(order);
+        // Find voided items
+        const voidedItems = allItems.filter(item => 
+          !filteredItems.some(filtered => filtered.id === item.id)
+        );
+        // Calculate total for voided items
+        return sum + safeNumber(
+          voidedItems.reduce((itemSum, item) => {
+            const price = calculateOrderItemPrice(item);
+            return itemSum + safeNumber(price);
+          }, 0)
+        );
+      }, 0) ?? 0
+    );
   }, [orders]);
 
   const covers = useMemo(() => {
@@ -211,7 +299,7 @@ export const Summary = ({
           <span>{withCurrency(serviceCharges)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
-          <span>Discount</span>
+          <span>Discounts</span>
           <span>{withCurrency(discounts)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
@@ -227,24 +315,31 @@ export const Summary = ({
           <span>{withCurrency(amountDue)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
-          <span>Tip</span>
-          <span>{withCurrency(tips)}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Amount collected</span>
           <span>{withCurrency(amountCollected)}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+          <span>Extras</span>
+          <span>{withCurrency(totalExtras)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Rounding</span>
           <span>{withCurrency(rounding)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+          <span>Voids</span>
+          <span>{withCurrency(voids)}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span></span>
           <span></span>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #e5e7eb', padding: '0.75rem', fontWeight: 700 }}>
+          <span>Tips</span>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
-          <span>Voids</span>
-          <span>{withCurrency(voids)}</span>
+          <span>Total Tips</span>
+          <span>{withCurrency(tips)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span></span>
@@ -256,15 +351,15 @@ export const Summary = ({
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Average cover</span>
-          <span>{withCurrency(amountDue / covers)}</span>
+          <span>{withCurrency(covers > 0 ? amountDue / covers : 0)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Orders/Checks</span>
-          <span>{formatNumber(orders?.data?.length)}</span>
+          <span>{formatNumber(orders?.data?.length ?? 0)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Average order/check</span>
-          <span>{withCurrency(amountDue / orders?.data?.length)}</span>
+          <span>{withCurrency((orders?.data?.length ?? 0) > 0 ? amountDue / (orders?.data?.length ?? 1) : 0)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span></span>
@@ -278,7 +373,7 @@ export const Summary = ({
             <span style={{ width: '40%', textAlign: 'left' }}>{category}</span>
             <span style={{ width: '20%', textAlign: 'right' }}>{categories[category].quantity}</span>
             <span style={{ width: '20%', textAlign: 'right' }}>{withCurrency(categories[category].total)}</span>
-            <span style={{ width: '20%', textAlign: 'right' }}>{formatNumber(categories[category].total / exclusive * 100)}%</span>
+            <span style={{ width: '20%', textAlign: 'right' }}>{formatNumber(exclusive > 0 ? categories[category].total / exclusive * 100 : 0)}%</span>
           </div>
         ))}
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
@@ -293,7 +388,7 @@ export const Summary = ({
             <span style={{ width: '40%', textAlign: 'left' }}>{dish}</span>
             <span style={{ width: '20%', textAlign: 'right' }}>{dishes[dish].quantity}</span>
             <span style={{ width: '20%', textAlign: 'right' }}>{withCurrency(dishes[dish].total)}</span>
-            <span style={{ width: '20%', textAlign: 'right' }}>{formatNumber(dishes[dish].total / exclusive * 100)}%</span>
+            <span style={{ width: '20%', textAlign: 'right' }}>{formatNumber(exclusive > 0 ? dishes[dish].total / exclusive * 100 : 0)}%</span>
           </div>
         ))}
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
@@ -307,7 +402,7 @@ export const Summary = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }} key={paymentType}>
             <span>{paymentType}</span>
             <span>{withCurrency(paymentTypes[paymentType])}</span>
-            <span>{formatNumber(paymentTypes[paymentType] / amountDue * 100)}%</span>
+            <span>{formatNumber(amountDue > 0 ? paymentTypes[paymentType] / amountDue * 100 : 0)}%</span>
           </div>
         ))}
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
@@ -321,7 +416,7 @@ export const Summary = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }} key={tax}>
             <span>{tax}%</span>
             <span>{withCurrency(taxesList[tax])}</span>
-            <span>{formatNumber(taxesList[tax] / taxes * 100)}%</span>
+            <span>{formatNumber(taxes > 0 ? taxesList[tax] / taxes * 100 : 0)}%</span>
           </div>
         ))}
 
@@ -337,7 +432,7 @@ export const Summary = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }} key={discount}>
             <span>{discount}</span>
             <span>{withCurrency(discountsList[discount])}</span>
-            <span>{formatNumber(discountsList[discount] / discounts * 100)}%</span>
+            <span>{formatNumber(discounts > 0 ? discountsList[discount] / discounts * 100 : 0)}%</span>
           </div>
         ))}
 

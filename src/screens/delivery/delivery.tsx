@@ -1,7 +1,7 @@
 import { Layout } from "@/screens/partials/layout.tsx";
 import { MapContainer, Marker, Popup, Rectangle, TileLayer, FeatureGroup, GeoJSON } from "react-leaflet";
 import { LatLngTuple } from "leaflet";
-import { useEffect, useRef, useState } from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import { useDB } from "@/api/db/db.ts";
 import { Tables } from "@/api/db/tables.ts";
 import type { FeatureGroup as LeafletFeatureGroup } from "leaflet";
@@ -11,7 +11,9 @@ import { DateTime } from "luxon";
 import {useDeliveryOrders} from "@/hooks/useDeliveryOrders.ts";
 import { useFetchDeliveryOrders } from "@/hooks/useFetchDeliveryOrders.ts";
 import { DeliveryOrderPopup } from "@/components/delivery/delivery-order-popup.tsx";
+import { DeliveryOrderItem } from "@/components/delivery/delivery-order-item.tsx";
 import {OrderStatus} from "@/api/model/order.ts";
+import ScrollContainer from "react-indiana-drag-scroll";
 
 interface MapArea {
   type: string;
@@ -175,49 +177,65 @@ export const Delivery = () => {
   }
 
   return (
-    <>
-      <MapContainer
-        center={center}
-        zoom={14}
-        scrollWheelZoom={true}
-        className="h-[calc(100vh_-_70px_-_25px)] relative z-0"
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {/* Delivery areas from settings (readonly) */}
-        <FeatureGroup ref={featureGroupRef} />
-        {/* Delivery order markers */}
-        {deliveryOrders.filter(item => item.delivery?.onTheWay !== true)
-          .map((order) => {
-          const customer = order.customer;
-          const delivery = order.delivery as any;
-          
-          // Check for location in delivery object first, then customer
-          const lat = delivery?.lat || customer?.lat;
-          const lng = delivery?.lng || customer?.lng;
-          const address = delivery?.address || customer?.address;
-          const name = customer?.name || "Unknown Customer";
-          
-          if (lat && lng) {
-            return (
-              <Marker
+    <div className="grid grid-cols-5 gap-5">
+      <div className="col-span-4">
+        <MapContainer
+          center={center}
+          zoom={14}
+          scrollWheelZoom={true}
+          className="h-[calc(100vh_-_70px_-_25px)] relative z-0"
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {/* Delivery areas from settings (readonly) */}
+          <FeatureGroup ref={featureGroupRef} />
+          {/* Delivery order markers */}
+          {deliveryOrders
+            // .filter(item => item.delivery?.onTheWay !== true)
+            .map((order) => {
+              const customer = order.customer;
+              const delivery = order.delivery as any;
+
+              // Check for location in delivery object first, then customer
+              const lat = delivery?.lat || customer?.lat;
+              const lng = delivery?.lng || customer?.lng;
+              const address = delivery?.address || customer?.address;
+              const name = customer?.name || "Unknown Customer";
+
+              if (lat && lng) {
+                return (
+                  <Marker
+                    key={order.id.toString()}
+                    position={[lat, lng] as LatLngTuple}
+                    icon={order.status === OrderStatus.Pending ? deliveryIcon : acceptedDeliveryIcon}
+                    eventHandlers={{
+                      click: () => {
+                        openOrderPopup(order);
+                      }
+                    }}
+                  >
+                  </Marker>
+                );
+              }
+              return null;
+            })}
+        </MapContainer>
+      </div>
+      <div className="col-span-1">
+        <ScrollContainer className="h-[calc(100vh_-_70px_-_25px)]">
+          <div className="">
+            {deliveryOrders.map((order) => (
+              <DeliveryOrderItem
                 key={order.id.toString()}
-                position={[lat, lng] as LatLngTuple}
-                icon={order.status === OrderStatus.Pending ? deliveryIcon : acceptedDeliveryIcon}
-                eventHandlers={{
-                  click: () => {
-                    openOrderPopup(order);
-                  }
-                }}
-              >
-              </Marker>
-            );
-          }
-          return null;
-        })}
-      </MapContainer>
+                order={order}
+                onClick={() => openOrderPopup(order)}
+              />
+            ))}
+          </div>
+        </ScrollContainer>
+      </div>
       {selectedOrder && (
         <DeliveryOrderPopup
           order={selectedOrder}
@@ -228,6 +246,6 @@ export const Delivery = () => {
           }}
         />
       )}
-    </>
+    </div>
   )
 }

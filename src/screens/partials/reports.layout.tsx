@@ -217,7 +217,7 @@ export const ReportsLayout = ({
       </div>
 
       {/* Report Container */}
-      <div className="flex-1 overflow-auto bg-gray-50">
+      <div className="flex-1 overflow-auto bg-gray-50" ref={reportRef}>
         <div className="max-w-full">
           {/* Header Section */}
           <div className="bg-white shadow-sm rounded-lg p-3 mb-3 print:shadow-none text-center">
@@ -237,7 +237,7 @@ export const ReportsLayout = ({
           </div>
 
           {/* Report Content */}
-          <div ref={reportRef} className="bg-white shadow-sm rounded-lg p-6 print:shadow-none">
+          <div className="bg-white shadow-sm rounded-lg p-6 print:shadow-none">
             {children}
           </div>
 

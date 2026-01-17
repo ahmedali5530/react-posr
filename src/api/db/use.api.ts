@@ -67,7 +67,7 @@ function useApi<T>(
 
   const mainQuery = useMemo(() => {
     return queryBuilder.queryString;
-  }, [filters, sorts, page, pageSize, selects, splits, groups, fetches, parameters, table]);
+  }, [queryBuilder.queryString]);
 
   const queryKeys = [table, { filters, sorts, page, pageSize, selects, splits, groups, fetches, parameters, mainQuery }];
 
@@ -82,7 +82,7 @@ function useApi<T>(
     }
     
     try {
-      const totalQuery = await db.query(`Select count() from ${table} group all`);
+      const totalQuery = await db.query(`Select count() from ${table}${initialFilters.length > 0 ? ` WHERE ${initialFilters.join(' ')}` : ''} group all`);
       const listQuery = await db.query(mainQuery, queryBuilder.parameters);
 
       return{

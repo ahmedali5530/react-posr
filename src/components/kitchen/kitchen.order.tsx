@@ -46,10 +46,13 @@ export const KitchenOrder = ({
         )
       }>
         <div className="flex gap-3">
-          <span className="p-3 text-lg rounded-xl min-w-[56px] flex justify-center items-center" style={{
-            color: order.order?.table.color,
-            background: order.order?.table?.background
-          }}>{order.order?.table?.name}{order.order?.table?.number}</span>
+          {order.order?.table && (
+            <span className="p-3 text-lg rounded-xl min-w-[56px] flex justify-center items-center" style={{
+              color: order.order?.table?.color,
+              background: order.order?.table?.background
+            }}>{order.order?.table?.name}{order.order?.table?.number}</span>
+          )}
+
 
           <div className="flex flex-col items-start gap-1">
             <span className="font-bold text-xl">{order.order?.order_type?.name} / {getInvoiceNumber(order.order)}</span>

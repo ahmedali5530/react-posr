@@ -21,15 +21,18 @@ export const AdminPrinters = () => {
     columnHelper.accessor("name", {
       header: 'Name'
     }),
+    columnHelper.accessor("type", {
+      header: 'Type'
+    }),
     columnHelper.accessor("ip_address", {
-      header: 'IP Address'
+      header: 'Path'
     }),
     columnHelper.accessor("port", {
       header: 'Port'
     }),
-    columnHelper.accessor("priority", {
-      header: 'Priority'
-    }),
+    // columnHelper.accessor("priority", {
+    //   header: 'Priority'
+    // }),
     columnHelper.accessor("id", {
       id: "actions",
       header: "Actions",
