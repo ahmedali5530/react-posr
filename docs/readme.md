@@ -33,6 +33,18 @@ This is built with **React + TypeScript + TailwindCSS + SurrealDB**
 
 ![Summary](images/day_summary.png "Summary")
 
-![dishes](images/dish_creation.png "dishes")
+![Dishes](images/dish_creation.png "Dishes")
 
-![modifiers](images/modifier_group_creation.png "modifiers")
+![Modifiers](images/modifier_group_creation.png "Modifiers")
+
+![Delivery](images/delivery.png "Delivery")
+
+![Delivery settings](images/delivery.png "Delivery settings")
+
+![Inventory module](images/delivery.png "Inventory module")
+
+![Reports generator](images/delivery.png "Reports generator")
+
+![Reports viewer](images/delivery.png "Reports viewer")
+
+![User session](images/delivery.png "User session")

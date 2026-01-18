@@ -77,7 +77,7 @@ export const UserForm = ({
           ...vals
         });
       } else {
-        await db.query(`INSERT INTO user (first_name, last_name, login, password, roles) values ($firstName, $lastName, $login, crypto::bcrypt::generate($password), $roles)`, {
+        await db.query(`INSERT INTO user (first_name, last_name, login, password, roles) values ($first_name, $last_name, $login, crypto::bcrypt::generate($password), $roles)`, {
           ...vals
         });
       }
@@ -121,7 +121,7 @@ export const UserForm = ({
                     value={field.value}
                     onChange={field.onChange}
                     isMulti
-                    options={['Menu', 'Orders', 'Reports', 'Closing', 'Kitchen', 'Delivery', 'Admin'].map(item => ({
+                    options={['Menu', 'Orders', 'Reports', 'Closing', 'Kitchen', 'Delivery', 'Admin', 'Riders'].map(item => ({
                       label: item,
                       value: item
                     }))}

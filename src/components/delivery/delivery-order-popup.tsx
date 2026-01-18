@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {useMemo, useState, useEffect} from "react";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {Order, OrderStatus} from "@/api/model/order.ts";
 import {Button} from "@/components/common/input/button.tsx";
@@ -9,7 +9,8 @@ import {
   faMapMarkerAlt,
   faPersonBiking,
   faTimes,
-  faCreditCard
+  faCreditCard,
+  faUser
 } from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {calculateOrderTotal} from "@/lib/cart.ts";
@@ -20,20 +21,30 @@ import {DateTime} from "luxon";
 import {useDeliveryOrders} from "@/hooks/useDeliveryOrders.ts";
 import {OrderItemName} from "@/components/common/order/order.item.tsx";
 import {OrderPayment} from "@/components/orders/order.payment.tsx";
+import {User} from "@/api/model/user.ts";
+import {Tables} from "@/api/db/tables.ts";
 
 interface DeliveryOrderPopupProps {
   order: Order;
   open: boolean;
   onClose: () => void;
+  onOrderUpdate?: () => void;
 }
 
 export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
-  order,
+  order: orderProp,
   open,
   onClose,
+  onOrderUpdate,
 }) => {
   const db = useDB();
-  const {deliveryOrders, openOrderPopup} = useDeliveryOrders();
+  const {deliveryOrders, openOrderPopup, selectedOrder: contextSelectedOrder} = useDeliveryOrders();
+  const [riders, setRiders] = useState<User[]>([]);
+  const [loadingRiders, setLoadingRiders] = useState(false);
+  const [selectedRider, setSelectedRider] = useState<User | null>(null);
+
+  // Use context selectedOrder if available (will be updated after refetch), otherwise use prop
+  const order = contextSelectedOrder || orderProp;
 
   const items = useMemo(() => getOrderFilteredItems(order), [order]);
   const itemsTotal = useMemo(() => calculateOrderTotal(order), [order]);
@@ -45,6 +56,33 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
 
   const customer = order.customer;
   const delivery = order.delivery as any;
+
+  // Fetch riders when order is accepted
+  useEffect(() => {
+    const fetchRiders = async () => {
+      if (order.status === OrderStatus["In Progress"] && !delivery?.rider) {
+        try {
+          setLoadingRiders(true);
+          const [result] = await db.query<any>(
+            `SELECT * FROM ${Tables.users} WHERE array::find(roles, 'Riders') != None ORDER BY first_name ASC, last_name ASC`
+          );
+
+          setRiders(result as User[]);
+        } catch (error) {
+          console.error("Error fetching riders:", error);
+          toast.error("Failed to fetch riders");
+        } finally {
+          setLoadingRiders(false);
+        }
+      } else {
+        setRiders([]);
+      }
+    };
+
+    if (open) {
+      fetchRiders();
+    }
+  }, [order.status, delivery?.rider, open]);
 
   // Find current order index and get next/previous orders
   const currentIndex = useMemo(() => {
@@ -69,14 +107,14 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
   const sendForDelivery = async () => {
     try {
       await db.merge(order.id, {
-        // status: OrderStatus["In Progress"],
         delivery: {
           ...order.delivery,
-          onTheWay: true
+          state: 'on_the_way'
         }
       });
 
       toast.success(`Order ${getInvoiceNumber(order)} sent for delivery`);
+      onOrderUpdate?.();
       onClose();
     } catch (error) {
       console.error("Error sending order:", error);
@@ -88,15 +126,51 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
     try {
       await db.merge(order.id, {
         status: OrderStatus["In Progress"],
+        delivery: {
+          ...order.delivery,
+          state: 'accepted'
+        }
       });
 
       toast.success(`Order ${getInvoiceNumber(order)} accepted`);
-      onClose();
+      onOrderUpdate?.();
+      // Don't close, show rider selection
     } catch (error) {
       console.error("Error accepting order:", error);
       toast.error("Failed to accept order");
     }
   };
+
+  const handleAttachRider = async () => {
+    if (!selectedRider) {
+      toast.error("Please select a rider first");
+      return;
+    }
+
+    try {
+      await db.merge(order.id, {
+        delivery: {
+          ...order.delivery,
+          rider: selectedRider,
+          state: 'rider_assigned'
+        }
+      });
+
+      toast.success(`Rider ${selectedRider.first_name} ${selectedRider.last_name} attached to order`);
+      setSelectedRider(null);
+      onOrderUpdate?.();
+    } catch (error) {
+      console.error("Error attaching rider:", error);
+      toast.error("Failed to attach rider");
+    }
+  };
+
+  // Clear selected rider when popup closes or order changes
+  useEffect(() => {
+    if (!open) {
+      setSelectedRider(null);
+    }
+  }, [open]);
 
   const handleReject = async () => {
     try {
@@ -107,6 +181,7 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
       });
 
       toast.error(`Order ${getInvoiceNumber(order)} rejected`);
+      onOrderUpdate?.();
       onClose();
     } catch (error) {
       console.error("Error rejecting order:", error);
@@ -155,6 +230,114 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
               >
                 Next
               </Button>
+            </div>
+          )}
+
+          {/* Action Buttons - Moved to Top */}
+          <div className="flex gap-3 justify-end pb-4 border-b border-neutral-200">
+            {order.status === OrderStatus.Pending && (
+              <>
+                <Button
+                  variant="danger"
+                  onClick={handleReject}
+                  icon={faTimes}
+                  size="lg"
+                >
+                  Reject
+                </Button>
+                <Button
+                  variant="success"
+                  onClick={handleAccept}
+                  icon={faCheck}
+                  size="lg"
+                >
+                  Accept
+                </Button>
+              </>
+            )}
+
+            {order.status === OrderStatus["In Progress"] && delivery?.state === 'rider_assigned' && (
+              <Button
+                variant="success"
+                onClick={sendForDelivery}
+                icon={faPersonBiking}
+                size="lg"
+              >
+                Send for delivery
+              </Button>
+            )}
+
+            {order.status === OrderStatus["In Progress"] && delivery?.state === 'on_the_way' && (
+              <Button
+                variant="success"
+                onClick={() => setPayment(true)}
+                icon={faCreditCard}
+                size="lg"
+              >
+                Payment
+              </Button>
+            )}
+          </div>
+
+          {/* Rider Selection Section - Show when order is accepted but no rider assigned */}
+          {order.status === OrderStatus["In Progress"] && !delivery?.rider && (
+            <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <FontAwesomeIcon icon={faUser} className="text-blue-600"/>
+                <span>Select Rider</span>
+              </h3>
+              {loadingRiders ? (
+                <p className="text-sm text-neutral-600">Loading riders...</p>
+              ) : riders.length === 0 ? (
+                <p className="text-sm text-neutral-600">No riders available</p>
+              ) : (
+                <>
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {riders.map((rider) => (
+                      <Button
+                        key={rider.id.toString()}
+                        variant={selectedRider?.id === rider.id ? "success" : "primary"}
+                        onClick={() => setSelectedRider(rider)}
+                        className="justify-start"
+                      >
+                        <div className="text-left font-medium">
+                          {rider.first_name} {rider.last_name}
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                  <Button
+                    variant="success"
+                    onClick={handleAttachRider}
+                    icon={faUser}
+                    size="lg"
+                    disabled={!selectedRider}
+                    className="w-full"
+                  >
+                    Attach Selected Rider
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Show attached rider info */}
+          {delivery?.rider && (
+            <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
+              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <FontAwesomeIcon icon={faUser} className="text-green-600"/>
+                <span>Assigned Rider</span>
+              </h3>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">
+                    {delivery.rider.first_name} {delivery.rider.last_name}
+                  </p>
+                  {delivery.rider.login && (
+                    <p className="text-sm text-neutral-500">{delivery.rider.login}</p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -299,52 +482,6 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 justify-end pt-4 border-t border-neutral-200">
-            {order.status === OrderStatus.Pending && (
-              <>
-                <Button
-                  variant="danger"
-                  onClick={handleReject}
-                  icon={faTimes}
-                  size="lg"
-                >
-                  Reject
-                </Button>
-                <Button
-                  variant="success"
-                  onClick={handleAccept}
-                  icon={faCheck}
-                  size="lg"
-                >
-                  Accept
-                </Button>
-              </>
-            )}
-
-            {order.status === OrderStatus["In Progress"] && order.delivery?.onTheWay !== true && (
-              <Button
-                variant="success"
-                onClick={sendForDelivery}
-                icon={faPersonBiking}
-                size="lg"
-              >
-                Send for delivery
-              </Button>
-            )}
-
-            {order.status === OrderStatus["In Progress"] && order.delivery?.onTheWay === true && (
-              <Button
-                variant="success"
-                onClick={() => setPayment(true)}
-                icon={faCreditCard}
-                size="lg"
-              >
-                Payment
-              </Button>
-            )}
           </div>
         </div>
       </Modal>

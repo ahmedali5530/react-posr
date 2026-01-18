@@ -31,6 +31,22 @@ export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ 
   const [liveQuery, setLiveQuery] = useState<any>(null);
   const processedOrderIdsRef = useRef<Set<string>>(new Set());
 
+  // Update selectedOrder when deliveryOrders updates (if popup is open)
+  useEffect(() => {
+    if (isPopupOpen && selectedOrder) {
+      // Find the updated order in the new deliveryOrders list
+      const selectedOrderId = selectedOrder.id.toString();
+      const updatedOrder = deliveryOrders.find(
+        o => o.id.toString() === selectedOrderId
+      );
+      // Only update if we found the order and it's different (to avoid infinite loops)
+      if (updatedOrder && JSON.stringify(updatedOrder) !== JSON.stringify(selectedOrder)) {
+        setSelectedOrder(updatedOrder);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deliveryOrders, isPopupOpen]);
+
   // Check for new orders and show popup
   useEffect(() => {
     if (deliveryOrders.length > 0) {

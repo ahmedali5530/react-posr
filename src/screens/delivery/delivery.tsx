@@ -244,6 +244,7 @@ export const Delivery = () => {
             closeOrderPopup();
             fetchDeliveryOrders();
           }}
+          onOrderUpdate={fetchDeliveryOrders}
         />
       )}
     </div>
