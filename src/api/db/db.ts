@@ -14,12 +14,11 @@ export const useDB = () => {
   }
 
   const query = async <T = any>(sql: string, parameters?: any): Promise<ActionResult<Record<string, T>>[]> => {
-    // log sql in dev mode
-
     try {
       // Perform a custom advanced query
       const result: ActionResult<Record<string, T>>[] = await client.query(sql, parameters);
 
+      // log sql in dev mode
       if(import.meta.env.DEV) {
         console.group('DB Debug')
         console.info(sql.trim(), parameters);

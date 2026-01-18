@@ -1,6 +1,6 @@
 import { Layout } from "@/screens/partials/layout.tsx";
 import { Button } from "@/components/common/input/button.tsx";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAtom } from "jotai";
 import { appPage } from "@/store/jotai.ts";
 import { useDB } from "@/api/db/db.ts";
@@ -13,7 +13,11 @@ import { Countdown } from "@/components/floor/countdown.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClock } from "@fortawesome/free-solid-svg-icons";
 import { TimeEntry } from "@/api/model/time_entry.ts";
-import {StringRecordId} from "surrealdb";
+import { StringRecordId } from "surrealdb";
+import { Order, OrderStatus } from "@/api/model/order.ts";
+import { calculateOrderItemPrice } from "@/lib/cart.ts";
+import { getOrderFilteredItems } from "@/lib/order.ts";
+import { withCurrency } from "@/lib/utils.ts";
 
 export const Clock = () => {
   const [page, setPage] = useAtom(appPage);
@@ -21,6 +25,8 @@ export const Clock = () => {
   const navigation = useNavigate();
   const [timeEntry, setTimeEntry] = useState<TimeEntry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
 
   const loadTimeEntry = async () => {
     if (!page.user) {
@@ -50,6 +56,155 @@ export const Clock = () => {
   useEffect(() => {
     loadTimeEntry();
   }, []);
+
+  const loadOrders = async () => {
+    if (!timeEntry || !page.user) return;
+
+    try {
+      setOrdersLoading(true);
+      const clockInTime = timeEntry.clock_in;
+      // const clockInISO = clockInTime.toISOString();
+
+      const ordersQuery = `
+        SELECT * FROM ${Tables.orders}
+        WHERE user = $userId
+          AND created_at >= $clockInTime
+          AND created_at <= time::now()
+        FETCH items, items.item, items.modifiers, payments, payments.payment_type, discount, tax, extras
+      `;
+
+      const result: any = await db.query(ordersQuery, {
+        userId: new StringRecordId(page.user.id),
+        clockInTime: clockInTime,
+      });
+
+      setOrders((result?.[0] ?? []) as Order[]);
+    } catch (error) {
+      console.error('Failed to load orders:', error);
+      toast.error('Failed to load sale summary');
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (timeEntry) {
+      loadOrders();
+      // Refresh orders every 30 seconds
+      // const interval = setInterval(loadOrders, 30000);
+      // return () => clearInterval(interval);
+    }
+  }, [timeEntry]);
+
+  // Calculate sale metrics - must be before any conditional returns
+  const safeNumber = (value: unknown) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const salePriceWithoutTax = useMemo(() => {
+    return safeNumber(
+      orders?.filter(order => order.status === OrderStatus.Paid).reduce((sum, order) => {
+        const itemsTotal = safeNumber(
+          order.items?.reduce((itemSum, item) => {
+            const price = calculateOrderItemPrice(item);
+            return itemSum + safeNumber(price);
+          }, 0) ?? 0
+        );
+        return sum + itemsTotal;
+      }, 0) ?? 0
+    );
+  }, [orders]);
+
+  const taxCollected = useMemo(() => {
+    return safeNumber(
+      orders?.filter(order => order.status === OrderStatus.Paid).reduce((sum, order) => sum + safeNumber(order.tax_amount), 0) ?? 0
+    );
+  }, [orders]);
+
+  const serviceCharges = useMemo(() => {
+    return safeNumber(
+      orders?.filter(order => order.status === OrderStatus.Paid).reduce((sum, order) => sum + safeNumber(order.service_charge_amount), 0) ?? 0
+    );
+  }, [orders]);
+
+  const itemDiscounts = useMemo(() => {
+    return safeNumber(
+      orders?.filter(order => order.status === OrderStatus.Paid).reduce((sum, order) => {
+        return sum + safeNumber(order.items?.reduce((itemSum, item) => itemSum + safeNumber(item?.discount), 0) ?? 0);
+      }, 0) ?? 0
+    );
+  }, [orders]);
+
+  const subtotalDiscounts = useMemo(() => {
+    return safeNumber(
+      orders?.filter(order => order.status === OrderStatus.Paid).reduce((sum, order) => {
+        const lineDiscounts = safeNumber(
+          order.items?.reduce((itemSum, item) => itemSum + safeNumber(item?.discount), 0) ?? 0
+        );
+        const orderDiscount = safeNumber(order.discount_amount);
+        const extraDiscount = Math.max(0, safeNumber(orderDiscount - lineDiscounts));
+        return sum + extraDiscount;
+      }, 0) ?? 0
+    );
+  }, [orders]);
+
+  const discounts = useMemo(() => safeNumber(itemDiscounts + subtotalDiscounts), [itemDiscounts, subtotalDiscounts]);
+
+  const totalExtras = useMemo(() => {
+    return safeNumber(
+      orders?.filter(order => order.status === OrderStatus.Paid).reduce((sum, order) => {
+        return sum + safeNumber(
+          order?.extras?.reduce((extraSum, extra) => extraSum + safeNumber(extra.value), 0) ?? 0
+        );
+      }, 0) ?? 0
+    );
+  }, [orders]);
+
+  const refunds = useMemo(() => {
+    return safeNumber(
+      orders?.reduce((sum, order) => {
+        if (order.status === OrderStatus.Cancelled) {
+          return sum + safeNumber(
+            order.payments?.reduce((paySum, payment) => {
+              const amount = safeNumber(payment?.amount);
+              return paySum + Math.abs(Math.min(0, amount));
+            }, 0) ?? 0
+          );
+        }
+        return sum + safeNumber(
+          order.payments?.reduce((paySum, payment) => {
+            const amount = safeNumber(payment?.amount);
+            return paySum + (amount < 0 ? Math.abs(amount) : 0);
+          }, 0) ?? 0
+        );
+      }, 0) ?? 0
+    );
+  }, [orders]);
+
+  const voids = useMemo(() => {
+    return safeNumber(
+      orders?.reduce((sum, order) => {
+        const allItems = order.items || [];
+        const filteredItems = getOrderFilteredItems(order);
+        const voidedItems = allItems.filter(item => 
+          !filteredItems.some(filtered => filtered.id === item.id)
+        );
+        return sum + safeNumber(
+          voidedItems.reduce((itemSum, item) => {
+            const price = calculateOrderItemPrice(item);
+            return itemSum + safeNumber(price);
+          }, 0)
+        );
+      }, 0) ?? 0
+    );
+  }, [orders]);
+
+  const tips = useMemo(() => {
+    return safeNumber(
+      orders?.filter(order => order.status === OrderStatus.Paid).reduce((prev, item) => prev + safeNumber(item.tip_amount), 0) ?? 0
+    );
+  }, [orders]);
 
   const handleClockOut = async () => {
     if (!timeEntry || !page.user) return;
@@ -99,9 +254,70 @@ export const Clock = () => {
   const formattedClockInTime = DateTime.fromJSDate(clockInDate).toFormat('hh:mm a');
   const formattedClockInDate = DateTime.fromJSDate(clockInDate).toFormat('MMMM dd, yyyy');
 
+
   return (
     <Layout containerClassName="p-5">
-      <div className="bg-white shadow p-5 rounded-lg">
+      {/* Sale Summary Widgets */}
+      <div className="bg-white p-5 rounded-lg shadow">
+        <h2 className="text-2xl font-bold mb-4 text-neutral-700">Sale Summary</h2>
+        {ordersLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <p className="text-neutral-500">Loading sale data...</p>
+          </div>
+        ) : (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {/* Total Sales Widget */}
+          <div className="bg-gradient-to-br from-success-100 to-success-200 p-2 rounded-lg border border-success-300">
+            <p className="text-sm text-success-700 font-medium mb-1">Total Sales</p>
+            <p className="text-2xl font-bold text-success-900">{withCurrency(salePriceWithoutTax)}</p>
+          </div>
+
+          {/* Refunds Widget */}
+          <div className="bg-gradient-to-br from-danger-100 to-danger-200 p-2 rounded-lg border border-danger-300">
+            <p className="text-sm text-danger-700 font-medium mb-1">Refunds</p>
+            <p className="text-2xl font-bold text-danger-900">{withCurrency(refunds)}</p>
+          </div>
+
+          {/* Service Charges Widget */}
+          <div className="bg-gradient-to-br from-info-100 to-info-200 p-2 rounded-lg border border-info-300">
+            <p className="text-sm text-info-700 font-medium mb-1">Service Charges</p>
+            <p className="text-2xl font-bold text-info-900">{withCurrency(serviceCharges)}</p>
+          </div>
+
+          {/* Discounts Widget */}
+          <div className="bg-gradient-to-br from-warning-100 to-warning-200 p-2 rounded-lg border border-warning-300">
+            <p className="text-sm text-warning-700 font-medium mb-1">Discounts</p>
+            <p className="text-2xl font-bold text-warning-900">{withCurrency(discounts)}</p>
+          </div>
+
+          {/* Taxes Widget */}
+          <div className="bg-gradient-to-br from-primary-100 to-primary-200 p-2 rounded-lg border border-primary-300">
+            <p className="text-sm text-primary-700 font-medium mb-1">Taxes</p>
+            <p className="text-2xl font-bold text-primary-900">{withCurrency(taxCollected)}</p>
+          </div>
+
+          {/* Extras Widget */}
+          <div className="bg-gradient-to-br from-info-100 to-info-200 p-2 rounded-lg border border-info-300">
+            <p className="text-sm text-info-700 font-medium mb-1">Extras</p>
+            <p className="text-2xl font-bold text-info-900">{withCurrency(totalExtras)}</p>
+          </div>
+
+          {/* Voids Widget */}
+          <div className="bg-gradient-to-br from-danger-100 to-danger-200 p-2 rounded-lg border border-danger-300">
+            <p className="text-sm text-danger-700 font-medium mb-1">Voids</p>
+            <p className="text-2xl font-bold text-danger-900">{withCurrency(voids)}</p>
+          </div>
+
+          {/* Tips Widget */}
+          <div className="bg-gradient-to-br from-success-100 to-success-200 p-2 rounded-lg border border-success-300">
+            <p className="text-sm text-success-700 font-medium mb-1">Tips</p>
+            <p className="text-2xl font-bold text-success-900">{withCurrency(tips)}</p>
+          </div>
+        </div>
+        )}
+      </div>
+
+      <div className="bg-white shadow p-5 rounded-lg mt-5">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-4 rounded-full bg-primary-100">
             <FontAwesomeIcon icon={faClock} size="2x" className="text-primary-600" />

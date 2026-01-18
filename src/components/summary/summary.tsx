@@ -282,13 +282,23 @@ export const Summary = ({
           <span>Exclusive amount</span>
           <span>{withCurrency(exclusive)}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
-          <span>G sales</span>
-          <span>{withCurrency(gSales)}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>G sales</span>
+            <span>{withCurrency(gSales)}</span>
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+            Items total (before tax)
+          </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
-          <span>Gross</span>
-          <span>{withCurrency(gross)}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Gross</span>
+            <span>{withCurrency(gross)}</span>
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+            Amount collected + Refunds + Discounts
+          </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Refunds</span>
@@ -306,13 +316,23 @@ export const Summary = ({
           <span>Taxes</span>
           <span>{withCurrency(taxes)}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
-          <span>Net</span>
-          <span>{withCurrency(net)}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Net</span>
+            <span>{withCurrency(net)}</span>
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+            Amount collected - Service charges - Taxes
+          </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
-          <span>Amount due</span>
-          <span>{withCurrency(amountDue)}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Amount due</span>
+            <span>{withCurrency(amountDue)}</span>
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+            Items total + Taxes + Service charges + Extras - Discounts
+          </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Amount collected</span>
@@ -322,9 +342,14 @@ export const Summary = ({
           <span>Extras</span>
           <span>{withCurrency(totalExtras)}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
-          <span>Rounding</span>
-          <span>{withCurrency(rounding)}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Rounding</span>
+            <span>{withCurrency(rounding)}</span>
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+            Amount collected - Amount due
+          </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Voids</span>

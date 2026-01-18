@@ -6,7 +6,7 @@ import { withCurrency } from "@/lib/utils.ts";
 import { DateTime } from "luxon";
 import { cn } from "@/lib/utils.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMapMarkerAlt, faClock, faShoppingBag, faBiking } from "@fortawesome/free-solid-svg-icons";
+import { faMapMarkerAlt, faClock, faShoppingBag, faBiking, faUser, faCheck } from "@fortawesome/free-solid-svg-icons";
 
 interface DeliveryOrderItemProps {
   order: Order;
@@ -38,14 +38,48 @@ export const DeliveryOrderItem: React.FC<DeliveryOrderItemProps> = ({
     [OrderStatus["In Progress"]]: "bg-primary-100 text-primary-700 border-primary-300",
   };
 
+  // Get delivery state display
+  const getDeliveryStateDisplay = () => {
+    const state = delivery?.state;
+    if (!state) return null;
+
+    switch (state) {
+      case 'accepted':
+        return {
+          text: 'Accepted - Waiting for rider',
+          icon: faCheck,
+          className: 'bg-info-100 text-info-700 border-info-300'
+        };
+      case 'rider_assigned':
+        return {
+          text: delivery?.rider 
+            ? `Rider assigned: ${delivery.rider.first_name} ${delivery.rider.last_name}`
+            : 'Rider assigned',
+          icon: faUser,
+          className: 'bg-primary-100 text-primary-700 border-primary-300'
+        };
+      case 'on_the_way':
+        return {
+          text: 'Out for delivery',
+          icon: faBiking,
+          className: 'bg-success-100 text-success-700 border-success-300'
+        };
+      default:
+        return null;
+    }
+  };
+
+  const deliveryState = getDeliveryStateDisplay();
+
   return (
     <div
       onClick={onClick}
       className="bg-white rounded-lg p-4 mb-3 shadow-md hover:shadow-lg transition-shadow cursor-pointer border-2 border-neutral-200 hover:border-primary-400"
     >
-      {order?.delivery?.onTheWay === true && (
-        <div className="bg-success-100 text-success-600 border-2 border-success-600 p-1 rounded text-sm mb-2">
-          <FontAwesomeIcon icon={faBiking} /> Out for delivery
+      {deliveryState && (
+        <div className={`${deliveryState.className} border-2 p-2 rounded text-sm mb-2 flex items-center gap-2`}>
+          <FontAwesomeIcon icon={deliveryState.icon} />
+          <span className="font-medium">{deliveryState.text}</span>
         </div>
       )}
       {/* Header with Invoice Number and Status */}
@@ -77,6 +111,13 @@ export const DeliveryOrderItem: React.FC<DeliveryOrderItemProps> = ({
           <p className="text-base font-semibold text-neutral-800">
             {customer.name}
           </p>
+          {customer.phone && (
+            <p className="text-sm text-neutral-600 mt-1">
+              <a href={`tel:${customer.phone}`} className="hover:text-primary-600" onClick={(e) => e.stopPropagation()}>
+                {customer.phone}
+              </a>
+            </p>
+          )}
         </div>
       )}
 
