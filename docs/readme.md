@@ -39,12 +39,12 @@ This is built with **React + TypeScript + TailwindCSS + SurrealDB**
 
 ![Delivery](images/delivery.png "Delivery")
 
-![Delivery settings](images/delivery.png "Delivery settings")
+![Delivery settings](images/delivery-settings.png "Delivery settings")
 
-![Inventory module](images/delivery.png "Inventory module")
+![Inventory module](images/inventory-module.png "Inventory module")
 
-![Reports generator](images/delivery.png "Reports generator")
+![Reports generator](images/reports-generator.png "Reports generator")
 
-![Reports viewer](images/delivery.png "Reports viewer")
+![Reports viewer](images/reports-view.png "Reports viewer")
 
-![User session](images/delivery.png "User session")
+![User session](images/user-sessions.png "User session")
