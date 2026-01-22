@@ -1,5 +1,8 @@
 import {Order as OrderModel, OrderStatus} from "@/api/model/order.ts";
 import React, {CSSProperties, useMemo, useState} from "react";
+import {useAtom} from "jotai";
+import {useDB} from "@/api/db/db.ts";
+import {appPage} from "@/store/jotai.ts";
 import {calculateOrderTotal} from "@/lib/cart.ts";
 import {withCurrency} from "@/lib/utils.ts";
 import {Button} from "@/components/common/input/button.tsx";
@@ -32,6 +35,8 @@ interface Props {
 export const OrderBox = ({
   order, onMergeSelect, mergingOrders, merging
 }: Props) => {
+  const db = useDB();
+  const [page] = useAtom(appPage);
   const itemsTotal = calculateOrderTotal(order);
   const [payment, setPayment] = useState(false);
 
@@ -63,8 +68,8 @@ export const OrderBox = ({
         <div className="separator h-[2px]" style={{'--size': '10px', '--space': '5px'} as CSSProperties}></div>
         <ScrollContainer>
           <div className="overflow-auto max-h-[400px]">
-            {getOrderFilteredItems(order).map(item => (
-              <OrderItemName item={item} showPrice showQuantity key={item.id}/>
+            {getOrderFilteredItems(order).map((item, index) => (
+              <OrderItemName item={item} showPrice showQuantity key={index}/>
             ))}
           </div>
         </ScrollContainer>
@@ -94,8 +99,8 @@ export const OrderBox = ({
               <div className="text-right">{withCurrency(order?.service_charge_amount)}</div>
             </div>
           ) : ''}
-          {order?.extras && order?.extras?.map(item => (
-            <div className="flex">
+          {order?.extras && order?.extras?.map((item, index) => (
+            <div className="flex" key={index}>
               <div className="flex-1">{item.name}</div>
               <div className="text-right">{withCurrency(item.value)}</div>
             </div>
@@ -142,16 +147,11 @@ export const OrderBox = ({
                 className="flex-1"
                 onAction={(key) => {
                   if (key === 'temp_bill') {
-                    dispatchPrint(PRINT_TYPE.presale_bill, {
-                      order: order
-                    });
+                    void dispatchPrint(db, PRINT_TYPE.presale_bill, { order }, { userId: page?.user?.id });
                   }
 
                   if (key === 'final_bill') {
-                    dispatchPrint(PRINT_TYPE.final_bill, {
-                      order: order,
-                      duplicate: true
-                    });
+                    void dispatchPrint(db, PRINT_TYPE.final_bill, { order, duplicate: true }, { userId: page?.user?.id });
                   }
 
                   if(key === 'split_by_seats' && hasSeats) {
@@ -218,9 +218,7 @@ export const OrderBox = ({
               {order.status === OrderStatus["In Progress"] && (
                 <>
                   <Button onClick={() => {
-                    dispatchPrint(PRINT_TYPE.presale_bill, {
-                      order: order
-                    });
+                    void dispatchPrint(db, PRINT_TYPE.presale_bill, { order }, { userId: page?.user?.id });
                   }} variant="primary" flat size="lg" className="flex-1" icon={faPrint}>Temp bill</Button>
                   <Button variant="warning" filled size="lg" className="flex-1" onClick={() => setPayment(true)}
                           icon={faCreditCard}>

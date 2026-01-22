@@ -6,9 +6,11 @@ import {PrintRefundBill} from "@/components/prints/refund.bill.tsx";
 import {Summary} from "@/components/summary/summary.tsx";
 
 export enum PRINT_TYPE {
-  presale_bill = 'presale.bill',
-  final_bill = 'final.bill',
-  refund_bill = 'refund.bill',
+  presale_bill = 'temp',
+  final_bill = 'final',
+  refund_bill = 'refund',
+  kitchen_bill = 'kitchen',
+  delivery_bill = 'delivery',
   summary = 'summary'
 }
 

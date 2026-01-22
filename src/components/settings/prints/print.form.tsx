@@ -239,6 +239,56 @@ export const PrintForm = ({
                 />
               </div>
             </div>
+            <div className="grid md:grid-cols-2 gap-3">
+              <div className="flex items-end">
+                <Controller
+                  name="showCompanyAddress"
+                  control={control}
+                  render={({field}) => (
+                    <Switch
+                      checked={field.value}
+                      onChange={field.onChange}
+                    >
+                      Show company address
+                    </Switch>
+                  )}
+                />
+              </div>
+              <div className="flex-1">
+                <Controller
+                  name="companyAddress"
+                  control={control}
+                  render={({field}) => (
+                    <Input label="Company address" value={field.value} onChange={field.onChange}/>
+                  )}
+                />
+              </div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-3">
+              <div className="flex items-end">
+                <Controller
+                  name="showTopDescription"
+                  control={control}
+                  render={({field}) => (
+                    <Switch
+                      checked={field.value}
+                      onChange={field.onChange}
+                    >
+                      Show top description
+                    </Switch>
+                  )}
+                />
+              </div>
+              <div className="flex-1">
+                <Controller
+                  name="topDescription"
+                  control={control}
+                  render={({field}) => (
+                    <Input label="Top description" value={field.value} onChange={field.onChange}/>
+                  )}
+                />
+              </div>
+            </div>
             <div className="grid md:grid-cols-3 gap-3">
               <div className="flex items-end">
                 <Controller
@@ -379,6 +429,31 @@ export const PrintForm = ({
                     >
                       Show item total
                     </Switch>
+                  )}
+                />
+              </div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-3">
+              <div className="flex items-end">
+                <Controller
+                  name="showBottomDescription"
+                  control={control}
+                  render={({field}) => (
+                    <Switch
+                      checked={field.value}
+                      onChange={field.onChange}
+                    >
+                      Show bottom description
+                    </Switch>
+                  )}
+                />
+              </div>
+              <div className="flex-1">
+                <Controller
+                  name="bottomDescription"
+                  control={control}
+                  render={({field}) => (
+                    <Input label="Bottom description" value={field.value} onChange={field.onChange}/>
                   )}
                 />
               </div>

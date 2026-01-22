@@ -14,6 +14,8 @@ import { DeliveryOrderPopup } from "@/components/delivery/delivery-order-popup.t
 import { DeliveryOrderItem } from "@/components/delivery/delivery-order-item.tsx";
 import {OrderStatus} from "@/api/model/order.ts";
 import ScrollContainer from "react-indiana-drag-scroll";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faExclamationCircle} from "@fortawesome/free-solid-svg-icons";
 
 interface MapArea {
   type: string;
@@ -223,16 +225,23 @@ export const Delivery = () => {
             })}
         </MapContainer>
       </div>
-      <div className="col-span-1">
+      <div className="col-span-1 select-none">
         <ScrollContainer className="h-[calc(100vh_-_70px_-_25px)]">
           <div className="">
-            {deliveryOrders.map((order) => (
-              <DeliveryOrderItem
-                key={order.id.toString()}
-                order={order}
-                onClick={() => openOrderPopup(order)}
-              />
-            ))}
+            {deliveryOrders.length > 0 ? (
+              deliveryOrders.map((order) => (
+                <DeliveryOrderItem
+                  key={order.id.toString()}
+                  order={order}
+                  onClick={() => openOrderPopup(order)}
+                />
+              ))
+            ) : (
+              <div className="text-center text-3xl flex flex-col justify-center items-center h-[calc(100vh_-_200px)] gap-5">
+                <FontAwesomeIcon icon={faExclamationCircle} size="2x" />
+                No delivery orders...
+              </div>
+            )}
           </div>
         </ScrollContainer>
       </div>

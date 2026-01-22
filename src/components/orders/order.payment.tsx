@@ -21,6 +21,8 @@ import {PRINT_TYPE} from "@/lib/print.registry.tsx";
 import {useDB} from "@/api/db/db.ts";
 import {OrderPaymentNotes} from "@/components/orders/payment/order.payment.notes.tsx";
 import {getOrderFilteredItems} from "@/lib/order.ts";
+import {useAtom} from "jotai";
+import {appPage} from "@/store/jotai.ts";
 
 interface Props {
   order: Order
@@ -46,6 +48,7 @@ export const OrderPayment = ({
   order, onClose
 }: Props) => {
   const db = useDB();
+  const [page] = useAtom(appPage);
 
   const closeModal = () => {
     onClose();
@@ -111,9 +114,9 @@ export const OrderPayment = ({
     // fetch latest order from database
     const o = await db.query<Order>(`select * from ${order.id} fetch items, items.item, item.item.modifiers, table, user, order_type, customer, discount, tax, payments, payments.payment_type, extras, extras.order_extras`);
 
-    dispatchPrint(PRINT_TYPE.final_bill, {
-      order: o[0][0]
-    });
+    await dispatchPrint(db, PRINT_TYPE.final_bill, {
+      order: o[0][0],
+    }, { userId: page?.user?.id });
   }
 
   const onPayment = () => {
