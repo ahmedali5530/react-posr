@@ -464,9 +464,7 @@ export const OrderPaymentReceiving = ({
                 icon={faPrint}
                 size="lg"
                 onClick={() => {
-                  dispatchPrint(PRINT_TYPE.presale_bill, {
-                    order: order
-                  });
+                  void dispatchPrint(db, PRINT_TYPE.presale_bill, { order }, { userId: page?.user?.id });
                 }}
               >Temp bill</Button>
               <Button

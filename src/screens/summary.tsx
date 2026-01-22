@@ -10,10 +10,15 @@ import {faArrowLeft, faArrowRight, faPrint, faSpinner} from "@fortawesome/free-s
 import { Calendar } from "@/components/common/react-aria/calendar.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {Summary as SummaryComponent} from '@/components/summary/summary.tsx';
+import {useDB} from "@/api/db/db.ts";
 import {dispatchPrint} from "@/lib/print.service.ts";
 import {PRINT_TYPE} from "@/lib/print.registry.tsx";
+import {useAtom} from "jotai";
+import {appPage} from "@/store/jotai.ts";
 
 export const Summary = () => {
+  const db = useDB();
+  const [page] = useAtom(appPage);
   const {
     data: orders,
     isLoading,
@@ -72,10 +77,10 @@ export const Summary = () => {
                 icon={faPrint}
                 variant="lg"
                 onClick={() => {
-                  dispatchPrint(PRINT_TYPE.summary, {
-                    orders: orders,
-                    date: date.toString()
-                  })
+                  void dispatchPrint(db, PRINT_TYPE.summary, {
+                    orders,
+                    date: date.toString(),
+                  }, { userId: page?.user?.id });
                 }}
               >Print</Button>
             </div>

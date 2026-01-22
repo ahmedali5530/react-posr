@@ -160,10 +160,10 @@ export const OrderRefundModal = ({
 
       // Trigger refund print
       setTimeout(() => {
-        dispatchPrint(PRINT_TYPE.refund_bill, {
+        void dispatchPrint(db, PRINT_TYPE.refund_bill, {
           order: refundOrder,
           originalOrder: order,
-        });
+        }, { userId: page?.user?.id });
       }, 300);
     } catch (error) {
       console.error('Failed to refund order', error);
