@@ -1,0 +1,18 @@
+{
+  "name": "posr-print-server",
+  "version": "1.0.0",
+  "description": "POS print server with escpos drivers and print builders",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "escpos": "^3.0.0-alpha.6",
+    "escpos-usb": "^3.0.0-alpha.4",
+    "escpos-serialport": "^3.0.0-alpha.4",
+    "escpos-network": "^3.0.0-alpha.5",
+    "express": "^4.21.0"
+  }
+}
