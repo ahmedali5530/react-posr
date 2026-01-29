@@ -290,7 +290,7 @@ export const DeliveryAreas = () => {
         ) : (
           <MapContainer
             center={center}
-            zoom={13}
+            zoom={11}
             scrollWheelZoom={true}
             className="h-[calc(100vh_-_170px)] w-full rounded-lg border border-neutral-300"
           >

@@ -155,6 +155,8 @@ export async function dispatchPrint<Payload = any>(
   const url = `${baseUrl.replace(/\/$/, '')}/print`;
   const uid = options?.userId != null ? toIdString(options.userId) : null;
 
+  console.log(options)
+
   const [config, printers] = await Promise.all([
     getPrintConfig(db, template),
     getPrintersForType(db, template, uid),

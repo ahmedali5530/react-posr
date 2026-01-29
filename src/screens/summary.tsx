@@ -2,7 +2,7 @@ import { Layout } from "@/screens/partials/layout.tsx";
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Order as OrderModel, OrderStatus } from "@/api/model/order.ts";
 import { Tables } from "@/api/db/tables.ts";
-import { useEffect, useState } from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import { DateValue } from "react-aria-components";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -15,25 +15,46 @@ import {dispatchPrint} from "@/lib/print.service.ts";
 import {PRINT_TYPE} from "@/lib/print.registry.tsx";
 import {useAtom} from "jotai";
 import {appPage} from "@/store/jotai.ts";
+import {useQueryBuilder} from "@/api/db/query-builder.ts";
 
 export const Summary = () => {
   const db = useDB();
   const [page] = useAtom(appPage);
-  const {
-    data: orders,
-    isLoading,
-    addFilter: addOrderFilter,
-    resetFilters: resetOrdersFilters
-  } = useApi<SettingsData<OrderModel>>(Tables.orders, [`status = '${OrderStatus.Paid}'`], ['created_at asc'], 0, 99999, ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'payments', 'payments.order_payment', 'payments.payment_type', 'extras', 'extras.order_extras']);
+
   const [date, setDate] = useState<DateValue>(today(getLocalTimeZone()));
+  const [orders, setOrders] = useState<OrderModel[]>([]);
+  const [isLoading, setLoading] = useState(true);
+
+  const orderFilters = useMemo(() => {
+    const f = [`status = '${OrderStatus.Paid}'`];
+
+    if (date) {
+      f.push(`(time::format(created_at, "%Y-%m-%d") = "${date?.toString()}")`);
+    }
+
+    return f;
+  }, [date]);
+
+  const ordersQb = useQueryBuilder(
+    Tables.orders, '*', orderFilters.map(item => `and ${item}`), 99999, 0, ['created_at desc'],
+    ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'payments', 'payments.payment_type', 'extras', 'extras.order_extras']
+  );
 
   useEffect(() => {
-    resetOrdersFilters();
+    ordersQb.setWheres(orderFilters.map(item => `and ${item}`));
+  }, [orderFilters]);
 
-    if( date ) {
-      addOrderFilter(`time::format(created_at, "%Y-%m-%d") = "${date?.toString()}"`);
-    }
-  }, [date]);
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    const [listQuery] = await db.query(ordersQb.queryString, ordersQb.parameters);
+
+    setOrders(listQuery as OrderModel[]);
+    setLoading(false);
+  }, [ordersQb.queryString, ordersQb.parameters]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [ordersQb.queryString, ordersQb.parameters]);
 
   return (
     <Layout overflowHidden>
