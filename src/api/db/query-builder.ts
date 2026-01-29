@@ -39,7 +39,7 @@ export const useQueryBuilder = (tb: string, cols: string|string[] = '*', conditi
   const [splits, setSplits] = useState([]);
   const [groups, setGroups] = useState([]);
   const [orderBys, setOrderBys] = useState(initialOrders);
-  const [limit, setLimit] = useState(initialLimit);
+  const [limit, setLimit] = useState<number|undefined>(initialLimit);
   const [offset, setOffset] = useState(initialOffset);
   const [fetches, setFetches] = useState(initialFetches);
 

@@ -5,7 +5,7 @@ import {formatNumber, withCurrency} from "@/lib/utils.ts";
 import {getOrderFilteredItems} from "@/lib/order.ts";
 
 interface Props {
-  orders: { data?: Order[] }
+  orders: Order[]
   date: string
 }
 

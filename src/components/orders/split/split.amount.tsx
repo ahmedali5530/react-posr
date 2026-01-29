@@ -3,7 +3,6 @@ import {OrderItem} from "@/api/model/order_item.ts";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {Input} from "@/components/common/input/input.tsx";
-import {OrderItemName} from "@/components/common/order/order.item.tsx";
 import {calculateOrderItemPrice, calculateOrderTotal} from "@/lib/cart.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
 import React, {useMemo, useState} from "react";
@@ -32,7 +31,7 @@ export const SplitAmount = ({
   order, onClose
 }: Props) => {
   const db = useDB();
-  
+
   // Calculate total order amount (same as order.box.tsx)
   const itemsTotal = useMemo(() => calculateOrderTotal(order), [order]);
   const orderTotal = useMemo(() => {
@@ -59,9 +58,9 @@ export const SplitAmount = ({
   }, [orderTotal, assignedTotal]);
 
   const isValid = useMemo(() => {
-    return splits.length >= 2 && 
-           splits.every(split => split.amount > 0) && 
-           Math.abs(assignedTotal - orderTotal) < 0.01; // Allow small rounding differences
+    return splits.length >= 2 &&
+      splits.every(split => split.amount > 0) &&
+      Math.abs(assignedTotal - orderTotal) < 0.01; // Allow small rounding differences
   }, [splits, assignedTotal, orderTotal]);
 
   // Calculate adjusted prices for each split based on ratio
@@ -87,7 +86,7 @@ export const SplitAmount = ({
 
   const updateSplitAmount = (splitId: string, amount: number) => {
     const newAmount = Math.max(0, Math.min(amount, orderTotal));
-    setSplits(prev => prev.map(split => 
+    setSplits(prev => prev.map(split =>
       split.id === splitId ? {...split, amount: newAmount} : split
     ));
   };
@@ -145,28 +144,28 @@ export const SplitAmount = ({
   // Recursively adjust modifier prices
   const adjustModifierPrice = (modifier: any, ratio: number): any => {
     if (!modifier) return modifier;
-    
+
     if (modifier.price !== undefined) {
       modifier = {
         ...modifier,
         price: modifier.price * ratio
       };
     }
-    
+
     if (modifier.selectedModifiers && Array.isArray(modifier.selectedModifiers)) {
       modifier = {
         ...modifier,
         selectedModifiers: modifier.selectedModifiers.map((sm: any) => adjustModifierPrice(sm, ratio))
       };
     }
-    
+
     if (modifier.modifiers && Array.isArray(modifier.modifiers)) {
       modifier = {
         ...modifier,
         modifiers: modifier.modifiers.map((m: any) => adjustModifierPrice(m, ratio))
       };
     }
-    
+
     return modifier;
   };
 
@@ -196,10 +195,10 @@ export const SplitAmount = ({
           // Get the base price to adjust from (current price)
           const basePrice = originalItem.price;
           const newPrice = basePrice * splitRatio;
-          
+
           // Set original_price: use current price if original_price is empty, otherwise keep existing
           const originalPrice = originalItem.original_price ?? basePrice;
-          
+
           // Prepare item data with adjusted price
           const itemData: any = {
             item: new StringRecordId(originalItem.item.id.toString()),
@@ -326,13 +325,14 @@ export const SplitAmount = ({
               {splits.map((split, index) => {
                 const ratio = getSplitRatio(split.amount);
                 const percentage = orderTotal > 0 ? ((split.amount / orderTotal) * 100).toFixed(1) : '0';
-                
+
                 return (
                   <div
                     key={split.id}
                     className="bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 flex flex-col"
                   >
-                    <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-transparent flex-shrink-0">
+                    <div
+                      className="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-transparent flex-shrink-0">
                       <h4 className="font-semibold text-gray-800 flex items-center gap-2">
                         <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                         {split.name}
@@ -391,7 +391,7 @@ export const SplitAmount = ({
                               const adjustedPrice = getAdjustedItemPrice(item, ratio);
                               const priceChange = adjustedPrice - originalPrice;
                               const priceChangePercent = originalPrice > 0 ? ((priceChange / originalPrice) * 100) : 0;
-                              
+
                               return (
                                 <div
                                   key={item.id}
@@ -439,7 +439,8 @@ export const SplitAmount = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 flex items-center justify-between flex-shrink-0">
+          <div
+            className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-2">
               <Button
                 variant="primary"
@@ -477,7 +478,7 @@ export const SplitAmount = ({
             <div className="flex-1 flex items-center justify-end gap-4">
               {!isValid && (
                 <div className="text-sm text-red-600">
-                  {assignedTotal < orderTotal 
+                  {assignedTotal < orderTotal
                     ? `Please assign the remaining ${withCurrency(remainingAmount)}`
                     : `Total exceeds order amount by ${withCurrency(assignedTotal - orderTotal)}`
                   }

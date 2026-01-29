@@ -23,6 +23,7 @@ export const useDB = () => {
         console.group('DB Debug')
         console.info(sql.trim(), parameters);
         console.info(result);
+        // console.trace('trace');
         console.groupEnd()
       }
 

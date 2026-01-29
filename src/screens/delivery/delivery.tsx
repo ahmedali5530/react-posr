@@ -183,7 +183,7 @@ export const Delivery = () => {
       <div className="col-span-4">
         <MapContainer
           center={center}
-          zoom={14}
+          zoom={11}
           scrollWheelZoom={true}
           className="h-[calc(100vh_-_70px_-_25px)] relative z-0"
         >

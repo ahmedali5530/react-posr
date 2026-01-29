@@ -54,7 +54,7 @@ export const FloorLayout = () => {
   const {
     data: orders,
     fetchData: fetchOrders
-  } = useApi<SettingsData<Order>>(Tables.orders, [`status = "${OrderStatus["In Progress"]}"`], ['created_at asc'], 0, 99999, ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax']);
+  } = useApi<SettingsData<Order>>(Tables.orders, [`status = "${OrderStatus["In Progress"]}"`], ['created_at asc'], 0, 99999, ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'categories']);
 
   const runLiveQuery = async () => {
     const result = await db.live(Tables.orders, function () {

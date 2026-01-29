@@ -2,7 +2,7 @@ import {Layout} from "@/screens/partials/layout.tsx";
 import useApi, {SettingsData} from "@/api/db/use.api.ts";
 import {Order as OrderModel, OrderStatus} from "@/api/model/order.ts";
 import {Tables} from "@/api/db/tables.ts";
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {useDB} from "@/api/db/db.ts";
 import {OrderBox} from "@/components/orders/order.box.tsx";
 import ScrollContainer from "react-indiana-drag-scroll";
@@ -23,6 +23,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.tsx";
 import {RecordId, StringRecordId} from "surrealdb";
 import {toast} from "sonner";
+import {useQueryBuilder} from "@/api/db/query-builder.ts";
 
 export const Orders = () => {
   const db = useDB();
@@ -36,15 +37,73 @@ export const Orders = () => {
   const [mergingOrders, setMergingOrders] = useState<OrderModel[]>([]);
   const [mergingTable, setMergingTable] = useState<string>();
 
-  const [alert, setAlert] = useAtom(appAlert);
-  const [app, setApp] = useAtom(appPage);
+  const [, setAlert] = useAtom(appAlert);
+  const [app, ] = useAtom(appPage);
 
-  const {
-    data: orders,
-    fetchData: fetchOrders,
-    addFilter: addOrderFilter,
-    resetFilters: resetOrdersFilters
-  } = useApi<SettingsData<OrderModel>>(Tables.orders, [], ['created_at desc'], 0, 99999, ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'payments', 'payments.payment_type', 'extras', 'extras.order_extras']);
+  const [orders, setOrders] = useState<OrderModel[]>([]);
+
+  const orderFilters = useMemo(() => {
+    const floorFilters = [];
+    const userFilters = [];
+    const orderTypeFilters = [];
+    const statusFilters = [];
+
+    const f = [];
+
+    params.ordersFilters.floors.forEach(floor => {
+      floorFilters.push(`floor = ${floor.value}`);
+    });
+    if (floorFilters.length > 0) {
+      f.push(`(${floorFilters.join(' or ')})`);
+    }
+
+    params.ordersFilters.users.forEach(user => {
+      userFilters.push(`user = ${user.value}`);
+    });
+    if (userFilters.length > 0) {
+      f.push(`(${userFilters.join(' or ')})`);
+    }
+
+    params.ordersFilters.statuses.forEach(status => {
+      statusFilters.push(`status = "${status.value}"`);
+    });
+    if (statusFilters.length > 0) {
+      f.push(`(${statusFilters.join(' or ')})`);
+    }
+
+    params.ordersFilters.orderTypes.forEach(order_type => {
+      orderTypeFilters.push(`order_type = ${order_type.value}`);
+    });
+    if (orderTypeFilters.length > 0) {
+      f.push(`(${orderTypeFilters.join(' or ')})`);
+    }
+
+    if (date) {
+      f.push(`(time::format(created_at, "%Y-%m-%d") = "${date?.toString()}")`);
+    }
+
+    return f;
+  }, [params.ordersFilters, date]);
+
+
+  const ordersQb = useQueryBuilder(
+    Tables.orders, '*', orderFilters.map(item => `and ${item}`), 99999, 0, ['created_at desc'],
+    ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'payments', 'payments.payment_type', 'extras', 'extras.order_extras']
+  );
+
+  useEffect(() => {
+    ordersQb.setWheres(orderFilters.map(item => `and ${item}`));
+  }, [orderFilters]);
+
+  const fetchOrders = useCallback(async () => {
+    const [listQuery] = await db.query(ordersQb.queryString, ordersQb.parameters);
+
+    setOrders(listQuery as OrderModel[]);
+  }, [ordersQb.queryString, ordersQb.parameters]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [ordersQb.queryString, ordersQb.parameters]);
 
   const {
     data: floors,
@@ -78,55 +137,14 @@ export const Orders = () => {
     }
   }, []);
 
-  useEffect(() => {
-    resetOrdersFilters();
-
-    const floorFilters = [];
-    const userFilters = [];
-    const orderTypeFilters = [];
-    const statusFilters = [];
-
-    params.ordersFilters.floors.forEach(floor => {
-      floorFilters.push(`floor = ${floor.value}`);
-    });
-    if (floorFilters.length > 0) {
-      addOrderFilter(`(${floorFilters.join(' or ')})`);
-    }
-
-    params.ordersFilters.users.forEach(user => {
-      userFilters.push(`user = ${user.value}`);
-    });
-    if (userFilters.length > 0) {
-      addOrderFilter(`(${userFilters.join(' or ')})`);
-    }
-
-    params.ordersFilters.statuses.forEach(status => {
-      statusFilters.push(`status = "${status.value}"`);
-    });
-    if (statusFilters.length > 0) {
-      addOrderFilter(`(${statusFilters.join(' or ')})`);
-    }
-
-    params.ordersFilters.orderTypes.forEach(order_type => {
-      orderTypeFilters.push(`order_type = ${order_type.value}`);
-    });
-    if (orderTypeFilters.length > 0) {
-      addOrderFilter(`(${orderTypeFilters.join(' or ')})`);
-    }
-
-    if (date) {
-      addOrderFilter(`time::format(created_at, "%Y-%m-%d") = "${date?.toString()}"`);
-    }
-  }, [params.ordersFilters, date]);
-
   const selectedTable = useMemo(() => {
     return tables?.data.find(item => item.id.toString() === mergingTable);
   }, [mergingTable, tables?.data]);
 
   const nextInvoiceNumber = async () => {
-    return await db.query(`SELECT math::max(invoice_number) as invoice_number
-                           from ${Tables.orders}
-                           group all`);
+    return await db.query(
+      `SELECT math::max(invoice_number) as invoice_number from ${Tables.orders} group all`
+    );
   }
 
   const [isSaving, setIsSaving] = useState(false);
@@ -314,7 +332,7 @@ export const Orders = () => {
         {view === 'column' && (
           <ScrollContainer className="h-[calc(100vh_-_190px)]">
             <div className="flex-1 rounded-xl flex gap-3 flex-row">
-              {orders?.data?.map(item => (
+              {orders.map(item => (
                 <div className="w-[400px] flex-shrink-0" key={item.id}>
                   <OrderBox
                     order={item}
@@ -342,7 +360,7 @@ export const Orders = () => {
         {view === 'row' && (
           <ScrollContainer className="max-h-[calc(100vh_-_190px)]">
             <div className="flex-1 rounded-xl flex flex-col">
-              {orders?.data?.map(item => (
+              {orders.map(item => (
                 <OrderRow order={item} key={item.id}/>
               ))}
             </div>
