@@ -102,14 +102,17 @@ export const Settings = () => {
           const row = userRow ?? globalRow;
           const values = row?.values;
           const ids: string[] = Array.isArray(values)
-            ? values.map((v: unknown) => toIdString(v))
+            ? values.map((v: unknown) => v.toString())
             : [];
           const options: PrinterOption[] = ids
             .map((id) => {
-              const p = printers.find((x) => toIdString(x.id) === id);
-              return p ? { label: p.name, value: toIdString(p.id) } : { label: id, value: id };
+              const p = printers.find((x) => x.id.toString() === id);
+              return p ? { label: p.name, value: p.id } : { label: id, value: id };
             })
             .filter((o) => o.value);
+
+          console.log(options)
+
           loaded[key as keyof PrinterSettingsForm] = options;
         }
 
@@ -146,7 +149,7 @@ export const Settings = () => {
           { key }
         );
         const rows = getQueryRows<{ id?: unknown; user?: unknown }>(raw);
-        const existing = rows.find((r) => recordIdToCompareString(r?.user) === recordIdToCompareString(userId));
+        const existing = rows.find((r) => (r?.user?.toString()) === recordIdToCompareString(userId.toString()));
 
         if (existing?.id) {
           await db.merge(recordIdToCompareString(existing.id) || existing.id, { values: value });
@@ -167,7 +170,7 @@ export const Settings = () => {
 
   const printerOptions = printers.map((p) => ({
     label: p.name,
-    value: toIdString(p.id),
+    value: p.id,
   }));
 
   return (

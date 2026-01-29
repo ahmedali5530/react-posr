@@ -2,6 +2,7 @@ import React from "react";
 import { toast } from "sonner";
 import { Tables } from "@/api/db/tables.ts";
 import type { Printer } from "@/api/model/printer.ts";
+import {RecordId, StringRecordId} from "surrealdb";
 
 export const PRINT_EVENT = 'posr:print';
 
@@ -101,7 +102,7 @@ export async function getPrintersForType(db: PrintDB, template: string, userId?:
   if (!key) return [];
 
   let row: { values?: unknown[] } | undefined;
-  const uid = userId != null && userId !== '' ? toIdString(userId) : null;
+  const uid = userId != null && userId !== '' ? new StringRecordId(toIdString(userId)) : null;
   if (uid) {
     const [userRes] = await db.query(
       `SELECT * FROM ${Tables.settings} WHERE key = $key AND user = $uid LIMIT 1`,
@@ -118,8 +119,8 @@ export async function getPrintersForType(db: PrintDB, template: string, userId?:
     const globalRows = Array.isArray(globalRes) ? globalRes : [];
     row = globalRows[0] as { values?: unknown[] } | undefined;
   }
-  const ids: string[] = Array.isArray(row?.values)
-    ? row.values.map((v) => toIdString(v))
+  const ids = Array.isArray(row?.values)
+    ? row.values.map((v) => v as any)
     : [];
   if (ids.length === 0) return [];
 
@@ -128,7 +129,7 @@ export async function getPrintersForType(db: PrintDB, template: string, userId?:
     { ids }
   );
   const printerRows = (Array.isArray(printerRes) ? printerRes : []) as Printer[];
-  return printerRows.sort((a, b) => ids.indexOf(toIdString(a.id)) - ids.indexOf(toIdString(b.id)));
+  return printerRows.sort((a, b) => ids.indexOf(a.id.toString()) - ids.indexOf(b.id.toString()));
 }
 
 // Simple in-memory registry for print templates
@@ -154,8 +155,6 @@ export async function dispatchPrint<Payload = any>(
   const baseUrl = (import.meta.env.VITE_PRINT_SERVER_URL as string) || DEFAULT_PRINT_URL;
   const url = `${baseUrl.replace(/\/$/, '')}/print`;
   const uid = options?.userId != null ? toIdString(options.userId) : null;
-
-  console.log(options)
 
   const [config, printers] = await Promise.all([
     getPrintConfig(db, template),
@@ -193,6 +192,7 @@ export async function dispatchPrint<Payload = any>(
     }
   } catch (e) {
     const msg = e && typeof e === 'object' && 'message' in e ? String((e as Error).message) : 'Print request failed';
-    toast.error(msg);
+    console.error(msg);
+    toast.error('Error in printing');
   }
 }
