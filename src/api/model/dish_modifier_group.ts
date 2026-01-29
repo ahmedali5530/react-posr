@@ -8,4 +8,5 @@ export interface DishModifierGroup extends ID{
   required_modifiers?: number
   should_auto_open?: boolean
   has_required_modifiers?: boolean
+  should_auto_select?: boolean
 }

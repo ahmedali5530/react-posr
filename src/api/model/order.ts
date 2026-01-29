@@ -21,6 +21,7 @@ export interface Order extends ID{
   items: OrderItem[]
   order_type: OrderType
   status: string
+  notes?: string
 
   discount?: Discount
   discount_amount?: number

@@ -10,7 +10,9 @@ import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { TableComponent } from "@/components/common/table/table.tsx";
 
 export const AdminDishes = () => {
-  const loadHook = useApi<SettingsData<Dish>>(Tables.dishes, [], [], 0, 10, ['categories', 'items', 'items.item']);
+  const loadHook = useApi<SettingsData<Dish>>(
+    Tables.dishes, [], [], 0, 10, ['categories', 'items', 'items.item']
+  );
 
   const [data, setData] = useState<Dish>();
   const [formModal, setFormModal] = useState(false);
@@ -38,7 +40,7 @@ export const AdminDishes = () => {
     }),
     columnHelper.accessor("categories", {
       header: 'Categories',
-      cell: info => info.getValue().map((item, index) => <span className="tag mr-2" key={index}>{item.name}</span>)
+      cell: info => info.getValue()?.map((item, index) => <span className="tag mr-2" key={index}>{item.name}</span>)
     }),
     columnHelper.accessor("id", {
       id: "actions",

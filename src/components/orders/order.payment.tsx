@@ -23,6 +23,7 @@ import {OrderPaymentNotes} from "@/components/orders/payment/order.payment.notes
 import {getOrderFilteredItems} from "@/lib/order.ts";
 import {useAtom} from "jotai";
 import {appPage} from "@/store/jotai.ts";
+import {Tables} from "@/api/db/tables.ts";
 
 interface Props {
   order: Order
@@ -41,7 +42,6 @@ enum PaymentOptions {
 
 const extraItems = {
   'POS Fee': 1,
-  'Delivery Charges': 149
 };
 
 export const OrderPayment = ({
@@ -57,23 +57,23 @@ export const OrderPayment = ({
   const itemsTotal = calculateOrderTotal(order);
   const [extras, setExtras] = useState(extraItems);
 
-  const [paymentTypes, setPaymentTypes] = useState<OrderPaymentModal[]>([]);
+  const [paymentTypes, setPaymentTypes] = useState<OrderPaymentModal[]>(order?.payments ?? []);
 
-  const [tax, setTax] = useState<Tax>();
-  const [taxAmount, setTaxAmount] = useState(0);
+  const [tax, setTax] = useState<Tax>(order?.tax);
+  const [taxAmount, setTaxAmount] = useState(order?.tax_amount);
 
-  const [discount, setDiscount] = useState<Discount>();
-  const [discountAmount, setDiscountAmount] = useState(0);
+  const [discount, setDiscount] = useState<Discount>(order?.discount);
+  const [discountAmount, setDiscountAmount] = useState(order?.discount_amount);
 
-  const [serviceCharge, setServiceCharge] = useState(0);
-  const [serviceChargeAmount, setServiceChargeAmount] = useState(0);
-  const [serviceChargeType, setServiceChargeType] = useState<DiscountType>(DiscountType.Percent);
+  const [serviceCharge, setServiceCharge] = useState(order?.service_charge);
+  const [serviceChargeAmount, setServiceChargeAmount] = useState(order?.service_charge_amount);
+  const [serviceChargeType, setServiceChargeType] = useState<DiscountType>(order?.service_charge_type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
 
-  const [tip, setTip] = useState(0);
-  const [tipType, setTipType] = useState<DiscountType>(DiscountType.Percent);
-  const [tipAmount, setTipAmount] = useState(0);
+  const [tip, setTip] = useState(order?.tip);
+  const [tipType, setTipType] = useState<DiscountType>(order?.tip_type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
+  const [tipAmount, setTipAmount] = useState(order?.tip_amount);
 
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState(order?.notes);
 
   useEffect(() => {
     if(tax){
@@ -126,6 +126,65 @@ export const OrderPayment = ({
       print();
     }, 300)
   }
+
+  const saveOrderProgress = async () => {
+    // remove previously attached payments
+    for(const payment of order?.payments ?? []){
+      await db.delete(payment.id);
+    }
+
+    const orderPayments = [];
+    for (const payment of paymentTypes) {
+      const [orderPayment] = await db.create(Tables.order_payment, {
+        amount: payment.amount,
+        payment_type: payment.payment_type.id,
+        comments: '',
+        payable: total
+      });
+
+      orderPayments.push(orderPayment.id);
+    }
+
+    // remove previously attached extras from order
+    for(const ext of order?.extras ?? []){
+      await db.delete(ext.id);
+    }
+
+    const extraOptions = [];
+    for (const extra of Object.keys(extras)) {
+      const [record] = await db.create(Tables.order_extras, {
+        name: extra,
+        value: extras[extra]
+      });
+
+      extraOptions.push(record.id);
+    }
+
+    console.log(tax?.id, discount?.id)
+
+    await db.merge(order.id, {
+      payments: orderPayments,
+      extras: extraOptions,
+      tax: tax?.id,
+      tax_amount: taxAmount,
+      discount: discount?.id,
+      discount_amount: discountAmount,
+      tip: tip,
+      tip_amount: tipAmount,
+      tip_type: tipType,
+      service_charge: serviceCharge,
+      service_charge_amount: serviceChargeAmount,
+      service_charge_type: serviceChargeType,
+      notes: notes,
+    });
+  }
+
+  useEffect(() => {
+    saveOrderProgress();
+  }, [
+    paymentTypes, tax, taxAmount, discount, discountAmount, tip, tipAmount, tipType, serviceCharge, serviceChargeAmount,
+    serviceChargeType, notes
+  ]);
 
   return (
     <Modal

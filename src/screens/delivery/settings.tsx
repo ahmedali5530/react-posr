@@ -38,7 +38,8 @@ interface DeliverySettingsForm {
   delivery_menu: {
     label: string
     value: string
-  }
+  },
+  delivery_time?: number
 }
 
 const DAYS_OF_WEEK = [
@@ -69,6 +70,7 @@ const validationSchema = yup.object({
     value: yup.string()
   }).required('This is required'),
   delivery_charges: yup.number().min(0, "Delivery charges must be positive").required("This is required"),
+  delivery_time: yup.number().min(0, "Delivery time must be positive").required("This is required"),
   minimum_order: yup.number().min(0, "Minimum order must be positive").required("This is required"),
   map_center: yup.object({
     lat: yup.number().required("Latitude is required"),
@@ -100,7 +102,8 @@ export const DeliverySettings = () => {
       delivery_charges: 0,
       minimum_order: 0,
       map_center: { lat: 31.512196, lng: 74.322242 },
-      delivery_timing: getDefaultDeliveryTiming()
+      delivery_timing: getDefaultDeliveryTiming(),
+      delivery_time: 0
     }
   });
 
@@ -119,7 +122,7 @@ export const DeliverySettings = () => {
     const loadDeliverySettings = async () => {
       try {
         setLoading(true);
-        const settingsKeys = ['enable_delivery', 'delivery_charges', 'minimum_order', 'map_center', 'delivery_timing', 'delivery_menu'];
+        const settingsKeys = ['enable_delivery', 'delivery_charges', 'minimum_order', 'map_center', 'delivery_timing', 'delivery_menu', 'delivery_time'];
         const formValues: Partial<DeliverySettingsForm> = {};
         
         for (const key of settingsKeys) {
@@ -155,6 +158,8 @@ export const DeliverySettings = () => {
                 label: value.name,
                 value: value.id
               };
+            }else if(key === 'delivery_time'){
+              formValues.delivery_time = value;
             }
           }
         }
@@ -166,7 +171,8 @@ export const DeliverySettings = () => {
           minimum_order: formValues.minimum_order ?? 0,
           map_center: formValues.map_center ?? { lat: 31.512196, lng: 74.322242 },
           delivery_timing: formValues.delivery_timing ?? getDefaultDeliveryTiming(),
-          delivery_menu: formValues.delivery_menu ? formValues.delivery_menu : null
+          delivery_menu: formValues.delivery_menu ? formValues.delivery_menu : null,
+          delivery_time: formValues.delivery_time ? formValues.delivery_time : 0
         });
       } catch (error) {
         console.error("Error loading delivery settings:", error);
@@ -189,6 +195,7 @@ export const DeliverySettings = () => {
         {key: 'map_center', value: values.map_center},
         {key: 'delivery_timing', value: values.delivery_timing},
         {key: 'delivery_menu', value: values.delivery_menu.value ? new StringRecordId(values.delivery_menu.value) : null},
+        {key: 'delivery_time', value: values.delivery_time},
       ];
 
       for (const setting of settings) {
@@ -303,6 +310,29 @@ export const DeliverySettings = () => {
                         min="0"
                         step="0.01"
                         error={errors.minimum_order?.message}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div>
+                  <Controller
+                    name="delivery_time"
+                    control={control}
+                    render={({field}) => (
+                      <Input
+                        type="number"
+                        label="Delivery time in minutes"
+                        value={field.value}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          if (val >= 0) {
+                            field.onChange(val);
+                          }
+                        }}
+                        min="0"
+                        step="0.01"
+                        error={errors.delivery_time?.message}
                       />
                     )}
                   />

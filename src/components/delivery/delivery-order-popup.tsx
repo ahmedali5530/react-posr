@@ -341,6 +341,19 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
             </div>
           )}
 
+          <div className="bg-danger-200 p-4 rounded-lg border-2 border-danger-300">
+            {order?.created_at && (
+              <div className="space-y-2">
+                <p className="text-2xl font-medium">Ordered at: {DateTime.fromJSDate(order.created_at).toFormat(import.meta.env.VITE_TIME_FORMAT)}</p>
+              </div>
+            )}
+            {delivery?.deliveryTime && delivery?.deliveryTime !== 'asap' && (
+              <div className="space-y-2">
+                <p className="text-2xl font-medium">Delivery time: {DateTime.fromJSDate(delivery.deliveryTime).toFormat(import.meta.env.VITE_TIME_FORMAT)}</p>
+              </div>
+            )}
+          </div>
+
           {/* Customer Information */}
           {customer && (
             <div className="bg-gray-200 p-4 rounded-lg border-2 border-gray-300">

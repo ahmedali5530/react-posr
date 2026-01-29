@@ -78,7 +78,13 @@ export const MenuDishModifiers = (props: Props) => {
       setGroup(groups[0]);
     }
 
-    if( group && group.modifiers.length === group.required_modifiers && props.editing !== true ) {
+    // auto select modifiers if they are same as required
+    if(
+      group &&
+      group.modifiers.length === group.required_modifiers &&
+      props.editing !== true &&
+      group.should_auto_select
+    ) {
       group.modifiers.forEach(dish => {
         onModifierClick(buildModifiersObj(dish.dish, dish.selectedGroups, dish.price));
       });

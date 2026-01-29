@@ -55,6 +55,7 @@ const validationSchema = yup.object({
       return schema;
     }),
     should_auto_open: yup.boolean(),
+    should_auto_select: yup.boolean(),
   })),
   recipes: yup.array(yup.object({
     item: yup.object({
@@ -179,6 +180,7 @@ export const DishForm = ({
         },
         has_required_modifiers: rec.has_required_modifiers,
         required_modifiers: rec.required_modifiers,
+        should_auto_select: rec.should_auto_select
         // should_auto_open: rec.should_auto_open,
       });
 
@@ -274,7 +276,7 @@ export const DishForm = ({
         await db.query(`DELETE ${menuId}->${Tables.dish_modifier_groups} where in = ${menuId}`);
 
         for ( const modifierGroup of formData.modifier_groups ) {
-          await db.query(`RELATE ${menuId}->${Tables.dish_modifier_groups}->${modifierGroup.modifier_group.value} set has_required_modifiers = ${modifierGroup.has_required_modifiers}, should_auto_open = ${modifierGroup.should_auto_open}, required_modifiers = ${modifierGroup.required_modifiers}`);
+          await db.query(`RELATE ${menuId}->${Tables.dish_modifier_groups}->${modifierGroup.modifier_group.value} set has_required_modifiers = ${modifierGroup.has_required_modifiers}, should_auto_open = ${modifierGroup.should_auto_open}, required_modifiers = ${modifierGroup.required_modifiers}, should_auto_select = ${modifierGroup.should_auto_select}`);
         }
       }
 
@@ -561,6 +563,17 @@ export const DishForm = ({
                       render={({ field }) => (
                         <Switch checked={field.value} onChange={field.onChange}>
                           Has required modifiers
+                        </Switch>
+                      )}
+                    />
+                  </div>
+                  <div className="flex-1 self-end">
+                    <Controller
+                      name={`modifier_groups.${index}.should_auto_select`}
+                      control={control}
+                      render={({ field }) => (
+                        <Switch checked={field.value} onChange={field.onChange}>
+                          Auto select modifiers?
                         </Switch>
                       )}
                     />
