@@ -150,16 +150,23 @@ export async function dispatchPrint<Payload = any>(
   db: any,
   template: string,
   payload: Payload,
-  options?: { title?: string; copies?: number; userId?: string | { id?: string; toString?: () => string } | null }
+  options?: {
+    title?: string; copies?: number; userId?: string | { id?: string; toString?: () => string } | null,
+    printers?: Printer[]
+  }
 ): Promise<void> {
   const baseUrl = (import.meta.env.VITE_PRINT_SERVER_URL as string) || DEFAULT_PRINT_URL;
   const url = `${baseUrl.replace(/\/$/, '')}/print`;
   const uid = options?.userId != null ? toIdString(options.userId) : null;
 
-  const [config, printers] = await Promise.all([
+  let [config, printers] = await Promise.all([
     getPrintConfig(db, template),
     getPrintersForType(db, template, uid),
   ]);
+
+  if(printers.length === 0){
+    printers = options.printers;
+  }
 
   const driverPrinters = printers.map(printerToDriverConfig);
   if (driverPrinters.length === 0) {

@@ -12,6 +12,8 @@ import {OrderPayment} from "@/components/orders/order.payment.tsx";
 import {withCurrency} from "@/lib/utils.ts";
 import {StringRecordId} from "surrealdb";
 import {MenuItemType} from "@/api/model/cart_item.ts";
+import {dispatchPrint} from "@/lib/print.service.ts";
+import {Kitchen} from "@/api/model/kitchen.ts";
 
 export const Payment = () => {
   const db = useDB();
@@ -43,6 +45,8 @@ export const Payment = () => {
     } else {
       invoiceNumber = state?.order?.order?.invoice_number;
     }
+
+    const kitchenItems = {};
 
     // create items and store their ids
     const items = [];
@@ -80,14 +84,20 @@ export const Payment = () => {
         items.push(record[0].id);
 
         // add in kitchens
-        const kitchen: any = await db.query(`SELECT * from ${Tables.kitchens} where items ?= ${item.dish.id.toString()}`);
-        if(kitchen[0].length > 0){
-          for(const k of kitchen[0]){
+        const [kitchen]: any = await db.query(`SELECT * from ${Tables.kitchens} where items ?= ${item.dish.id.toString()}`);
+        if(kitchen.length > 0){
+          for(const k of kitchen){
             await db.create(Tables.order_items_kitchen, {
               created_at: DateTime.now().toJSDate(),
               kitchen: new StringRecordId(k.id.toString()),
               order_item: new StringRecordId(record[0].id.toString())
             });
+
+            if(!kitchenItems[k.id.toString()]){
+              kitchenItems[k.id.toString()] = [];
+            }
+
+            kitchenItems[k.id.toString()].push(record[0]);
           }
         }
       }
@@ -135,6 +145,24 @@ export const Payment = () => {
           });
         }
       }
+
+      const [kitchens]: any = await db.query(`SELECT * from ${Tables.kitchens}`);
+      for (const k of kitchens) {
+        for (const p of k.printers) {
+          if (kitchenItems[k.id.toString()]) {
+            await dispatchPrint(db, 'kitchen', {
+              items: kitchenItems[k.id.toString()],
+              order: orderObj
+            }, {
+              title: 'Kitchen print',
+              copies: 1,
+              userId: page?.user?.id,
+              printers: k.printers
+            });
+          }
+        }
+      }
+
     }catch(e){
       throw e;
     }finally {
