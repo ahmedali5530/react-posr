@@ -1,4 +1,5 @@
-# POSR
+# [POSR Demo](https://ahmedali5530.xyz)
+### login pins 1234, 0000
 This is a point of sale system designed for restaurants. It works well with touch screen systems.
 
 This is built with **React + TypeScript + TailwindCSS + SurrealDB**
