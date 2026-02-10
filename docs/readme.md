@@ -1,5 +1,8 @@
 # Point of sale system for Restaurants
 
+# [Demo](https://ahmedali5530.xyz)
+### login pins 1234, 0000
+
 This system is still in development
 
 This is a point of sale system designed for restaurants.
