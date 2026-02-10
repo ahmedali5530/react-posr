@@ -27,3 +27,8 @@ dist-ssr
 posr.db*
 .cursor
 cert
+posr.db
+posr.db1
+database/clog
+database/manifest
+.orchids

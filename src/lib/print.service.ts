@@ -159,6 +159,7 @@ export async function dispatchPrint<Payload = any>(
   const url = `${baseUrl.replace(/\/$/, '')}/print`;
   const uid = options?.userId != null ? toIdString(options.userId) : null;
 
+  // eslint-disable-next-line prefer-const
   let [config, printers] = await Promise.all([
     getPrintConfig(db, template),
     getPrintersForType(db, template, uid),

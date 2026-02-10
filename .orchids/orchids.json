@@ -1,8 +1,0 @@
-{
- "projectId": "60b7d58d-c5ce-4934-a862-18f78b0118db",
- "createdAt": 1769772025589,
- "startupCommands": [
-   "bun run dev",
-   "bun run print-server"
- ]
-}
