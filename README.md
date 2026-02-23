@@ -15,7 +15,9 @@ This will start SurrealDB server.
 
 Your web application should be accessible at http://localhost:5173/, default login is 0000
 
+# Docker script is also available
+
 # [Features list](/docs/readme.md)
 
-## This project is still in development, some features might not work as expected
+## This project is still in development, nearing to its completion.
 

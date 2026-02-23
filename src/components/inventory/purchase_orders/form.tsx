@@ -128,8 +128,6 @@ export const InventoryPurchaseOrderForm = ({open, onClose, data}: Props) => {
     resolver
   });
 
-  console.log(errors);
-
   const {fields, append, remove} = useFieldArray({
     control,
     name: "items"

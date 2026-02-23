@@ -160,8 +160,6 @@ export const OrderPayment = ({
       extraOptions.push(record.id);
     }
 
-    console.log(tax?.id, discount?.id)
-
     await db.merge(order.id, {
       payments: orderPayments,
       extras: extraOptions,
@@ -180,7 +178,7 @@ export const OrderPayment = ({
   }
 
   useEffect(() => {
-    saveOrderProgress();
+    // saveOrderProgress();
   }, [
     paymentTypes, tax, taxAmount, discount, discountAmount, tip, tipAmount, tipType, serviceCharge, serviceChargeAmount,
     serviceChargeType, notes
