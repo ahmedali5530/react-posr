@@ -263,7 +263,7 @@ export const DishForm = ({
       }
 
       let menuId: any;
-      if( data.id ) {
+      if( data?.id ) {
         menuId = data.id;
         await db.merge(data.id, dishData);
       } else {
