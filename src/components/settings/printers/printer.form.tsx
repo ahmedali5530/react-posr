@@ -23,7 +23,6 @@ const validationSchema = z.object({
   ip_address: z.string().min(1, "This is required"),
   port: z.number({message: "Invalid Port number"}).min(1, "This is required"),
   prints: z.number({message: "This is required"}).min(1, "This is required"),
-  priority: z.number({message: "This is required"}),
   type: z.object({
     label: z.string(),
     value: z.string()
@@ -45,7 +44,7 @@ export const PrinterForm = ({
     });
   }
 
-  const { getValues, register, control, handleSubmit, formState: {errors}, reset } = useForm({
+  const { register, control, handleSubmit, formState: {errors}, reset } = useForm({
     resolver: zodResolver(validationSchema)
   });
 
@@ -67,6 +66,8 @@ export const PrinterForm = ({
   }, [data]);
 
   const db = useDB();
+
+  console.log(errors)
 
   const onSubmit = async (values: any) => {
     const vals = {
