@@ -62,3 +62,5 @@ export enum OrderStatus {
   Refunded = 'Refunded',
   Pending = 'Pending'
 }
+
+export const ORDER_FETCHES = ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'payments', 'payments.payment_type', 'extras', 'extras.order_extras'];

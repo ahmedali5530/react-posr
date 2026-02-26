@@ -1,6 +1,6 @@
 import {Layout} from "@/screens/partials/layout.tsx";
 import useApi, {SettingsData} from "@/api/db/use.api.ts";
-import {Order as OrderModel, OrderStatus} from "@/api/model/order.ts";
+import {Order as OrderModel, ORDER_FETCHES, OrderStatus} from "@/api/model/order.ts";
 import {Tables} from "@/api/db/tables.ts";
 import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {useDB} from "@/api/db/db.ts";
@@ -24,10 +24,12 @@ import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.ts
 import {RecordId, StringRecordId} from "surrealdb";
 import {toast} from "sonner";
 import {useQueryBuilder} from "@/api/db/query-builder.ts";
+import {useFetchRow} from "@/hooks/useFetchRow.ts";
 
 export const Orders = () => {
   const db = useDB();
   const [liveQuery, setLiveQuery] = useState(null);
+  const fetchHook = useFetchRow();
 
   const [params, setParams] = useAtom(appSettings);
   const [date, setDate] = useState<DateValue>(today(getLocalTimeZone()));
@@ -88,7 +90,7 @@ export const Orders = () => {
 
   const ordersQb = useQueryBuilder(
     Tables.orders, '*', orderFilters.map(item => `and ${item}`), 99999, 0, ['created_at desc'],
-    ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'payments', 'payments.payment_type', 'extras', 'extras.order_extras']
+    ORDER_FETCHES
   );
 
   useEffect(() => {
@@ -122,8 +124,13 @@ export const Orders = () => {
   } = useApi<SettingsData<OrderType>>(Tables.order_types, [], [], 0, 99999);
 
   const runLiveQuery = async () => {
-    const result = await db.live(Tables.orders, function () {
-      fetchOrders();
+    const result = await db.live(Tables.orders, function (action,) {
+      // delete or adding new orders will result in new data
+      if(action === 'CREATE' || action === 'DELETE'){
+        fetchOrders();
+      }
+
+      // TODO: handle order updates smartly
     });
 
     setLiveQuery(result);
@@ -164,10 +171,8 @@ export const Orders = () => {
     setIsSaving(true);
 
     try {
-
       let items = [];
       for (const order of mergingOrders) {
-
         // Create order items for this split
         items = [
           ...items,
@@ -350,6 +355,7 @@ export const Orders = () => {
                         setMergingOrders(prev => prev.filter(order => order.id.toString() !== item.id.toString()));
                       }
                     }}
+                    onAction={fetchOrders}
                   />
                 </div>
               ))}

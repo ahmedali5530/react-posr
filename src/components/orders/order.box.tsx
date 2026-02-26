@@ -30,10 +30,11 @@ interface Props {
   onMergeSelect?: (order: OrderModel, add: boolean) => void
   mergingOrders: OrderModel[]
   merging: boolean
+  onAction?: () => void;
 }
 
 export const OrderBox = ({
-  order, onMergeSelect, mergingOrders, merging
+  order, onMergeSelect, mergingOrders, merging, onAction
 }: Props) => {
   const db = useDB();
   const [page] = useAtom(appPage);
@@ -233,25 +234,29 @@ export const OrderBox = ({
 
       {payment && (
         <OrderPayment order={order} onClose={() => {
-          setPayment(false)
+          setPayment(false);
+          onAction && onAction();
         }}/>
       )}
 
       {splitBySeats && (
         <SplitBySeats order={order} onClose={() => {
           setSplitBySeats(false);
+          onAction && onAction();
         }} />
       )}
 
       {splitByManually && (
         <SplitItems order={order} onClose={() => {
           setSplitByManually(false);
+          onAction && onAction();
         }} />
       )}
 
       {splitByAmount && (
         <SplitAmount order={order} onClose={() => {
           setSplitByAmount(false);
+          onAction && onAction();
         }} />
       )}
 
@@ -259,7 +264,10 @@ export const OrderBox = ({
         <OrderCancelModal
           order={order}
           open={cancelOrderOpen}
-          onClose={() => setCancelOrderOpen(false)}
+          onClose={() => {
+            setCancelOrderOpen(false);
+            onAction && onAction();
+          }}
         />
       )}
 
@@ -267,7 +275,10 @@ export const OrderBox = ({
         <OrderRefundModal
           order={order}
           open={refundOrderOpen}
-          onClose={() => setRefundOrderOpen(false)}
+          onClose={() => {
+            setRefundOrderOpen(false)
+            onAction && onAction();
+          }}
         />
       )}
     </>

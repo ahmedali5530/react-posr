@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import {RecordId, StringRecordId} from "surrealdb";
 const DECIMAL_PLACES = import.meta.env.VITE_DECIMAL_PLACES;
 
 export function cn(...inputs: ClassValue[]) {
@@ -42,4 +43,16 @@ export const transformValue = {
     const output = parseInt(e.target.value);
     return isNaN(output) ? 0 : output;
   }
+}
+
+export const toRecordId = (id: any) => {
+  if(typeof id === 'string'){
+    return new StringRecordId(id);
+  }
+
+  if('id' in id && 'tb' in id){
+    return new RecordId(id.tb, id.id)
+  }
+
+  return id;
 }

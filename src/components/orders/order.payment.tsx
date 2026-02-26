@@ -2,7 +2,7 @@ import {Order} from "@/api/model/order.ts";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {OrderHeader} from "@/components/orders/order.header.tsx";
 import ScrollContainer from "react-indiana-drag-scroll";
-import React, {CSSProperties, useEffect, useMemo, useState} from "react";
+import React, {CSSProperties, useEffect, useMemo, useRef, useState} from "react";
 import {OrderTimes} from "@/components/orders/order.times.tsx";
 import {calculateOrderTotal} from "@/lib/cart.ts";
 import {cn, formatNumber, withCurrency} from "@/lib/utils.ts";
@@ -57,23 +57,23 @@ export const OrderPayment = ({
   const itemsTotal = calculateOrderTotal(order);
   const [extras, setExtras] = useState(extraItems);
 
-  const [paymentTypes, setPaymentTypes] = useState<OrderPaymentModal[]>(order?.payments ?? []);
+  const [paymentTypes, setPaymentTypes] = useState<OrderPaymentModal[]>([]);
 
-  const [tax, setTax] = useState<Tax>(order?.tax);
-  const [taxAmount, setTaxAmount] = useState(order?.tax_amount);
+  const [tax, setTax] = useState<Tax>();
+  const [taxAmount, setTaxAmount] = useState<number>(0);
 
-  const [discount, setDiscount] = useState<Discount>(order?.discount);
-  const [discountAmount, setDiscountAmount] = useState(order?.discount_amount);
+  const [discount, setDiscount] = useState<Discount>();
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
 
-  const [serviceCharge, setServiceCharge] = useState(order?.service_charge);
-  const [serviceChargeAmount, setServiceChargeAmount] = useState(order?.service_charge_amount);
-  const [serviceChargeType, setServiceChargeType] = useState<DiscountType>(order?.service_charge_type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
+  const [serviceCharge, setServiceCharge] = useState<number>(0);
+  const [serviceChargeAmount, setServiceChargeAmount] = useState<number>(0);
+  const [serviceChargeType, setServiceChargeType] = useState<DiscountType>(DiscountType.Percent);
 
-  const [tip, setTip] = useState(order?.tip);
-  const [tipType, setTipType] = useState<DiscountType>(order?.tip_type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
-  const [tipAmount, setTipAmount] = useState(order?.tip_amount);
+  const [tip, setTip] = useState<number>(0);
+  const [tipType, setTipType] = useState<DiscountType>(DiscountType.Percent);
+  const [tipAmount, setTipAmount] = useState<number>(0);
 
-  const [notes, setNotes] = useState(order?.notes);
+  const [notes, setNotes] = useState<string>('');
 
   useEffect(() => {
     if(tax){
@@ -103,6 +103,32 @@ export const OrderPayment = ({
     }
   }, [serviceCharge, itemsTotal, serviceChargeType]);
 
+  const firstTime = useRef(false);
+  useEffect(() => {
+    // load first time
+    if(firstTime.current === false){
+      setPaymentTypes(order?.payments ?? []);
+
+      setTax(order?.tax);
+      setTaxAmount(order?.tax_amount ?? 0);
+
+      setDiscount(order?.discount);
+      setDiscountAmount(order?.discount_amount ?? 0);
+
+      setServiceCharge(order?.service_charge ?? 0);
+      setServiceChargeAmount(order?.service_charge_amount ?? 0);
+      setServiceChargeType(order?.service_charge_type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
+
+      setTip(order?.tip ?? 0);
+      setTipAmount(order?.tip_amount ?? 0);
+      setTipType(order?.tip_type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
+
+      setNotes(order?.notes);
+
+      firstTime.current = true;
+    }
+  }, [order, firstTime.current]);
+
   const total = useMemo(() => {
     const extrasTotal = Object.values(extras).reduce((prev, item) => prev + item, 0);
     return itemsTotal + extrasTotal + taxAmount + serviceChargeAmount - discountAmount + tipAmount;
@@ -112,10 +138,10 @@ export const OrderPayment = ({
 
   const print = async () => {
     // fetch latest order from database
-    const o = await db.query<Order>(`select * from ${order.id} fetch items, items.item, item.item.modifiers, table, user, order_type, customer, discount, tax, payments, payments.payment_type, extras, extras.order_extras`);
+    const [o] = await db.query<Order>(`select * from only ${order.id} fetch items, items.item, item.item.modifiers, table, user, order_type, customer, discount, tax, payments, payments.payment_type, extras, extras.order_extras`);
 
     await dispatchPrint(db, PRINT_TYPE.final_bill, {
-      order: o[0][0],
+      order: o,
     }, { userId: page?.user?.id });
   }
 
@@ -178,7 +204,7 @@ export const OrderPayment = ({
   }
 
   useEffect(() => {
-    // saveOrderProgress();
+    saveOrderProgress();
   }, [
     paymentTypes, tax, taxAmount, discount, discountAmount, tip, tipAmount, tipType, serviceCharge, serviceChargeAmount,
     serviceChargeType, notes
