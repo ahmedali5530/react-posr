@@ -169,8 +169,8 @@ export async function dispatchPrint<Payload = any>(
     printers = options.printers;
   }
 
-  const driverPrinters = printers.map(printerToDriverConfig);
-  if (driverPrinters.length === 0) {
+  const driverPrinters = printers?.map(printerToDriverConfig);
+  if (driverPrinters?.length === 0) {
     toast.error('No printers configured for this print type.');
     return;
   }
