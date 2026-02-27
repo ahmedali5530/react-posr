@@ -170,7 +170,7 @@ export const PrintForm = ({
                   control={control}
                   render={({field}) => (
                     <Switch
-                      value={field.value}
+                      checked={field.value}
                       onChange={field.onChange}
                     >
                       Show logo

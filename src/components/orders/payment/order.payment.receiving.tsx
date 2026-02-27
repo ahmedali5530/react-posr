@@ -321,6 +321,10 @@ export const OrderPaymentReceiving = ({
     return amount;
   }
 
+  const {
+    data: allTaxes
+  } = useApi<SettingsData<Tax>>(Tables.taxes)
+
   return (
     <div className="grid grid-cols-2 gap-5 h-[calc(100vh_-_150px)]">
       <div className="bg-white rounded-xl h-full">
@@ -464,7 +468,7 @@ export const OrderPaymentReceiving = ({
                 icon={faPrint}
                 size="lg"
                 onClick={() => {
-                  void dispatchPrint(db, PRINT_TYPE.presale_bill, { order }, { userId: page?.user?.id });
+                  void dispatchPrint(db, PRINT_TYPE.presale_bill, { order, taxes: allTaxes?.data }, { userId: page?.user?.id });
                 }}
               >Temp bill</Button>
               <Button

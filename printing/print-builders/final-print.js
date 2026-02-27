@@ -24,6 +24,7 @@ function build(printer, data = {}, config = {}) {
       showPayments: true,
       showChange: true,
       showDeliveryLine: false,
+      isFinal: true,
     });
     return printer;
   });

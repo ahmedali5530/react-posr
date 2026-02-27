@@ -20,7 +20,7 @@ export const Summary = ({
   // Calculate sale price without tax (items total)
   const salePriceWithoutTax = useMemo(() => {
     return safeNumber(
-      orders?.data?.reduce((sum, order) => {
+      orders?.reduce((sum, order) => {
         const itemsTotal = safeNumber(
           order.items?.reduce((itemSum, item) => {
             const price = calculateOrderItemPrice(item);
@@ -37,21 +37,21 @@ export const Summary = ({
   // Tax collected
   const taxCollected = useMemo(() => {
     return safeNumber(
-      orders?.data?.reduce((sum, order) => sum + safeNumber(order.tax_amount), 0) ?? 0
+      orders?.reduce((sum, order) => sum + safeNumber(order.tax_amount), 0) ?? 0
     );
   }, [orders]);
 
   // Service charges
   const serviceCharges = useMemo(() => {
     return safeNumber(
-      orders?.data?.reduce((sum, order) => sum + safeNumber(order.service_charge_amount), 0) ?? 0
+      orders?.reduce((sum, order) => sum + safeNumber(order.service_charge_amount), 0) ?? 0
     );
   }, [orders]);
 
   // Item-level discounts
   const itemDiscounts = useMemo(() => {
     return safeNumber(
-      orders?.data?.reduce((sum, order) => {
+      orders?.reduce((sum, order) => {
         return sum + safeNumber(order.items?.reduce((itemSum, item) => itemSum + safeNumber(item?.discount), 0) ?? 0);
       }, 0) ?? 0
     );
@@ -60,7 +60,7 @@ export const Summary = ({
   // Subtotal-level discounts (order discounts minus item discounts)
   const subtotalDiscounts = useMemo(() => {
     return safeNumber(
-      orders?.data?.reduce((sum, order) => {
+      orders?.reduce((sum, order) => {
         const lineDiscounts = safeNumber(
           order.items?.reduce((itemSum, item) => itemSum + safeNumber(item?.discount), 0) ?? 0
         );
@@ -77,7 +77,7 @@ export const Summary = ({
   // Total extras
   const totalExtras = useMemo(() => {
     return safeNumber(
-      orders?.data?.reduce((sum, order) => {
+      orders?.reduce((sum, order) => {
         return sum + safeNumber(
           order?.extras?.reduce((extraSum, extra) => extraSum + safeNumber(extra.value), 0) ?? 0
         );
@@ -93,7 +93,7 @@ export const Summary = ({
   // Amount collected
   const amountCollected = useMemo(() => {
     return safeNumber(
-      orders?.data?.reduce((sum, order) => {
+      orders?.reduce((sum, order) => {
         return sum + safeNumber(order.payments?.reduce((paySum, payment) => paySum + safeNumber(payment?.amount), 0) ?? 0);
       }, 0) ?? 0
     );
@@ -112,7 +112,7 @@ export const Summary = ({
   // Refunds (from negative payment amounts or cancelled orders)
   const refunds = useMemo(() => {
     return safeNumber(
-      orders?.data?.reduce((sum, order) => {
+      orders?.reduce((sum, order) => {
         if (order.status === OrderStatus.Cancelled) {
           return sum + safeNumber(
             order.payments?.reduce((paySum, payment) => {
@@ -142,13 +142,13 @@ export const Summary = ({
   // Tips
   const tips = useMemo(() => {
     return safeNumber(
-      orders?.data?.reduce((prev, item) => prev + safeNumber(item.tip_amount), 0) ?? 0
+      orders?.reduce((prev, item) => prev + safeNumber(item.tip_amount), 0) ?? 0
     );
   }, [orders]);
 
   const discountsList = useMemo(() => {
     const list = {};
-    orders?.data?.forEach(order => {
+    orders?.forEach(order => {
       if (order?.discount) {
         if (!list[`${order?.discount?.name}`]) {
           list[`${order?.discount?.name}`] = 0;
@@ -164,7 +164,7 @@ export const Summary = ({
 
   const taxesList = useMemo(() => {
     const list = {};
-    orders?.data?.forEach(order => {
+    orders?.forEach(order => {
       if (order?.tax) {
         if (!list[`${order?.tax?.name} ${order?.tax?.rate}`]) {
           list[`${order?.tax?.name} ${order?.tax?.rate}`] = 0;
@@ -178,7 +178,7 @@ export const Summary = ({
 
   const paymentTypes = useMemo(() => {
     const list = {};
-    orders?.data?.forEach(order => {
+    orders?.forEach(order => {
       order.payments?.forEach(payment => {
         const paymentTypeName = payment.payment_type?.name || 'Unknown';
         if (!list[paymentTypeName]) {
@@ -193,7 +193,7 @@ export const Summary = ({
 
   const extras = useMemo(() => {
     const list = {};
-    orders?.data?.forEach(order => {
+    orders?.forEach(order => {
       order?.extras?.forEach(extra => {
         if (!list[extra.name]) {
           list[extra.name] = 0;
@@ -208,7 +208,7 @@ export const Summary = ({
   // Voids - calculate from items that are deleted/voided (items not in getOrderFilteredItems)
   const voids = useMemo(() => {
     return safeNumber(
-      orders?.data?.reduce((sum, order) => {
+      orders?.reduce((sum, order) => {
         // Get all items including voided/deleted ones
         const allItems = order.items || [];
         // Get filtered items (non-voided)
@@ -229,12 +229,12 @@ export const Summary = ({
   }, [orders]);
 
   const covers = useMemo(() => {
-    return orders?.data?.reduce((prev, order) => prev + order.covers, 0);
+    return orders?.reduce((prev, order) => prev + order.covers, 0);
   }, [orders]);
 
   const categories = useMemo(() => {
     const list = {};
-    orders?.data?.forEach(order => {
+    orders?.forEach(order => {
       getOrderFilteredItems(order).forEach(item => {
         if (item.category) {
           if (!list[item.category]) {
@@ -255,7 +255,7 @@ export const Summary = ({
 
   const dishes = useMemo(() => {
     const list = {};
-    orders?.data?.forEach(order => {
+    orders?.forEach(order => {
       getOrderFilteredItems(order).forEach(item => {
         if (item.item.name) {
           if (!list[item.item.name]) {
@@ -380,11 +380,11 @@ export const Summary = ({
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Orders/Checks</span>
-          <span>{formatNumber(orders?.data?.length ?? 0)}</span>
+          <span>{formatNumber(orders?.length ?? 0)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Average order/check</span>
-          <span>{withCurrency((orders?.data?.length ?? 0) > 0 ? amountDue / (orders?.data?.length ?? 1) : 0)}</span>
+          <span>{withCurrency((orders?.length ?? 0) > 0 ? amountDue / (orders?.length ?? 1) : 0)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span></span>

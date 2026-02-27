@@ -24,6 +24,9 @@ import {Checkbox} from "@/components/common/input/checkbox.tsx";
 import {OrderCancelModal} from "@/components/orders/order.cancel.modal.tsx";
 import {OrderRefundModal} from "@/components/orders/order.refund.modal.tsx";
 import {getOrderFilteredItems} from "@/lib/order.ts";
+import useApi, {SettingsData} from "@/api/db/use.api.ts";
+import { Tables } from "@/api/db/tables";
+import {Tax} from "@/api/model/tax.ts";
 
 interface Props {
   order: OrderModel
@@ -60,6 +63,14 @@ export const OrderBox = ({
   const mergingOrderIds = useMemo(() => {
     return mergingOrders.map(item => item.id.toString());
   }, [mergingOrders]);
+
+  const {
+    data: taxes
+  } = useApi<SettingsData<Tax>>(Tables.taxes);
+
+  const printTempBill = () => {
+    void dispatchPrint(db, PRINT_TYPE.presale_bill, { order, taxes: taxes?.data }, { userId: page?.user?.id });
+  }
 
   return (
     <>
@@ -148,7 +159,7 @@ export const OrderBox = ({
                 className="flex-1"
                 onAction={(key) => {
                   if (key === 'temp_bill') {
-                    void dispatchPrint(db, PRINT_TYPE.presale_bill, { order }, { userId: page?.user?.id });
+                    printTempBill();
                   }
 
                   if (key === 'final_bill') {
@@ -218,9 +229,7 @@ export const OrderBox = ({
               </Dropdown>
               {order.status === OrderStatus["In Progress"] && (
                 <>
-                  <Button onClick={() => {
-                    void dispatchPrint(db, PRINT_TYPE.presale_bill, { order }, { userId: page?.user?.id });
-                  }} variant="primary" flat size="lg" className="flex-1" icon={faPrint}>Temp bill</Button>
+                  <Button onClick={printTempBill} variant="primary" flat size="lg" className="flex-1" icon={faPrint}>Temp bill</Button>
                   <Button variant="warning" filled size="lg" className="flex-1" onClick={() => setPayment(true)}
                           icon={faCreditCard}>
                     Pay Now

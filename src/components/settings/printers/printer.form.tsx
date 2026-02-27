@@ -2,7 +2,7 @@ import { Printer } from "@/api/model/printer.ts";
 import { useEffect } from "react";
 import { useDB } from "@/api/db/db.ts";
 import { Tables } from "@/api/db/tables.ts";
-import { Controller, useForm } from "react-hook-form";
+import {Controller, useForm, useWatch} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Modal } from "@/components/common/react-aria/modal.tsx";
@@ -20,13 +20,15 @@ interface Props {
 
 const validationSchema = z.object({
   name: z.string().min(1, "This is required"),
-  ip_address: z.string().min(1, "This is required"),
-  port: z.number({message: "Invalid Port number"}).min(1, "This is required"),
+  ip_address: z.string().optional(),
+  port: z.number({message: "Invalid Port number"}).optional(),
   prints: z.number({message: "This is required"}).min(1, "This is required"),
   type: z.object({
     label: z.string(),
     value: z.string()
   }).nullable().optional(),
+  vid: z.string().optional(),
+  pid: z.string().optional()
 });
 
 export const PrinterForm = ({
@@ -34,14 +36,6 @@ export const PrinterForm = ({
 }: Props) => {
   const closeModal = () => {
     onClose();
-    reset({
-      name: null,
-      ip_address: null,
-      port: null,
-      prints: null,
-      priority: null,
-      type: null
-    });
   }
 
   const { register, control, handleSubmit, formState: {errors}, reset } = useForm({
@@ -67,8 +61,6 @@ export const PrinterForm = ({
 
   const db = useDB();
 
-  console.log(errors)
-
   const onSubmit = async (values: any) => {
     const vals = {
       ...values,
@@ -93,6 +85,11 @@ export const PrinterForm = ({
       console.log(e)
     }
   }
+
+  const type = useWatch({
+    name: 'type',
+    control: control
+  })
 
   return (
     <>
@@ -123,26 +120,91 @@ export const PrinterForm = ({
                 control={control}
               />
             </div>
-            <div className="flex-1 flex gap-3">
-              <div className="flex-1">
-                <Input label="Path" {...register('ip_address')} error={errors?.ip_address?.message}/>
+            {type?.value === 'Network' && (
+              <div className="flex-1 flex gap-3">
+                <div className="flex-1">
+                  <Controller
+                    name="ip_address"
+                    control={control}
+                    render={({field}) => (
+                      <Input
+                        label="Path"
+                        value={transformValue.input(field.value)}
+                        onChange={field.onChange}
+                        error={errors?.ip_address?.message}/>
+                    )}
+                  />
+
+                </div>
+                <div className="flex-1">
+                  <Controller
+                    render={({ field }) => (
+                      <Input
+                        type="number"
+                        label="Port"
+                        error={errors?.port?.message}
+                        value={transformValue.input(field.value)}
+                        onChange={(e) => field.onChange(transformValue.output(e))}
+                      />
+                    )}
+                    name="port"
+                    control={control}
+                  />
+                </div>
               </div>
-              <div className="flex-1">
-                <Controller
-                  render={({ field }) => (
-                    <Input
-                      type="number"
-                      label="Port"
-                      error={errors?.port?.message}
-                      value={transformValue.input(field.value)}
-                      onChange={(e) => field.onChange(transformValue.output(e))}
-                    />
-                  )}
-                  name="port"
-                  control={control}
-                />
+            )}
+
+            {type?.value === 'USB' && (
+              <div className="flex-1 flex gap-3">
+                <div className="flex-1">
+                  <Controller
+                    name="vid"
+                    control={control}
+                    render={({field}) => (
+                      <Input
+                        label="VID"
+                        value={field.value}
+                        onChange={field.onChange}
+                        error={errors?.vid?.message}/>
+                    )}
+                  />
+
+                </div>
+                <div className="flex-1">
+                  <Controller
+                    render={({ field }) => (
+                      <Input
+                        label="PID"
+                        error={errors?.pid?.message}
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                    name="pid"
+                    control={control}
+                  />
+                </div>
               </div>
-            </div>
+            )}
+
+            {(type?.value === 'Bluetooth' || type?.value === 'Serial') && (
+              <div className="flex-1 flex gap-3">
+                <div className="flex-1">
+                  <Controller
+                    name="path"
+                    control={control}
+                    render={({field}) => (
+                      <Input
+                        label="Path"
+                        value={field.value}
+                        onChange={field.onChange}
+                        error={errors?.path?.message}/>
+                    )}
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="flex-1">
               <Controller
                 render={({ field }) => (

@@ -1,5 +1,7 @@
 'use strict';
 
+const { calculateOrderItemPricePrint } = require('./order-mapping');
+
 const safeNumber = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
@@ -16,10 +18,10 @@ function getFilteredItems(order) {
 }
 
 /**
- * Item line total. Mirrors calculateOrderItemPrice but without modifiers (price * quantity).
+ * Item line total including modifiers (mirrors calculateOrderItemPrice).
  */
 function itemLineTotal(it) {
-  return safeNumber((it.price || 0) * (it.quantity ?? 1));
+  return safeNumber(calculateOrderItemPricePrint(it));
 }
 
 /**
@@ -33,12 +35,12 @@ function getVoidedItems(order) {
 }
 
 /**
- * Compute summary from { orders: { data: Order[] }, date } to match Summary (summary.tsx) props and logic.
- * @param {{ orders?: { data?: unknown[] }, date?: string }} props - same as Summary props
+ * Compute summary from { orders: Order[], date } to match Summary (summary.tsx) props and logic.
+ * @param {{ orders?: unknown[], date?: string }} props - same as Summary props
  * @returns {Object} flat summary for printing
  */
 function computeSummary(props) {
-  const orders = props?.orders?.data || [];
+  const orders = Array.isArray(props?.orders) ? props.orders : [];
   const date = props?.date || new Date().toLocaleDateString();
 
   // Sale price without tax (items total, using price*quantity)

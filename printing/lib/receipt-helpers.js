@@ -12,18 +12,44 @@ const DEFAULTS = {
   topMargin: 0,
   leftMargin: 0,
   rightMargin: 0,
+  bottomDescription: '',
+  topDescription: '',
+  companyAddress: '',
   companyName: '',
   logo: '',
+  showBottomDescription: false,
+  showCompanyAddress: false,
   showCompanyName: false,
+  showItemNumber: false,
   showItemName: true,
-  showItemPrice: true,
+  showItemPrice: false,
   showItemQuantity: true,
   showItemTotal: false,
+  showLogo: false,
+  showTopDescription: false,
   showVatNumber: false,
   vatName: 'VAT',
   vatNumber: '',
   currencySymbol: '$',
 };
+
+/**
+ * Normalize logo to a base64 or data URI string. Handles array (from DB), string, or buffer-like.
+ * @param {*} logo
+ * @returns {string}
+ */
+function normalizeLogo(logo) {
+  if (logo == null || logo === '') return '';
+  if (typeof logo === 'string') return logo.trim();
+  let buf;
+  if (Buffer.isBuffer(logo)) buf = logo;
+  else if (logo instanceof Uint8Array) buf = Buffer.from(logo);
+  else if (logo instanceof ArrayBuffer) buf = Buffer.from(logo);
+  else if (Array.isArray(logo)) buf = Buffer.from(logo);
+  else return '';
+  if (buf.length === 0) return '';
+  return `data:image/png;base64,${buf.toString('base64')}`;
+}
 
 /**
  * Normalize printer config from request.
@@ -41,13 +67,21 @@ function normalizeConfig(c = {}) {
     topMargin: num(c.topMargin, DEFAULTS.topMargin),
     leftMargin: num(c.leftMargin, DEFAULTS.leftMargin),
     rightMargin: num(c.rightMargin, DEFAULTS.rightMargin),
+    bottomDescription: String(n(c.bottomDescription, DEFAULTS.bottomDescription)),
+    topDescription: String(n(c.topDescription, DEFAULTS.topDescription)),
+    companyAddress: String(n(c.companyAddress, DEFAULTS.companyAddress)),
     companyName: String(n(c.companyName, DEFAULTS.companyName)),
-    logo: n(c.logo, DEFAULTS.logo),
+    logo: normalizeLogo(c.logo) || DEFAULTS.logo,
+    showBottomDescription: Boolean(c.showBottomDescription !== undefined ? c.showBottomDescription : DEFAULTS.showBottomDescription),
+    showCompanyAddress: Boolean(c.showCompanyAddress !== undefined ? c.showCompanyAddress : DEFAULTS.showCompanyAddress),
     showCompanyName: Boolean(c.showCompanyName !== undefined ? c.showCompanyName : DEFAULTS.showCompanyName),
+    showItemNumber: Boolean(c.showItemNumber !== undefined ? c.showItemNumber : DEFAULTS.showItemNumber),
     showItemName: Boolean(c.showItemName !== undefined ? c.showItemName : DEFAULTS.showItemName),
     showItemPrice: Boolean(c.showItemPrice !== undefined ? c.showItemPrice : DEFAULTS.showItemPrice),
     showItemQuantity: Boolean(c.showItemQuantity !== undefined ? c.showItemQuantity : DEFAULTS.showItemQuantity),
     showItemTotal: Boolean(c.showItemTotal !== undefined ? c.showItemTotal : DEFAULTS.showItemTotal),
+    showLogo: Boolean(c.showLogo !== undefined ? c.showLogo : DEFAULTS.showLogo),
+    showTopDescription: Boolean(c.showTopDescription !== undefined ? c.showTopDescription : DEFAULTS.showTopDescription),
     showVatNumber: Boolean(c.showVatNumber !== undefined ? c.showVatNumber : DEFAULTS.showVatNumber),
     vatName: String(n(c.vatName, DEFAULTS.vatName) || 'VAT'),
     vatNumber: String(n(c.vatNumber, DEFAULTS.vatNumber)),
@@ -63,7 +97,7 @@ function normalizeConfig(c = {}) {
  */
 function formatMoney(amount, symbol) {
   const s = symbol != null ? symbol : '$';
-  return s + Number(amount || 0).toFixed(2);
+  return s + Number(amount || 0).toFixed(0);
 }
 
 /**
@@ -99,7 +133,8 @@ function applyMargins(printer, config) {
 }
 
 /**
- * Print logo from base64 or data URI. No-op if logo is empty. Resolves on success or on skip/error.
+ * Print logo from base64 or data URI. Loads image from buffer (get-pixels supports Buffer), then awaits printer.image() so it finishes before continuing.
+ * No-op if logo is empty. Resolves on success or on skip/error.
  * @param {Object} printer - escpos Printer
  * @param {string} logo - base64 string, or data:image/...;base64,...
  * @returns {Promise<void>}
@@ -118,9 +153,6 @@ function printLogo(printer, logo) {
     b64 = dataUri[2];
   }
 
-  const ext = mime.includes('jpeg') || mime.includes('jpg') ? '.jpg' : '.png';
-  const tmpPath = path.join(os.tmpdir(), `posr-logo-${Date.now()}${ext}`);
-
   return new Promise((resolve) => {
     let buf;
     try {
@@ -130,21 +162,20 @@ function printLogo(printer, logo) {
     }
     if (buf.length === 0) return resolve();
 
-    fs.writeFile(tmpPath, buf, (writeErr) => {
-      if (writeErr) return resolve();
-
-      Image.load(tmpPath, mime, (loadErr, img) => {
-        const done = () => {
-          fs.unlink(tmpPath, () => {});
-          resolve();
-        };
-        if (loadErr || !img) return done();
+    // get-pixels accepts (Buffer, mimeType, callback) – no file needed
+    Image.load(buf, mime, (loadErr, img) => {
+      if (loadErr || !img) {
+        return resolve();
+      }
+      (async () => {
         try {
           printer.align('ct');
-          printer.image(img, 'd24');
-        } catch (e) { /* ignore */ }
-        done();
-      });
+          await printer.image(img, 's24');
+        } catch (e) {
+          // ignore
+        }
+        resolve();
+      })();
     });
   });
 }
@@ -157,6 +188,30 @@ function printLogo(printer, logo) {
 function printCompanyName(printer, config) {
   if (!config.showCompanyName || !config.companyName) return;
   printer.align('ct').text(config.companyName);
+}
+
+/**
+ * Print top description when showTopDescription is true.
+ */
+function printTopDescription(printer, config) {
+  if (!config.showTopDescription || !config.topDescription) return;
+  printer.align('ct').text(String(config.topDescription).slice(0, 48));
+}
+
+/**
+ * Print company address when showCompanyAddress is true.
+ */
+function printCompanyAddress(printer, config) {
+  if (!config.showCompanyAddress || !config.companyAddress) return;
+  printer.align('ct').text(String(config.companyAddress).slice(0, 48));
+}
+
+/**
+ * Print bottom description when showBottomDescription is true (called before cut).
+ */
+function printBottomDescription(printer, config) {
+  if (!config.showBottomDescription || !config.bottomDescription) return;
+  printer.align('ct').text(String(config.bottomDescription).slice(0, 48));
 }
 
 /**
@@ -180,20 +235,29 @@ function feedBottomMargin(printer, config) {
 }
 
 /**
- * Build receipt header: margins, logo, company name. Async when logo is present.
+ * Build receipt header: margins, logo (if showLogo), company name, address, top description. Async when logo is present.
  * @param {Object} printer - escpos Printer
  * @param {Object} config - normalized config
  * @returns {Promise<void>}
  */
 function printReceiptHeader(printer, config) {
   applyMargins(printer, config);
-  return printLogo(printer, config.logo).then(() => {
+  // GS ! 0x00 = reset character magnification to 1x width, 1x height
+  printer.buffer.write('\x1d\x21\x00');
+  printer.style('normal');
+  const logoPromise = config.showLogo && config.logo
+    ? printLogo(printer, config.logo)
+    : Promise.resolve();
+  return logoPromise.then(() => {
     printCompanyName(printer, config);
+    printCompanyAddress(printer, config);
+    printTopDescription(printer, config);
   });
 }
 
 /**
  * Format a single item line for text() based on config flags.
+ * Used by kitchen-print, where we print a simple text line instead of tableCustom.
  * @param {Object} item - { name, qty, price, total? }
  * @param {Object} config - normalized config
  * @returns {string}
@@ -201,74 +265,130 @@ function printReceiptHeader(printer, config) {
 function formatItemLine(item, config) {
   const name = (item.name || item.title || '').slice(0, 28);
   const qty = item.qty != null ? item.qty : 1;
-  const price = item.price != null ? Number(item.price) : 0;
-  const total = item.total != null ? Number(item.total) : price * qty;
+  const price = item.price != null ? Number(price) : 0;
+  const total = item.total != null ? Number(total) : price * qty;
+  const dp = typeof config.decimal_place === 'number' ? config.decimal_place : 0;
 
   const parts = [];
-  if (config.showItemName) parts.push(name);
+  // For the simple text line we ignore item number; that's for table layout only.
+  if (config.showItemName !== false) parts.push(name);
   if (config.showItemQuantity) parts.push(`x${qty}`);
-  if (config.showItemPrice) parts.push(price.toFixed(2));
-  if (config.showItemTotal) parts.push(total.toFixed(2));
+  if (config.showItemPrice) parts.push(price.toFixed(dp));
+  if (config.showItemTotal) parts.push(total.toFixed(dp));
   return parts.join('  ');
 }
 
 /**
- * Build tableCustom row for item based on config. Returns array of { text, align, width }.
- * @param {Object} item - { name, qty, price, total? }
+ * Build left/right strings for one item line (for printLineLeftRight so total stays on one line).
+ * @param {Object} item - { name, qty, price, total?, modifierNames? }
  * @param {Object} config - normalized config
- * @returns {{ cells: Array<{ text, align, width }>, totalWidth: number }}
+ * @returns {{ left: string, right: string }}
  */
-function getItemTableRow(item, config) {
-  const name = (item.name || item.title || '').slice(0, 20);
+function getItemLineLeftRight(item, config) {
+  const name = (item.name || item.title || '').slice(0, 18);
   const qty = item.qty != null ? item.qty : 1;
   const price = item.price != null ? Number(item.price) : 0;
-  const lineTotal = (item.total != null ? Number(item.total) : price * qty).toFixed(2);
+  const lineTotal = item.total != null ? Number(item.total) : price * qty;
+  const dp = typeof config.decimal_place === 'number' ? config.decimal_place : 0;
 
-  const cells = [];
-  if (config.showItemName) cells.push({ text: name, align: 'LEFT', width: 1 });
-  if (config.showItemQuantity) cells.push({ text: String(qty), align: 'CENTER', width: 1 });
-  if (config.showItemPrice) cells.push({ text: price.toFixed(2), align: 'RIGHT', width: 1 });
-  if (config.showItemTotal) cells.push({ text: lineTotal, align: 'RIGHT', width: 1 });
+  const left = (config.showItemName !== false ? name : '') || '-';
+  const rightParts = [];
+  if (config.showItemQuantity) rightParts.push(String(qty));
+  if (config.showItemPrice) rightParts.push(price.toFixed(dp));
+  if (config.showItemTotal) rightParts.push(lineTotal.toFixed(dp));
 
-  if (cells.length === 0) cells.push({ text: name || '-', align: 'LEFT', width: 1 });
+  return {
+    left,
+    right: rightParts.join('  ') || '',
+  };
+}
 
-  const n = cells.length;
-  const w = 1 / n;
-  cells.forEach((c) => { c.width = w; });
+// Item column widths: must sum to 42 (default printer width).
+const ITEM_COL_NAME = 22;
+const ITEM_COL_QTY = 3;
+const ITEM_COL_RATE = 7;
+const ITEM_COL_TOTAL = 10;
 
-  return { cells, totalWidth: 1 };
+function padRight(str, len) {
+  str = String(str);
+  return str.length >= len ? str.slice(0, len) : str + ' '.repeat(len - str.length);
+}
+
+function padLeft(str, len) {
+  str = String(str);
+  return str.length >= len ? str.slice(0, len) : ' '.repeat(len - str.length) + str;
 }
 
 /**
- * Build tableCustom header row for final receipt based on config.
+ * Build a single fixed-width item line string (no tableCustom, avoids leftoverSpace bug).
+ * @param {Object} item - { name, qty, price, total? }
  * @param {Object} config - normalized config
- * @returns {Array<{ text, align, width }>}
+ * @returns {string}
  */
-function getItemTableHeader(config) {
-  const cells = [];
-  if (config.showItemName) cells.push({ text: 'Item', align: 'LEFT', width: 1 });
-  if (config.showItemQuantity) cells.push({ text: 'Qty', align: 'CENTER', width: 1 });
-  if (config.showItemPrice) cells.push({ text: 'Price', align: 'RIGHT', width: 1 });
-  if (config.showItemTotal) cells.push({ text: 'Total', align: 'RIGHT', width: 1 });
-  if (cells.length === 0) cells.push({ text: 'Item', align: 'LEFT', width: 1 });
+function buildItemRowString(item, config) {
+  const name = (item.name || item.title || '').slice(0, ITEM_COL_NAME);
+  const qty = item.qty != null ? item.qty : 1;
+  const price = item.price != null ? Number(item.price) : 0;
+  const lineTotal = item.total != null ? Number(item.total) : price * qty;
+  const dp = typeof config.decimal_place === 'number' ? config.decimal_place : 0;
 
-  const n = cells.length;
-  const w = 1 / n;
-  cells.forEach((c) => { c.width = w; });
-  return cells;
+  let line = '';
+  if (config.showItemName !== false) line += padRight(name, ITEM_COL_NAME);
+  if (config.showItemQuantity) line += padLeft(String(qty), ITEM_COL_QTY);
+  if (config.showItemPrice) line += padLeft(price.toFixed(dp), ITEM_COL_RATE);
+  if (config.showItemTotal) line += padLeft(lineTotal.toFixed(dp), ITEM_COL_TOTAL);
+  return line || name || '-';
+}
+
+/**
+ * Build the fixed-width header line string for item table.
+ * @param {Object} config - normalized config
+ * @returns {string}
+ */
+function buildItemHeaderString(config) {
+  let line = '';
+  if (config.showItemName !== false) line += padRight('Item', ITEM_COL_NAME);
+  if (config.showItemQuantity) line += padLeft('Qty', ITEM_COL_QTY);
+  if (config.showItemPrice) line += padLeft('Rate', ITEM_COL_RATE);
+  if (config.showItemTotal) line += padLeft('Ttl', ITEM_COL_TOTAL);
+  return line || 'Item';
+}
+
+/**
+ * Print one bill item line (left/right so total doesn't wrap) and modifier names indented with 2 spaces.
+ * @param {Object} printer - escpos Printer
+ * @param {Object} item - { name, qty, price, total?, modifierNames? }
+ * @param {Object} config - normalized config
+ */
+function printBillItemLine(printer, item, config) {
+  const { left, right } = getItemLineLeftRight(item, config);
+  printLineLeftRight(printer, left, right);
+  const names = item.modifierNames;
+  if (Array.isArray(names) && names.length > 0) {
+    printer.align('lt');
+    names.forEach((modName) => {
+      printer.text('  ' + (modName || '').trim());
+    });
+  }
 }
 
 module.exports = {
   normalizeConfig,
+  normalizeLogo,
   applyMargins,
   printLogo,
   printCompanyName,
+  printCompanyAddress,
+  printTopDescription,
+  printBottomDescription,
   printVatLine,
   feedBottomMargin,
   printReceiptHeader,
   formatItemLine,
-  getItemTableRow,
-  getItemTableHeader,
+  getItemLineLeftRight,
+  printBillItemLine,
+  buildItemRowString,
+  buildItemHeaderString,
   formatMoney,
   printLineLeftRight,
 };

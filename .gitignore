@@ -32,3 +32,6 @@ posr.db1
 database/clog
 database/manifest
 .orchids
+
+# Print service persisted logo (written at runtime)
+printing/data

@@ -9,7 +9,7 @@ function pct(x, of) {
 }
 
 /**
- * Print summary layout matching Summary (summary.tsx). Expects data: { orders: { data: Order[] }, date }.
+ * Print summary layout matching Summary (summary.tsx). Expects data: { orders: Order[], date }.
  */
 function printSummaryLayout(printer, data, config) {
   const cfg = config || {};
@@ -27,21 +27,21 @@ function printSummaryLayout(printer, data, config) {
 
   line('Exclusive amount', formatMoney(s.exclusive, sym));
   line('G sales', formatMoney(s.gSales, sym));
-  printer.text('  Items total (before tax)');
+  // printer.text('  Items total (before tax)');
   line('Gross', formatMoney(s.gross, sym));
-  printer.text('  Amount collected + Refunds + Discounts');
+  // printer.text('  Amount collected + Refunds + Discounts');
   line('Refunds', formatMoney(s.refunds, sym));
   line('Service charges', formatMoney(s.serviceCharges, sym));
   line('Discounts', formatMoney(s.discounts, sym));
   line('Taxes', formatMoney(s.taxes, sym));
   line('Net', formatMoney(s.net, sym));
-  printer.text('  Amount collected - Service charges - Taxes');
+  // printer.text('  Amount collected - Service charges - Taxes');
   line('Amount due', formatMoney(s.amountDue, sym));
-  printer.text('  Items total + Taxes + Service + Extras - Discounts');
+  // printer.text('  Items total + Taxes + Service + Extras - Discounts');
   line('Amount collected', formatMoney(s.amountCollected, sym));
   line('Extras', formatMoney(s.totalExtras, sym));
   line('Rounding', formatMoney(s.rounding, sym));
-  printer.text('  Amount collected - Amount due');
+  // printer.text('  Amount collected - Amount due');
   line('Voids', formatMoney(s.voids, sym));
 
   sect('Tips');
@@ -56,12 +56,12 @@ function printSummaryLayout(printer, data, config) {
   Object.keys(s.categories || {}).forEach((k) => {
     const c = s.categories[k];
     const p = formatNum(pct(c.total, s.exclusive)) + '%';
+    const label = String(k).slice(0, 20) + ' x' + formatNum(c.quantity);
     printer.tableCustom(
       [
-        { text: String(k).slice(0, 16), align: 'LEFT', width: 0.35 },
-        { text: formatNum(c.quantity), align: 'RIGHT', width: 0.2 },
-        { text: formatMoney(c.total, sym), align: 'RIGHT', width: 0.25 },
-        { text: p, align: 'RIGHT', width: 0.2 },
+        { text: label, align: 'LEFT', width: 0.4 },
+        { text: formatMoney(c.total, sym), align: 'RIGHT', width: 0.3 },
+        { text: p, align: 'RIGHT', width: 0.3 },
       ],
       { size: [1, 1] }
     );
@@ -71,12 +71,12 @@ function printSummaryLayout(printer, data, config) {
   Object.keys(s.dishes || {}).forEach((k) => {
     const d = s.dishes[k];
     const p = formatNum(pct(d.total, s.exclusive)) + '%';
+    const label = String(k).slice(0, 20) + ' x' + formatNum(d.quantity);
     printer.tableCustom(
       [
-        { text: String(k).slice(0, 16), align: 'LEFT', width: 0.35 },
-        { text: formatNum(d.quantity), align: 'RIGHT', width: 0.2 },
-        { text: formatMoney(d.total, sym), align: 'RIGHT', width: 0.25 },
-        { text: p, align: 'RIGHT', width: 0.2 },
+        { text: label, align: 'LEFT', width: 0.4 },
+        { text: formatMoney(d.total, sym), align: 'RIGHT', width: 0.3 },
+        { text: p, align: 'RIGHT', width: 0.3 },
       ],
       { size: [1, 1] }
     );

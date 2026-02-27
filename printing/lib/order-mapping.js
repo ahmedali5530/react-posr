@@ -6,6 +6,80 @@
  * OrderItem: { item (Dish), quantity, price, comments, deleted_at, is_refunded, is_suspended, modifiers, ... }
  */
 
+/**
+ * Calculate MenuItem price including modifier groups (mirrors src/lib/cart.ts calculateCartItemPrice).
+ * @param {Object} item - Cart/Menu item with { price, quantity, selectedGroups? }
+ * @returns {number}
+ */
+function calculateCartItemPricePrint(item) {
+  if (!item) return 0;
+  const qty = item.quantity != null ? item.quantity : 1;
+  let price = Number(item.price || 0) * qty;
+
+  if (Array.isArray(item.selectedGroups)) {
+    price += item.selectedGroups.reduce((prev, group) => {
+      if (!group || !Array.isArray(group.selectedModifiers)) return prev;
+      return (
+        prev +
+        group.selectedModifiers.reduce((mPrev, mItem) => {
+          if (!mItem) return mPrev;
+          return mPrev + calculateCartItemPricePrint(mItem);
+        }, 0)
+      );
+    }, 0);
+  }
+
+  return price;
+}
+
+/**
+ * Calculate OrderItem line total including modifiers (mirrors src/lib/cart.ts calculateOrderItemPrice).
+ * @param {Object} item - OrderItem with { price, quantity, modifiers? }
+ * @returns {number}
+ */
+function calculateOrderItemPricePrint(item) {
+  if (!item) return 0;
+  const qty = item.quantity != null ? item.quantity : 1;
+  let price = Number(item.price || 0) * qty;
+
+  if (Array.isArray(item.modifiers)) {
+    price += item.modifiers.reduce((prev, modifier) => {
+      const groups = modifier && modifier.selectedModifiers;
+      if (!Array.isArray(groups)) return prev;
+      return (
+        prev +
+        groups.reduce((smPrev, smG) => {
+          if (!smG) return smPrev;
+          return smPrev + calculateCartItemPricePrint(smG);
+        }, 0)
+      );
+    }, 0);
+  }
+
+  return price;
+}
+
+/**
+ * Get modifier display names from an order item (OrderItem).
+ * modifiers[].selectedModifiers[].dish.name – names only, no price.
+ * @param {Object} orderItem - raw order item with modifiers
+ * @returns {string[]}
+ */
+function getOrderItemModifierNames(orderItem) {
+  if (!orderItem || !Array.isArray(orderItem.modifiers)) return [];
+  const names = [];
+  orderItem.modifiers.forEach((group) => {
+    if (!group || !Array.isArray(group.selectedModifiers)) return;
+    group.selectedModifiers.forEach((sel) => {
+      if (!sel) return;
+      const dish = sel.dish || sel.item;
+      const n = (dish && (dish.name || dish.title)) || '';
+      if (n) names.push(String(n).trim());
+    });
+  });
+  return names;
+}
+
 function getOrderId(order) {
   if (!order) return '';
   const n = order.invoice_number;
@@ -16,7 +90,7 @@ function getOrderId(order) {
 /**
  * Filter order items: exclude deleted, refunded, suspended.
  * @param {Object} order
- * @returns {Array<{ name, qty, price, total, notes }>}
+ * @returns {Array<{ name, qty, price, total, notes, modifierNames }>}
  */
 function getOrderItems(order) {
   if (!order || !Array.isArray(order.items)) return [];
@@ -26,10 +100,12 @@ function getOrderItems(order) {
       const dish = it.item || it.dish;
       const name = (dish && (dish.name || dish.title)) || '';
       const qty = it.quantity != null ? it.quantity : 1;
-      const price = it.price != null ? Number(it.price) : 0;
-      const total = price * qty;
+      const lineTotal = calculateOrderItemPricePrint(it);
+      const price = qty > 0 ? lineTotal / qty : 0;
+      const total = lineTotal;
       const notes = it.comments || '';
-      return { name, qty, price, total, notes };
+      const modifierNames = getOrderItemModifierNames(it);
+      return { name, qty, price, total, notes, modifierNames };
     });
 }
 
@@ -99,7 +175,7 @@ function getOrderPaymentSummary(order, total) {
  */
 function getOrderTotals(order) {
   const items = getOrderItems(order);
-  const itemsTotal = items.reduce((s, it) => s + (it.price * it.qty), 0);
+  const itemsTotal = items.reduce((s, it) => s + Number(it.total != null ? it.total : it.price * it.qty), 0);
   const discountAmount = Number(order.discount_amount || 0);
   const extrasTotal = (order.extras || []).reduce((s, e) => s + Number(e.value || 0), 0);
   const tax = Number(order.tax_amount || 0);
@@ -294,8 +370,9 @@ function getRefundOrderItems(order) {
     const dish = it.item || it.dish;
     const name = (dish && (dish.name || dish.title)) || '';
     const qty = it.quantity != null ? it.quantity : 1;
-    const price = it.price != null ? Number(it.price) : 0;
-    const total = price * qty;
+    const lineTotal = calculateOrderItemPricePrint(it);
+    const price = qty > 0 ? lineTotal / qty : 0;
+    const total = lineTotal;
     return { name, qty, price, total };
   });
 }
@@ -348,6 +425,8 @@ module.exports = {
   getOrderDate,
   getOrderCreatedAt,
   getOrderPriority,
+  getOrderItemModifierNames,
+  calculateOrderItemPricePrint,
   mapOrderToTemp,
   mapOrderToFinal,
   mapOrderToDelivery,

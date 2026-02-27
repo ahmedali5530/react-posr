@@ -10,6 +10,7 @@ import { Printer } from "@/api/model/printer.ts";
 import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
 import { toast } from "sonner";
 import { appPage } from "@/store/jotai.ts";
+import {toRecordId} from "@/lib/utils.ts";
 
 const PRINTER_SETTING_KEYS = {
   temp_print_printers: "temp_print_printers",
@@ -151,7 +152,7 @@ export const Printersettings = () => {
         const existing = rows.find((r) => (r?.user?.toString()) === recordIdToCompareString(userId.toString()));
 
         if (existing?.id) {
-          await db.merge(recordIdToCompareString(existing.id) || existing.id, { values: value });
+          await db.merge(toRecordId(existing.id), { values: value });
         } else {
           await db.create(Tables.settings, {
             key,

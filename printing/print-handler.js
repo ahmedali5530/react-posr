@@ -4,7 +4,7 @@ const escpos = require('escpos');
 const { createDevice } = require('./drivers');
 const { getBuilder } = require('./print-builders');
 
-const DEFAULT_OPTIONS = { encoding: 'UTF-8', width: 39 };
+const DEFAULT_OPTIONS = { encoding: 'UTF-8', width: 42 };
 
 /**
  * Open device, create Printer, run build, then close.

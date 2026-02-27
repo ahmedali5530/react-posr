@@ -5,6 +5,9 @@ const {
   formatMoney,
   printVatLine,
   feedBottomMargin,
+  printBottomDescription,
+  buildItemRowString,
+  buildItemHeaderString,
 } = require('./receipt-helpers');
 
 /**
@@ -12,7 +15,7 @@ const {
  * @param {Object} printer - escpos Printer
  * @param {Object} bill - from mapOrderToTemp/Final/Delivery
  * @param {Object} config - normalized config (currencySymbol, showVatNumber, vatName, vatNumber)
- * @param {Object} opts - { title, address?, phone?, notes?, thankYou?, showPayments?, showChange?, showDeliveryLine? }
+ * @param {Object} opts - { title, address?, phone?, notes?, thankYou?, showPayments?, showChange?, showDeliveryLine?, isFinal? }
  */
 function printBillLayout(printer, bill, config, opts) {
   const cfg = config || {};
@@ -26,29 +29,43 @@ function printBillLayout(printer, bill, config, opts) {
     showPayments = false,
     showChange = false,
     showDeliveryLine = false,
+    isFinal = false,
   } = opts || {};
 
   // --- Header (CommonBillParts) ---
   printer.align('ct').style('bu').text(title || 'Bill').style('normal');
+  printer.style('normal');
   printLineLeftRight(printer, `Invoice# ${bill.orderId || ''}`, bill.date || '');
   printLineLeftRight(printer, bill.table || '', bill.userName || '');
   if (address) printer.text(`Address: ${String(address).slice(0, 40)}`);
   if (phone) printer.text(`Phone: ${String(phone)}`);
   printer.drawLine();
 
-  // --- Items: "Name xQty" left, "$lineTotal" right ---
+  // --- Items ---
+  printer.align('lt');
+  printer.style('b').text(buildItemHeaderString(cfg)).style('normal');
   (bill.items || []).forEach((it) => {
-    const name = (it.name || it.title || '').slice(0, 28);
-    const qty = it.qty != null ? it.qty : 1;
-    const lineTotal = it.total != null ? Number(it.total) : (it.price || 0) * qty;
-    printLineLeftRight(printer, `${name} x${qty}`, formatMoney(lineTotal, sym));
+    printer.text(buildItemRowString(it, cfg));
+    const names = it.modifierNames;
+    if (Array.isArray(names) && names.length > 0) {
+      names.forEach((modName) => {
+        printer.text('  ' + (modName || '').trim());
+      });
+    }
   });
   printer.drawLine();
 
   // --- Summary (CommonBillParts order): Items(n), Tax, Discount, Service charges, extras, Tip; optionally Delivery ---
   printLineLeftRight(printer, `Items (${bill.itemsCount || 0})`, formatMoney(bill.itemsTotal, sym));
   if (bill.tax != null && Number(bill.tax) !== 0) {
+    // Aggregate tax line
     printLineLeftRight(printer, `Tax (${bill.taxLabel || 'Tax'})`, formatMoney(bill.tax, sym));
+    // When detailed taxes are provided (taxes array on order), print each tax line under the total.
+    if (Array.isArray(bill.taxLines) && bill.taxLines.length > 0) {
+      bill.taxLines.forEach((t) => {
+        printLineLeftRight(printer, t.label || 'Tax', formatMoney(t.amount, sym));
+      });
+    }
   }
   if (bill.discount && bill.discountAmount != null && Number(bill.discountAmount) !== 0) {
     printLineLeftRight(printer, 'Discount', formatMoney(bill.discountAmount, sym));
@@ -68,9 +85,16 @@ function printBillLayout(printer, bill, config, opts) {
   printer.drawLine();
 
   // --- Total (bold) ---
-  printer.style('bu');
-  printLineLeftRight(printer, 'Total', formatMoney(bill.total, sym));
-  printer.style('normal');
+  if (Array.isArray(bill.totalRows) && bill.totalRows.length > 0) {
+    // Temp print: when totalRows is provided, show per-tax totals instead of a single Total line.
+    bill.totalRows.forEach((row) => {
+      printLineLeftRight(printer, row.label || 'Total', formatMoney(row.amount, sym));
+    });
+  } else {
+    printer.style('bu');
+    printLineLeftRight(printer, 'Total', formatMoney(bill.total, sym));
+    printer.style('normal');
+  }
 
   // --- Payments and Change (final.bill: each payment, then Change) ---
   if (showPayments && Array.isArray(bill.payments) && bill.payments.length > 0) {
@@ -95,7 +119,19 @@ function printBillLayout(printer, bill, config, opts) {
     printer.feed(1).align('ct').text(thankYou).feed(2);
   }
 
+  if (isFinal) {
+    printer.drawLine();
+    printer.align('ct').style('b').text('Check Closed').style('normal');
+  }
+
+  printBottomDescription(printer, cfg);
   feedBottomMargin(printer, cfg);
+
+  // --- Timestamp: always last before cut ---
+  const now = new Date();
+  const ts = now.toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+  printer.align('ct').text(ts);
+
   printer.feed(1).cut();
 }
 

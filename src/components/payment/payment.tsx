@@ -23,7 +23,13 @@ export const Payment = () => {
   const [isLoading, setLoading] = useState(false);
 
   const total = useMemo(() => {
-    return state.cart.reduce((prev, item) => prev + calculateCartItemPrice(item), 0);
+    return state.cart.reduce((prev, item) => {
+      if(!item.deleted_at) {
+        return prev + calculateCartItemPrice(item);
+      }
+
+      return prev;
+    }, 0);
   }, [state.cart]);
 
   const nextInvoiceNumber = async () => {
@@ -97,7 +103,10 @@ export const Payment = () => {
               kitchenItems[k.id.toString()] = [];
             }
 
-            kitchenItems[k.id.toString()].push(record[0]);
+            kitchenItems[k.id.toString()].push({
+              ...record[0],
+              item: item.dish,
+            });
           }
         }
       }
@@ -146,20 +155,22 @@ export const Payment = () => {
         }
       }
 
-      const [kitchens]: any = await db.query(`SELECT * from ${Tables.kitchens}`);
+      const normalizedOrder = isNewOrder ? orderObj[0] : orderObj;
+      const [kitchens]: any = await db.query(`SELECT * from ${Tables.kitchens} FETCH printers`);
       for (const k of kitchens) {
-        for (const p of k.printers) {
-          if (kitchenItems[k.id.toString()]) {
-            await dispatchPrint(db, 'kitchen', {
-              items: kitchenItems[k.id.toString()],
-              order: orderObj
-            }, {
-              title: 'Kitchen print',
-              copies: 1,
-              userId: page?.user?.id,
-              printers: k.printers
-            });
-          }
+        if (kitchenItems[k.id.toString()]) {
+          await dispatchPrint(db, 'kitchen', {
+            items: kitchenItems[k.id.toString()],
+            order: normalizedOrder,
+            kitchenName: k.name,
+            table: state?.table,
+            isAddOn: !isNewOrder,
+          }, {
+            title: 'Kitchen print',
+            copies: 1,
+            userId: page?.user?.id,
+            printers: k.printers
+          });
         }
       }
 

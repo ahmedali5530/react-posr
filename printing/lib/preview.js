@@ -35,13 +35,19 @@ function renderBillToHtml(bill, config, opts) {
 
   const parts = [];
 
-  // Logo
-  if (cfg.logo && String(cfg.logo).trim()) {
+  // Logo (only when showLogo is true)
+  if (cfg.showLogo && cfg.logo && String(cfg.logo).trim()) {
     const src = /^data:/.test(cfg.logo) ? cfg.logo : `data:image/png;base64,${cfg.logo}`;
     parts.push(`<div class="logo"><img src="${escapeHtml(src)}" alt="Logo" style="max-width:120px;max-height:60px;" /></div>`);
   }
   if (cfg.showCompanyName && cfg.companyName) {
     parts.push(`<div class="center">${escapeHtml(cfg.companyName)}</div>`);
+  }
+  if (cfg.showCompanyAddress && cfg.companyAddress) {
+    parts.push(`<div class="center">${escapeHtml(String(cfg.companyAddress).slice(0, 48))}</div>`);
+  }
+  if (cfg.showTopDescription && cfg.topDescription) {
+    parts.push(`<div class="center">${escapeHtml(String(cfg.topDescription).slice(0, 48))}</div>`);
   }
 
   // Header
@@ -107,6 +113,9 @@ function renderBillToHtml(bill, config, opts) {
   if (thankYou) {
     parts.push(`<div class="center thankyou">${escapeHtml(thankYou)}</div>`);
   }
+  if (cfg.showBottomDescription && cfg.bottomDescription) {
+    parts.push(`<div class="center">${escapeHtml(String(cfg.bottomDescription).slice(0, 48))}</div>`);
+  }
 
   return `<!DOCTYPE html>
 <html>
@@ -150,8 +159,18 @@ function renderSummaryToHtml(data, config) {
   const sect = (t) => `<div class="sect">${escapeHtml(t)}</div>`;
 
   const parts = [];
+  if (cfg.showLogo && cfg.logo && String(cfg.logo).trim()) {
+    const src = /^data:/.test(cfg.logo) ? cfg.logo : `data:image/png;base64,${cfg.logo}`;
+    parts.push(`<div class="logo"><img src="${escapeHtml(src)}" alt="Logo" style="max-width:120px;max-height:60px;" /></div>`);
+  }
   if (cfg.showCompanyName && cfg.companyName) {
     parts.push(`<div class="center">${escapeHtml(cfg.companyName)}</div>`);
+  }
+  if (cfg.showCompanyAddress && cfg.companyAddress) {
+    parts.push(`<div class="center">${escapeHtml(String(cfg.companyAddress).slice(0, 48))}</div>`);
+  }
+  if (cfg.showTopDescription && cfg.topDescription) {
+    parts.push(`<div class="center">${escapeHtml(String(cfg.topDescription).slice(0, 48))}</div>`);
   }
   parts.push(`<div class="title">Summary of ${escapeHtml(s.date)}</div>`);
   parts.push('<hr/>');
@@ -305,12 +324,18 @@ function renderRefundToHtml(data, config) {
     `<div class="row"><span>${escapeHtml(left)}</span><span>${escapeHtml(right)}</span></div>`;
 
   const parts = [];
-  if (cfg.logo && String(cfg.logo).trim()) {
+  if (cfg.showLogo && cfg.logo && String(cfg.logo).trim()) {
     const src = /^data:/.test(cfg.logo) ? cfg.logo : `data:image/png;base64,${cfg.logo}`;
     parts.push(`<div class="logo"><img src="${escapeHtml(src)}" alt="Logo" style="max-width:120px;max-height:60px;" /></div>`);
   }
   if (cfg.showCompanyName && cfg.companyName) {
     parts.push(`<div class="center">${escapeHtml(cfg.companyName)}</div>`);
+  }
+  if (cfg.showCompanyAddress && cfg.companyAddress) {
+    parts.push(`<div class="center">${escapeHtml(String(cfg.companyAddress).slice(0, 48))}</div>`);
+  }
+  if (cfg.showTopDescription && cfg.topDescription) {
+    parts.push(`<div class="center">${escapeHtml(String(cfg.topDescription).slice(0, 48))}</div>`);
   }
   parts.push(`<div class="title">REFUND RECEIPT</div>`);
   parts.push(row(`Original Invoice# ${bill.originalOrderId || ''}`, ''));

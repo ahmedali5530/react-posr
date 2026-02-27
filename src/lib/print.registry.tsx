@@ -15,21 +15,7 @@ export enum PRINT_TYPE {
 }
 
 export function initializePrintTemplates() {
-  registerPrintTemplate(PRINT_TYPE.presale_bill, (payload: any) => (
-    <PrintPresaleBill order={payload?.order} />
-  ));
 
-  registerPrintTemplate(PRINT_TYPE.final_bill, (payload: any) => (
-    <PrintFinalBill order={payload?.order} duplicate={payload?.duplicate} />
-  ));
-
-  registerPrintTemplate(PRINT_TYPE.refund_bill, (payload: any) => (
-    <PrintRefundBill order={payload?.order} originalOrder={payload?.originalOrder} />
-  ));
-
-  registerPrintTemplate(PRINT_TYPE.summary, (payload: any) => (
-    <Summary {...payload} />
-  ));
 }
 
 

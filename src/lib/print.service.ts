@@ -60,6 +60,7 @@ function logoToBase64(logo: unknown): string | undefined {
   let u8: Uint8Array;
   if (logo instanceof ArrayBuffer) u8 = new Uint8Array(logo);
   else if (logo instanceof Uint8Array) u8 = logo;
+  else if (Array.isArray(logo)) u8 = new Uint8Array(logo);
   else return undefined;
   let b = '';
   const chunk = 8192;
@@ -177,7 +178,10 @@ export async function dispatchPrint<Payload = any>(
 
   const body = {
     data: { printType: template, ...payload },
-    config,
+    config : {
+      ...config,
+      decimal_place: import.meta.env.VITE_DECIMAL_PLACES
+    },
     printers: driverPrinters,
   };
 
