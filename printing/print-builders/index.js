@@ -6,6 +6,7 @@ const kitchenPrint = require('./kitchen-print');
 const deliveryPrint = require('./delivery-print');
 const finalPrint = require('./final-print');
 const refundPrint = require('./refund-print');
+const deletionPrint = require('./deletion-print');
 
 const BUILDERS = {
   temp: tempPrint,
@@ -14,6 +15,7 @@ const BUILDERS = {
   delivery: deliveryPrint,
   final: finalPrint,
   refund: refundPrint,
+  deletion: deletionPrint,
 };
 
 /**
@@ -24,7 +26,7 @@ const BUILDERS = {
 function getBuilder(type) {
   const b = BUILDERS[type];
   if (!b) {
-    throw new Error(`Unknown print type: ${type}. Use: temp, summary, kitchen, delivery, final, refund`);
+    throw new Error(`Unknown print type: ${type}. Use: temp, summary, kitchen, delivery, final, refund, deletion`);
   }
   return b;
 }
@@ -37,4 +39,5 @@ module.exports = {
   delivery: deliveryPrint,
   final: finalPrint,
   refund: refundPrint,
+  deletion: deletionPrint,
 };
