@@ -27,6 +27,7 @@ const PRINTER_SETTING_KEYS: Record<string, string> = {
   delivery: 'delivery_print_printers',
   summary: 'summary_print_printers',
   kitchen: 'kitchen_print_printers',
+  deletion: 'kitchen_print_printers',
 };
 
 // Template -> setting key for print config (AdminPrints: "Temp Print", etc.)
@@ -35,6 +36,7 @@ const PRINT_CONFIG_KEYS: Record<string, string> = {
   final: 'Final Print',
   refund: 'Final Print',
   kitchen: 'Kitchen Print',
+  deletion: 'Deletion Print',
   delivery: 'Delivery Print',
   summary: 'Summary Print',
 };
@@ -160,18 +162,18 @@ export async function dispatchPrint<Payload = any>(
   const url = `${baseUrl.replace(/\/$/, '')}/print`;
   const uid = options?.userId != null ? toIdString(options.userId) : null;
 
+  const explicitPrinters = options?.printers?.length > 0 ? options.printers : null;
+
   // eslint-disable-next-line prefer-const
-  let [config, printers] = await Promise.all([
+  let [config, settingsPrinters] = await Promise.all([
     getPrintConfig(db, template),
-    getPrintersForType(db, template, uid),
+    explicitPrinters ? Promise.resolve([]) : getPrintersForType(db, template, uid),
   ]);
 
-  if(printers.length === 0){
-    printers = options.printers;
-  }
+  const printers = explicitPrinters || (settingsPrinters.length > 0 ? settingsPrinters : null);
 
   const driverPrinters = printers?.map(printerToDriverConfig);
-  if (driverPrinters?.length === 0) {
+  if (!driverPrinters || driverPrinters.length === 0) {
     toast.error('No printers configured for this print type.');
     return;
   }

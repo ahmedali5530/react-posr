@@ -11,6 +11,8 @@ import {useAtom} from "jotai";
 import {appPage} from "@/store/jotai.ts";
 import {toast} from "sonner";
 import {getOrderFilteredItems} from "@/lib/order.ts";
+import {dispatchPrint} from "@/lib/print.service.ts";
+import {Kitchen} from "@/api/model/kitchen.ts";
 
 interface OrderCancelModalProps {
   order: OrderModel
@@ -38,16 +40,67 @@ const reasonOptions = useMemo<ReasonOption[]>(() => {
   }));
 }, []);
 
+  const filteredItems = useMemo(() => getOrderFilteredItems(order), [order]);
+
 const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(reasonOptions[0]?.value ?? null);
   const [comments, setComments] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Record<string, number>>({});
+
+  const allSelected = useMemo(() => {
+    return filteredItems.length > 0 && filteredItems.every(
+      (item) => selectedItems[item.id.toString()] === item.quantity
+    );
+  }, [filteredItems, selectedItems]);
 
   useEffect(() => {
     if (open) {
       setSelectedReason(reasonOptions[0]?.value ?? null);
       setComments('');
+      const all: Record<string, number> = {};
+      for (const item of filteredItems) {
+        all[item.id.toString()] = item.quantity;
+      }
+      setSelectedItems(all);
     }
-  }, [open, reasonOptions]);
+  }, [open, reasonOptions, filteredItems]);
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedItems({});
+    } else {
+      const all: Record<string, number> = {};
+      for (const item of filteredItems) {
+        all[item.id.toString()] = item.quantity;
+      }
+      setSelectedItems(all);
+    }
+  };
+
+  const toggleItem = (itemId: string, maxQty: number) => {
+    setSelectedItems((prev) => {
+      const next = { ...prev };
+      if (next[itemId]) {
+        delete next[itemId];
+      } else {
+        next[itemId] = maxQty;
+      }
+      return next;
+    });
+  };
+
+  const setItemQty = (itemId: string, qty: number, maxQty: number) => {
+    const clamped = Math.max(0, Math.min(qty, maxQty));
+    setSelectedItems((prev) => {
+      const next = { ...prev };
+      if (clamped === 0) {
+        delete next[itemId];
+      } else {
+        next[itemId] = clamped;
+      }
+      return next;
+    });
+  };
 
   const handleClose = () => {
     if (isSubmitting) return;
@@ -60,6 +113,11 @@ const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(rea
       return;
     }
 
+    if (Object.keys(selectedItems).length === 0) {
+      toast.error('Please select at least one item');
+      return;
+    }
+
     if (!page?.user?.id) {
       toast.error('Unable to identify logged in user');
       return;
@@ -69,28 +127,84 @@ const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(rea
     try {
       const userId = new StringRecordId(page.user.id.toString());
       const orderId = new StringRecordId(order.id.toString());
+      const now = new Date();
 
-      await db.merge(orderId, {
-        status: OrderStatus.Cancelled,
-        tags: Array.from(new Set([...(order.tags || []), OrderStatus.Cancelled])),
-      });
+      if (allSelected) {
+        await db.merge(orderId, {
+          status: OrderStatus.Cancelled,
+          tags: Array.from(new Set([...(order.tags || []), OrderStatus.Cancelled])),
+        });
+      }
 
-      for (const item of getOrderFilteredItems(order)) {
-        const itemId = new StringRecordId(item.id.toString());
+      for (const item of filteredItems) {
+        const key = item.id.toString();
+        const qty = selectedItems[key];
+        if (!qty) continue;
+
+        const itemId = new StringRecordId(key);
+
+        if (qty >= item.quantity) {
+          await db.merge(itemId, { deleted_at: now });
+        } else {
+          await db.merge(itemId, { quantity: item.quantity - qty });
+        }
+
         await db.create(Tables.order_voids, {
           comments: comments || undefined,
-          created_at: new Date(),
+          created_at: now,
           deleted_by: userId,
           logged_in_user: userId,
           order: orderId,
           order_item: itemId,
-          quantity: item.quantity,
+          quantity: qty,
           reason: selectedReason,
           items: [itemId],
         });
       }
 
-      toast.success('Order cancelled successfully');
+      // Dispatch deletion prints grouped by kitchen
+      try {
+        const [kitchens]: any = await db.query(`SELECT * FROM ${Tables.kitchens} FETCH printers, items`);
+        const kitchenItemsMap: Record<string, { kitchen: Kitchen; items: any[] }> = {};
+
+        for (const item of filteredItems) {
+          const key = item.id.toString();
+          const qty = selectedItems[key];
+          if (!qty) continue;
+
+          for (const k of kitchens) {
+            const kitchenDishIds = (k.items || []).map((d: any) => d.id?.toString() ?? d.toString());
+            const itemDishId = item.item?.id?.toString();
+            if (itemDishId && kitchenDishIds.includes(itemDishId)) {
+              const kId = k.id.toString();
+              if (!kitchenItemsMap[kId]) {
+                kitchenItemsMap[kId] = { kitchen: k, items: [] };
+              }
+              kitchenItemsMap[kId].items.push({ ...item, quantity: qty });
+            }
+          }
+        }
+
+        for (const { kitchen, items } of Object.values(kitchenItemsMap)) {
+          await dispatchPrint(db, 'deletion', {
+            items,
+            order,
+            kitchenName: kitchen.name,
+            table: order.table,
+            reason: selectedReason,
+            comments: comments || undefined,
+          }, {
+            title: 'Deletion print',
+            copies: 1,
+            userId: page?.user?.id,
+            printers: kitchen.printers,
+          });
+        }
+      } catch (e) {
+        console.error('Failed to dispatch deletion prints', e);
+      }
+
+      toast.success(allSelected ? 'Order cancelled successfully' : 'Selected items cancelled');
       onClose();
     } catch (error) {
       console.error('Failed to cancel order', error);
@@ -129,6 +243,73 @@ const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(rea
         </div>
 
         <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-semibold">Items</label>
+            <button
+              type="button"
+              className="text-sm font-medium text-primary-600 hover:text-primary-700"
+              onClick={toggleSelectAll}
+            >
+              {allSelected ? 'Deselect all' : 'Select all'}
+            </button>
+          </div>
+          <div className="border border-neutral-200 rounded-xl divide-y divide-neutral-100 max-h-60 overflow-y-auto">
+            {filteredItems.map((item) => {
+              const key = item.id.toString();
+              const isSelected = !!selectedItems[key];
+              const currentQty = selectedItems[key] ?? 0;
+              return (
+                <div
+                  key={key}
+                  role="button"
+                  onClick={() => toggleItem(key, item.quantity)}
+                  className={`flex items-center gap-3 px-3 py-2.5 transition cursor-pointer select-none ${
+                    isSelected ? 'bg-danger-200' : 'bg-white hover:bg-neutral-50'
+                  }`}
+                >
+                  <div className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition ${
+                    isSelected ? 'border-danger-500 bg-danger-500' : 'border-neutral-300'
+                  }`}>
+                    {isSelected && (
+                      <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+                        <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </div>
+                  <span className="flex-1 font-medium truncate">
+                    {item.item?.name ?? 'Unknown item'}
+                  </span>
+                  <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      disabled={!isSelected || currentQty <= 1}
+                      className="btn btn-secondary btn-flat btn-square btn-lg"
+                      onClick={() => setItemQty(key, currentQty - 1, item.quantity)}
+                    >
+                      −
+                    </button>
+                    <span className="w-8 text-center font-semibold tabular-nums">
+                      {isSelected ? currentQty : 0}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={!isSelected || currentQty >= item.quantity}
+                      className="btn btn-secondary btn-flat btn-square btn-lg"
+                      onClick={() => setItemQty(key, currentQty + 1, item.quantity)}
+                    >
+                      +
+                    </button>
+                    <span className="text-neutral-400 w-8 text-right">
+                      / {item.quantity}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
           <label className="block text-sm font-semibold mb-2">Comments</label>
           <Textarea
             value={comments}
@@ -140,12 +321,13 @@ const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(rea
         </div>
 
         <div className="flex justify-end gap-3">
-          <Button flat variant="primary" onClick={handleClose} disabled={isSubmitting}>Close</Button>
+          {/*<Button flat variant="primary" onClick={handleClose} disabled={isSubmitting} size="lg">Close</Button>*/}
           <Button
             variant="danger"
             onClick={handleConfirm}
             isLoading={isSubmitting}
             disabled={isSubmitting}
+            size="lg"
           >
             Confirm cancellation
           </Button>
