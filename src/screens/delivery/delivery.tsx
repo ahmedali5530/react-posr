@@ -9,8 +9,6 @@ import L from "leaflet";
 import { getInvoiceNumber } from "@/lib/order.ts";
 import { DateTime } from "luxon";
 import {useDeliveryOrders} from "@/hooks/useDeliveryOrders.ts";
-import { useFetchDeliveryOrders } from "@/hooks/useFetchDeliveryOrders.ts";
-import { DeliveryOrderPopup } from "@/components/delivery/delivery-order-popup.tsx";
 import { DeliveryOrderItem } from "@/components/delivery/delivery-order-item.tsx";
 import {OrderStatus} from "@/api/model/order.ts";
 import ScrollContainer from "react-indiana-drag-scroll";
@@ -27,8 +25,7 @@ interface MapArea {
 
 export const Delivery = () => {
   const db = useDB();
-  const { selectedOrder, openOrderPopup, closeOrderPopup, isPopupOpen } = useDeliveryOrders();
-  const { deliveryOrders, refetch: fetchDeliveryOrders } = useFetchDeliveryOrders();
+  const { selectedOrder, openOrderPopup, deliveryOrders } = useDeliveryOrders();
   const [mapAreas, setMapAreas] = useState<MapArea[]>([]);
   const [loading, setLoading] = useState(true);
   const featureGroupRef = useRef<LeafletFeatureGroup>(null);
@@ -170,10 +167,6 @@ export const Delivery = () => {
     });
   }, [mapAreas, loading]);
 
-  useEffect(() => {
-    fetchDeliveryOrders();
-  }, []);
-
   if(loading){
     return;
   }
@@ -245,17 +238,6 @@ export const Delivery = () => {
           </div>
         </ScrollContainer>
       </div>
-      {selectedOrder && (
-        <DeliveryOrderPopup
-          order={selectedOrder}
-          open={isPopupOpen}
-          onClose={() => {
-            closeOrderPopup();
-            fetchDeliveryOrders();
-          }}
-          onOrderUpdate={fetchDeliveryOrders}
-        />
-      )}
     </div>
   )
 }

@@ -25,7 +25,7 @@ Use this to check layout and content before printing.
 ```json
 {
   "printers": [ ... ],
-  "data": { "printType": "temp|summary|kitchen|delivery|final", ... },
+  "data": { "printType": "temp|summary|kitchen|delivery|final|refund|deletion|table", ... },
   "config": {
     "bottomMargin": "1",
     "companyName": "Your Co",
@@ -88,8 +88,46 @@ Use this to check layout and content before printing.
 | `final`   | Customer receipt from `order` |
 | `delivery`| Delivery slip from `order` (delivery/customer address, phone, items, totals) |
 | `kitchen` | Kitchen ticket from `order` (table, items with comments, time, priority) |
+| `table`   | Generic table-only print; pass prebuilt `rows` with escpos `tableCustom` cells |
 
 **summary** — same props as `Summary` (summary.tsx): `{ orders: { data: Order[] }, date: string }`. All totals (exclusive, gross, refunds, service charges, discounts, taxes, net, amount due, amount collected, extras, rounding, voids, tips, covers, categories, dishes, payment types, taxes list, discounts list, extras) are computed from `orders.data` in the print server to match the Summary logic.
+
+**table** — generic table-only builder for reusable structured slips:
+
+```json
+{
+  "data": {
+    "printType": "table",
+    "rows": [
+      [
+        { "text": "Item", "align": "LEFT", "width": 0.6, "style": "B" },
+        { "text": "Total", "align": "RIGHT", "width": 0.4, "style": "B" }
+      ],
+      [
+        { "text": "Burger x2", "align": "LEFT", "width": 0.6 },
+        { "text": "$20", "align": "RIGHT", "width": 0.4 }
+      ]
+    ],
+    "size": [1, 1],
+    "feed": 1,
+    "cut": true
+  }
+}
+```
+
+Shorthand for a single row is also supported:
+
+```json
+{
+  "data": {
+    "printType": "table",
+    "rows": [
+      { "text": "Name", "align": "LEFT", "width": 0.5, "style": "B" },
+      { "text": "Value", "align": "RIGHT", "width": 0.5, "style": "B" }
+    ]
+  }
+}
+```
 
 ## Bluetooth
 

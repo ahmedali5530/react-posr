@@ -18,15 +18,15 @@ function build(printer, data = {}, config = {}) {
   const bill = mapOrderToFinal(order, { duplicate: !!data.duplicate });
 
   return printReceiptHeader(printer, cfg).then(() => {
-    printBillLayout(printer, bill, cfg, {
+    return printBillLayout(printer, bill, cfg, {
       title: bill.title,
+      qrcode: data.qrcode,
       thankYou: bill.thankYou,
       showPayments: true,
       showChange: true,
       showDeliveryLine: false,
       isFinal: true,
-    });
-    return printer;
+    }).then(() => printer);
   });
 }
 

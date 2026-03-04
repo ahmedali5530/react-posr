@@ -49,14 +49,14 @@ function build(printer, data = {}, config = {}) {
   }
 
   return printReceiptHeader(printer, cfg).then(() => {
-    printBillLayout(printer, billToPrint, cfg, {
+    return printBillLayout(printer, billToPrint, cfg, {
       title: bill.title,
+      qrcode: data.qrcode,
       notes: bill.note || undefined,
       showPayments: true,
       showChange: false,
       showDeliveryLine: false,
-    });
-    return printer;
+    }).then(() => printer);
   });
 }
 

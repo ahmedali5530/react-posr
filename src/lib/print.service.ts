@@ -106,11 +106,13 @@ export async function getPrintersForType(db: PrintDB, template: string, userId?:
 
   let row: { values?: unknown[] } | undefined;
   const uid = userId != null && userId !== '' ? new StringRecordId(toIdString(userId)) : null;
+  console.log(uid)
   if (uid) {
     const [userRes] = await db.query(
       `SELECT * FROM ${Tables.settings} WHERE key = $key AND user = $uid LIMIT 1`,
       { key, uid }
     );
+
     const userRows = Array.isArray(userRes) ? userRes : [];
     row = userRows[0] as { values?: unknown[] } | undefined;
   }

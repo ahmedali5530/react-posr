@@ -9,6 +9,8 @@ import React, {useEffect} from "react";
 import {PrintProvider} from "@/providers/print.provider.tsx";
 import {DatabaseProvider} from "@/providers/database.provider.tsx";
 import {DeliveryOrdersProvider} from "@/providers/delivery-orders.provider.tsx";
+import {useDeliveryOrders} from "@/hooks/useDeliveryOrders.ts";
+import {DeliveryOrderPopup} from "@/components/delivery/delivery-order-popup.tsx";
 import {initializePrintTemplates} from "@/lib/print.registry.tsx";
 import {Orders} from "@/screens/orders.tsx";
 import {Summary} from "@/screens/summary.tsx";
@@ -91,6 +93,24 @@ import {SaleVsConsumptionReport} from "@/screens/reports/sale.vs.consumption.rep
 // react query client wrapper
 const queryClient = new QueryClient();
 
+/** Renders the delivery order popup when a new order is detected or opened from context (works on any page). */
+function GlobalDeliveryOrderPopup() {
+  const { selectedOrder, isPopupOpen, closeOrderPopup, refetchDeliveryOrders } = useDeliveryOrders();
+  if (!selectedOrder || !isPopupOpen) return null;
+  const handleClose = () => {
+    closeOrderPopup();
+    refetchDeliveryOrders();
+  };
+  return (
+    <DeliveryOrderPopup
+      order={selectedOrder}
+      open={true}
+      onClose={handleClose}
+      onOrderUpdate={refetchDeliveryOrders}
+    />
+  );
+}
+
 
 // Wrapper for app
 function App() {
@@ -105,6 +125,7 @@ function App() {
         <DeliveryOrdersProvider>
           <PrintProvider>
             <BrowserRouter>
+              <GlobalDeliveryOrderPopup />
               <Routes>
                 <Route path="/" element={<Login/>}/>
                 <Route path={MENU} element={<Menu/>}/>

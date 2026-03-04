@@ -18,16 +18,18 @@ function build(printer, data = {}, config = {}) {
   const bill = mapOrderToDelivery(order);
 
   return printReceiptHeader(printer, cfg).then(() => {
-    printBillLayout(printer, bill, cfg, {
+    return printBillLayout(printer, bill, cfg, {
       title: bill.title,
+      qrcode: data.qrcode,
       address: bill.address,
       phone: bill.phone,
+      customerName: bill.customerName || undefined,
+      deliveryTime: bill.deliveryTime || undefined,
       notes: bill.notes || undefined,
       showPayments: true,
       showChange: true,
       showDeliveryLine: true,
-    });
-    return printer;
+    }).then(() => printer);
   });
 }
 

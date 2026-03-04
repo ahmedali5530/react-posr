@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useDB } from "@/api/db/db.ts";
 import { Tables } from "@/api/db/tables.ts";
 import { Order } from "@/api/model/order.ts";
@@ -6,15 +6,16 @@ import { OrderStatus } from "@/api/model/order.ts";
 
 export const useFetchDeliveryOrders = () => {
   const db = useDB();
+
   const [deliveryOrders, setDeliveryOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchDeliveryOrders = useCallback(async () => {
+  const fetchDeliveryOrders = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const [result] = await db.query<any>(
         `SELECT * FROM ${Tables.orders} 
          WHERE delivery != NONE and delivery != $emptyObject and delivery != $emptyArray
@@ -30,10 +31,12 @@ export const useFetchDeliveryOrders = () => {
       );
 
       const ordersData = result;
-      
+
       if (ordersData && ordersData.length > 0) {
         const orders = ordersData.map((r: any) => r as Order);
         setDeliveryOrders(orders);
+      } else {
+        setDeliveryOrders([]);
       }
     } catch (err) {
       console.error("Error fetching delivery orders:", err);
@@ -42,12 +45,11 @@ export const useFetchDeliveryOrders = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  // Initial fetch on mount
   useEffect(() => {
     fetchDeliveryOrders();
-  }, [fetchDeliveryOrders]);
+  }, []);
 
   return {
     deliveryOrders,
@@ -56,4 +58,3 @@ export const useFetchDeliveryOrders = () => {
     refetch: fetchDeliveryOrders,
   };
 };
-

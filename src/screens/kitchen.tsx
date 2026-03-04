@@ -6,7 +6,7 @@ import ScrollContainer from "react-indiana-drag-scroll";
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Kitchen, KitchenOrder as KitchenOrderModel } from "@/api/model/kitchen.ts";
 import { Tables } from "@/api/db/tables.ts";
-import { Order, OrderStatus } from "@/api/model/order.ts";
+import { Order } from "@/api/model/order.ts";
 import React, {useCallback, useEffect, useMemo, useState} from "react";
 import { useDB } from "@/api/db/db.ts";
 import { OrderItemKitchen } from "@/api/model/order_item_kitchen.ts";
@@ -29,33 +29,37 @@ export const KitchenScreen = () => {
   const [avgTime, setAvgTime] = useState('-');
 
   const loadOrders = useCallback(async (kitchenId: string) => {
-    const result: any = await db.query(`
-        SELECT array::distinct(order_item.order.id) as order_id, time::format(created_at, '%F %T') as created_at from ${Tables.order_items_kitchen} where order_item.order.status = 'In Progress' and kitchen = $kitchen and completed_at = None group by order_id, created_at order by created_at desc
+    const [kitchenOrderItemsRecord]: any = await db.query(`
+      select *,
+             time::format(created_at, '%F %T') as batch_created_at
+      from ${Tables.order_items_kitchen}
+      where order_item.order.status = 'In Progress'
+        and kitchen = $kitchen
+        and completed_at = None
+      order by created_at desc
+      fetch order_item, order_item.item, order_item.order, order_item.order.table, order_item.order.user, order_item.order.order_type
     `, {
-      'kitchen': kitchenId
+      kitchen: kitchenId
     });
 
-    const ordersList: KitchenOrderModel[] = [];
-    for(const item of result[0]){
-      const kitchenOrderItemsRecord: any = await db.query(`
-        select * from ${Tables.order_items_kitchen} where order_item.order = $orderId and completed_at = None and kitchen = $kitchen and time::format(created_at, '%F %T') = $createdAt fetch order_item, order_item.item
-      `, {
-        'kitchen': kitchenId,
-        'orderId': item.order_id[0],
-        'createdAt': item.created_at
-      });
+    const groupedOrders = new Map<string, KitchenOrderModel>();
+    for (const item of kitchenOrderItemsRecord ?? []) {
+      const order = item.order_item?.order as Order | undefined;
+      const orderId = order?.id ?? String(item.order_item?.order ?? '');
+      const createdAtKey = item.batch_created_at ?? '';
+      const groupKey = `${orderId}_${createdAtKey}`;
 
-      const orderRecord: any = await db.query(`select * from $order fetch table, user, order_type`, {
-        order: item.order_id[0]
-      });
+      if (!groupedOrders.has(groupKey)) {
+        groupedOrders.set(groupKey, {
+          order,
+          items: []
+        });
+      }
 
-      ordersList.push({
-        order: orderRecord[0][0],
-        items: kitchenOrderItemsRecord[0]
-      });
+      groupedOrders.get(groupKey)?.items.push(item);
     }
 
-    setOrders(ordersList);
+    setOrders(Array.from(groupedOrders.values()));
 
     await calculateAverageTime(kitchenId);
   }, []);
@@ -69,12 +73,16 @@ export const KitchenScreen = () => {
   const [ordersLiveQuery, setOrdersLiveQuery] = useState(null);
   const [kitchenItemsLiveQuery, setKitchenItemsLiveQuery] = useState(null);
   const runLiveQuery = async () => {
-    const result = await db.live(Tables.orders, function () {
-      loadOrders(kitchen.id);
+    const result = await db.live(Tables.orders, function (action) {
+      if(action === 'CREATE'){
+        loadOrders(kitchen.id);
+      }
     });
 
-    const kitchenItems = await db.live(Tables.order_items_kitchen, function(){
-      loadOrders(kitchen.id);
+    const kitchenItems = await db.live(Tables.order_items_kitchen, function(action){
+      if(action === 'UPDATE'){
+        loadOrders(kitchen.id);
+      }
     });
 
     setOrdersLiveQuery(result);
@@ -139,7 +147,7 @@ export const KitchenScreen = () => {
                 size="lg"
                 variant="primary"
                 onClick={() => setKitchen(item)}
-                active={item.id === kitchen?.id}
+                active={item.id.toString() === kitchen?.id?.toString()}
                 key={item.id}
                 className="min-w-[200px]"
               >

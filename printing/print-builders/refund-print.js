@@ -29,6 +29,8 @@ function build(printer, data = {}, config = {}) {
     // --- REFUND RECEIPT header ---
     printer.align('ct').style('bu').text('REFUND RECEIPT').style('normal');
     printLineLeftRight(printer, `Original Invoice# ${bill.originalOrderId || ''}`, '');
+    printLineLeftRight(printer, `Table: ${bill.table || '-'}`, `Order Type: ${bill.orderType || '-'}`);
+    printLineLeftRight(printer, `Cashier: ${bill.userName || '-'}`, '');
     printLineLeftRight(printer, `Refund Date: ${bill.refundDate || ''}`, '');
     printer.drawLine();
 

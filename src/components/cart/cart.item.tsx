@@ -169,16 +169,16 @@ export const CartItem = ({ item, index }: Props) => {
             {item.newOrOld === MenuItemType.old && (
               <>
                 <span className="input justify-center items-center flat !bg-white">{item.quantity}</span>
-                {item.deleted_at === undefined && (
-                  <Button
-                    flat
-                    iconButton
-                    variant={'danger'}
-                    onClick={() => {
-                      deleteOrderItem(item)
-                    }}
-                  ><FontAwesomeIcon icon={faTrash}/></Button>
-                )}
+                {/*{item.deleted_at === undefined && (*/}
+                {/*  <Button*/}
+                {/*    flat*/}
+                {/*    iconButton*/}
+                {/*    variant={'danger'}*/}
+                {/*    onClick={() => {*/}
+                {/*      deleteOrderItem(item)*/}
+                {/*    }}*/}
+                {/*  ><FontAwesomeIcon icon={faTrash}/></Button>*/}
+                {/*)}*/}
 
               </>
             )}

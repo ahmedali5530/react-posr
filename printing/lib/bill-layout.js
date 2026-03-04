@@ -16,6 +16,7 @@ const {
  * @param {Object} bill - from mapOrderToTemp/Final/Delivery
  * @param {Object} config - normalized config (currencySymbol, showVatNumber, vatName, vatNumber)
  * @param {Object} opts - { title, address?, phone?, notes?, thankYou?, showPayments?, showChange?, showDeliveryLine?, isFinal? }
+ * @returns {Promise<void>}
  */
 function printBillLayout(printer, bill, config, opts) {
   const cfg = config || {};
@@ -24,6 +25,9 @@ function printBillLayout(printer, bill, config, opts) {
     title,
     address,
     phone,
+    customerName,
+    deliveryTime,
+    qrcode,
     notes,
     thankYou,
     showPayments = false,
@@ -36,9 +40,12 @@ function printBillLayout(printer, bill, config, opts) {
   printer.align('ct').style('bu').text(title || 'Bill').style('normal');
   printer.style('normal');
   printLineLeftRight(printer, `Invoice# ${bill.orderId || ''}`, bill.date || '');
-  printLineLeftRight(printer, bill.table || '', bill.userName || '');
-  if (address) printer.text(`Address: ${String(address).slice(0, 40)}`);
+  printLineLeftRight(printer, `Table: ${bill.table || '-'}`, `Order Type: ${bill.orderType || '-'}`);
+  printLineLeftRight(printer, `Cashier: ${bill.userName || '-'}`, '');
+  if (customerName) printer.text(`Customer: ${String(customerName)}`);
   if (phone) printer.text(`Phone: ${String(phone)}`);
+  if (address) printer.text(`Address: ${String(address).slice(0, 40)}`);
+  if (deliveryTime) printer.text(`Delivery Time: ${String(deliveryTime)}`);
   printer.drawLine();
 
   // --- Items ---
@@ -119,20 +126,62 @@ function printBillLayout(printer, bill, config, opts) {
     printer.feed(1).align('ct').text(thankYou).feed(2);
   }
 
+  printBottomDescription(printer, cfg);
+  feedBottomMargin(printer, cfg);
+
   if (isFinal) {
     printer.drawLine();
     printer.align('ct').style('b').text('Check Closed').style('normal');
   }
 
-  printBottomDescription(printer, cfg);
-  feedBottomMargin(printer, cfg);
+  const qrValue = qrcode != null ? String(qrcode).trim() : '';
+  return printQrCode(printer, qrValue).then(() => {
+    // --- Timestamp: always last before cut ---
+    const now = new Date();
+    const ts = now.toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+    printer.align('ct').text(ts);
 
-  // --- Timestamp: always last before cut ---
-  const now = new Date();
-  const ts = now.toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
-  printer.align('ct').text(ts);
+    printer.feed(1).cut();
+  });
+}
 
-  printer.feed(1).cut();
+function printQrCode(printer, value) {
+  if (!value) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+
+    const finalize = () => {
+      try {
+        printer.feed(1);
+      } catch (e) {
+        // ignore
+      }
+      done();
+    };
+
+    try {
+      if (typeof printer.qrimage === 'function') {
+        printer.align('ct').qrimage(value, { type: 'png', mode: 'dhdw' }, () => finalize());
+        setTimeout(finalize, 2000);
+        return;
+      }
+    } catch (e) {
+      // fallback below
+    }
+
+    try {
+      printer.align('ct').qrcode(value);
+    } catch (e) {
+      // ignore
+    }
+    finalize();
+  });
 }
 
 module.exports = { printBillLayout };

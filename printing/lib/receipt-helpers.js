@@ -162,11 +162,12 @@ function printLogo(printer, logo) {
     }
     if (buf.length === 0) return resolve();
 
-    // get-pixels accepts (Buffer, mimeType, callback) – no file needed
-    Image.load(buf, mime, (loadErr, img) => {
-      if (loadErr || !img) {
-        return resolve();
-      }
+    // escpos Image.load callback can be either (img) or (err, img) depending on version.
+    Image.load(buf, mime, (...cbArgs) => {
+      const hasErrStyle = cbArgs.length >= 2;
+      const loadErr = hasErrStyle ? cbArgs[0] : null;
+      const img = hasErrStyle ? cbArgs[1] : cbArgs[0];
+      if (loadErr || !img) return resolve();
       (async () => {
         try {
           printer.align('ct');

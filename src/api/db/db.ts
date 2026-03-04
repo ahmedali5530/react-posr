@@ -21,7 +21,8 @@ export const useDB = () => {
       // log sql in dev mode
       if(import.meta.env.DEV) {
         console.group('DB Debug')
-        console.info(sql.trim(), parameters);
+        console.info(sql.trim());
+        console.info(parameters);
         console.info(result);
         // console.trace('trace');
         console.groupEnd()

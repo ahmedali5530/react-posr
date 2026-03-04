@@ -212,6 +212,20 @@ function getOrderTable(order) {
 }
 
 /**
+ * Order type display from order.order_type (string or object).
+ */
+function getOrderType(order) {
+  if (!order) return '';
+  const ot = order.order_type;
+  if (!ot) return '';
+  if (typeof ot === 'string') return ot;
+  if (typeof ot === 'object') {
+    return ot.name || ot.title || ot.type || '';
+  }
+  return '';
+}
+
+/**
  * @param {Object} order
  * @returns {string}
  */
@@ -219,7 +233,26 @@ function getOrderDeliveryAddress(order) {
   if (!order) return '';
   const d = order.delivery;
   const c = order.customer;
-  return (d && d.address) || (c && c.address) || '';
+  return (d && d.place) || (d && d.address) || (c && c.address) || '';
+}
+
+function getOrderCustomerName(order) {
+  if (!order || !order.customer) return '';
+  return order.customer.name || '';
+}
+
+function getOrderDeliveryTime(order) {
+  if (!order || !order.delivery) return '';
+  const dt = order.delivery.deliveryTime;
+  if (!dt) return '';
+  if (dt === 'now' || dt === 'asap') return 'ASAP';
+  const d = dt instanceof Date ? dt : new Date(dt);
+  if (isNaN(d.getTime())) return String(dt);
+  const h = d.getHours();
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const am = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${String(h12).padStart(2, '0')}:${min} ${am}`;
 }
 
 /**
@@ -293,6 +326,7 @@ function mapOrderToBill(order, opts) {
   return {
     orderId: getOrderId(order),
     table: getOrderTable(order),
+    orderType: getOrderType(order),
     date: getOrderDate(order),
     userName: getOrderUserName(order),
     items,
@@ -343,6 +377,8 @@ function mapOrderToDelivery(order) {
     address: getOrderDeliveryAddress(order),
     phone: getOrderPhone(order),
     notes: getOrderDeliveryNotes(order),
+    customerName: getOrderCustomerName(order),
+    deliveryTime: getOrderDeliveryTime(order),
   };
 }
 
@@ -396,6 +432,9 @@ function mapOrderToRefund(refundOrder, originalOrder) {
   const tipLabel = refundOrder && refundOrder.tip_type === 'Percent' ? 'Tip %' : 'Tip';
   return {
     originalOrderId: getOrderId(orig),
+    table: getOrderTable(orig),
+    orderType: getOrderType(orig),
+    userName: getOrderUserName(orig),
     refundDate: new Date().toLocaleString(),
     items,
     itemsCount: items.length,
@@ -419,6 +458,7 @@ module.exports = {
   getOrderTotals,
   getOrderPaymentsString,
   getOrderTable,
+  getOrderType,
   getOrderDeliveryAddress,
   getOrderPhone,
   getOrderDeliveryNotes,
@@ -427,6 +467,8 @@ module.exports = {
   getOrderPriority,
   getOrderItemModifierNames,
   calculateOrderItemPricePrint,
+  getOrderCustomerName,
+  getOrderDeliveryTime,
   mapOrderToTemp,
   mapOrderToFinal,
   mapOrderToDelivery,

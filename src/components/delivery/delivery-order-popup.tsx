@@ -38,7 +38,7 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
   onOrderUpdate,
 }) => {
   const db = useDB();
-  const {deliveryOrders, openOrderPopup, selectedOrder: contextSelectedOrder} = useDeliveryOrders();
+  const {deliveryOrders, openOrderPopup, selectedOrder: contextSelectedOrder, isPopupOpen} = useDeliveryOrders();
   const [riders, setRiders] = useState<User[]>([]);
   const [loadingRiders, setLoadingRiders] = useState(false);
   const [selectedRider, setSelectedRider] = useState<User | null>(null);
@@ -344,14 +344,18 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
           <div className="bg-danger-200 p-4 rounded-lg border-2 border-danger-300">
             {order?.created_at && (
               <div className="space-y-2">
-                <p className="text-2xl font-medium">Ordered at: {DateTime.fromJSDate(order.created_at).toFormat(import.meta.env.VITE_TIME_FORMAT)}</p>
+                <p className="text-2xl font-medium">Ordered at: {DateTime.fromJSDate(new Date(order.created_at)).toFormat(import.meta.env.VITE_TIME_FORMAT)}</p>
               </div>
             )}
-            {delivery?.deliveryTime && delivery?.deliveryTime !== 'asap' && (
-              <div className="space-y-2">
-                <p className="text-2xl font-medium">Delivery time: {DateTime.fromJSDate(delivery.deliveryTime).toFormat(import.meta.env.VITE_TIME_FORMAT)}</p>
-              </div>
-            )}
+            <div className="space-y-2">
+              <p className="text-2xl font-medium">
+                Delivery time: {
+                  !delivery?.deliveryTime || delivery.deliveryTime === 'now' || delivery.deliveryTime === 'asap'
+                    ? 'ASAP'
+                    : DateTime.fromJSDate(new Date(delivery.deliveryTime)).toFormat(import.meta.env.VITE_TIME_FORMAT)
+                }
+              </p>
+            </div>
           </div>
 
           {/* Customer Information */}
@@ -388,26 +392,12 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
               <span>Delivery Address</span>
             </h3>
             <div className="space-y-2">
-              {delivery?.address ? (
-                <>
-                  <p className="text-base font-medium">{delivery.address}</p>
-                  {delivery.secondary_address && (
-                    <p className="text-base text-neutral-600">{delivery.secondary_address}</p>
-                  )}
-                  {delivery.postal_code && (
-                    <p className="text-sm text-neutral-500">Postal Code: {delivery.postal_code}</p>
-                  )}
-                </>
+              {delivery?.place ? (
+                <p className="text-base font-medium">{delivery.place}</p>
+              ) : delivery?.address ? (
+                <p className="text-base font-medium">{delivery.address}</p>
               ) : customer?.address ? (
-                <>
-                  <p className="text-base font-medium">{customer.address}</p>
-                  {customer.secondary_address && (
-                    <p className="text-base text-neutral-600">{customer.secondary_address}</p>
-                  )}
-                  {customer.postal_code && (
-                    <p className="text-sm text-neutral-500">Postal Code: {customer.postal_code}</p>
-                  )}
-                </>
+                <p className="text-base font-medium">{customer.address}</p>
               ) : (
                 <p className="text-base text-neutral-500 italic">No delivery address provided</p>
               )}
