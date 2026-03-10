@@ -1,6 +1,9 @@
 import { Button } from "@/components/common/input/button.tsx";
-import React, {useState} from "react";
+import React, {useMemo, useState} from "react";
 import {DiscountType} from "@/api/model/discount.ts";
+import useApi, { SettingsData } from "@/api/db/use.api.ts";
+import { Tables } from "@/api/db/tables.ts";
+import { Setting } from "@/api/model/setting.ts";
 
 interface Props {
   serviceCharge: number
@@ -19,9 +22,25 @@ export const OrderPaymentServiceCharges = ({
 
   const keyboardKeys = [1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0];
 
+  const {
+    data: serviceChargeSettings,
+  } = useApi<SettingsData<Setting>>(Tables.settings, ["key = 'service_charges'", "and is_global = true"], [], 0, 1, ["values"]);
+
+  const settingsLabel = useMemo(() => {
+    const values = serviceChargeSettings?.data?.[0]?.values;
+    const typeRaw = values?.type?.value ?? values?.type;
+    const valueRaw = values?.value?.value ?? values?.value;
+    const type = String(typeRaw || DiscountType.Percent);
+    const value = Number(valueRaw || 0);
+    return type === DiscountType.Fixed ? `${value}` : `${value}%`;
+  }, [serviceChargeSettings]);
+
   return (
     <div className="flex flex-col justify-between h-full">
       <div className="mb-5 flex justify-between flex-col gap-5">
+        <div className="text-sm text-neutral-500">
+          Default from settings: <span className="font-semibold text-neutral-700">{settingsLabel}</span>
+        </div>
         <Button
           className="min-w-[150px]"
           variant="danger"

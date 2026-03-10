@@ -20,6 +20,7 @@ import {appAlert, appPage} from "@/store/jotai.ts";
 import {dispatchPrint} from "@/lib/print.service.ts";
 import {PRINT_TYPE} from "@/lib/print.registry.tsx";
 import {StringRecordId} from "surrealdb";
+import {createPaymentIntent, GatewayType, verifyPayment} from "@/lib/payment.service.ts";
 
 interface Props {
   order: Order
@@ -54,6 +55,19 @@ interface Props {
   notes: string
 }
 
+type PendingRemoteIntent = {
+  id: string
+  amount: number
+  payable: number
+  paymentType: PaymentType
+  gateway: GatewayType
+  intentId: string
+  paymentUrl: string | null
+  clientToken: string | null
+  status: string
+  expiresAt: string
+}
+
 export const OrderPaymentReceiving = ({
   total, order, onComplete, extras, setTax, tax, taxAmount, discount, discountAmount, setDiscount, setDiscountAmount, tipType, tip, tipAmount,
   payments, setPayments, itemsTotal, serviceChargeAmount, serviceCharge, serviceChargeType, notes
@@ -84,7 +98,23 @@ export const OrderPaymentReceiving = ({
   const keyboardKeys = [1, 2, 3, 4, 5, 6, 7, 8, 9, '.', 0];
 
   const [closing, setClosing] = useState(false);
+  const [remoteProcessing, setRemoteProcessing] = useState(false);
+  const [verifyingIntentId, setVerifyingIntentId] = useState<string | null>(null);
+  const [pendingRemoteIntents, setPendingRemoteIntents] = useState<PendingRemoteIntent[]>([]);
   const [page, setPage] = useAtom(appPage);
+
+  const isTaxObject = (value: unknown): value is Tax => {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      typeof (value as Tax).rate === 'number' &&
+      typeof (value as Tax).name === 'string'
+    );
+  }
+
+  const getPaymentTypeTax = (paymentType?: PaymentType): Tax | undefined => {
+    return isTaxObject(paymentType?.tax) ? paymentType?.tax : undefined;
+  }
 
   const closeOrder = async () => {
     setClosing(true);
@@ -96,7 +126,7 @@ export const OrderPaymentReceiving = ({
         const orderPayment = await db.create(Tables.order_payment, {
           amount: payment.amount,
           payment_type: payment.payment_type.id,
-          comments: '',
+          comments: payment.comments || '',
           payable: total
         });
 
@@ -161,20 +191,27 @@ export const OrderPaymentReceiving = ({
 
     if (payments.length > 0) {
       // find largest tax and apply it
-      const paymentsWithTaxes = payments.filter(item => !!item.payment_type.tax);
-      let tax = null;
+      const paymentsWithTaxes = payments.filter(item => !!getPaymentTypeTax(item.payment_type));
+      let tax: Tax | undefined;
       if(paymentsWithTaxes.length > 0){
         paymentsWithTaxes.forEach(pt => {
-          if(tax === null){
-            tax = pt.payment_type.tax;
+          const paymentTax = getPaymentTypeTax(pt.payment_type);
+          if(!paymentTax){
+            return;
           }
 
-          if(tax !== null && tax.rate < pt.payment_type.tax.rate){
-            tax = pt.payment_type.tax;
+          if(!tax){
+            tax = paymentTax;
+          }
+
+          if(tax.rate < paymentTax.rate){
+            tax = paymentTax;
           }
         });
 
-        setTax && setTax(tax);
+        if (tax) {
+          setTax && setTax(tax);
+        }
       }
     }
   }, [setTax, paymentTypes, payments]);
@@ -187,8 +224,83 @@ export const OrderPaymentReceiving = ({
     return tendered - total;
   }, [total, tendered]);
 
-  const addPayment = (amount: string|number, paymentType: PaymentType, payable: number) => {
+  const isRemotePaymentType = (paymentType: PaymentType): boolean => {
+    return String(paymentType.type || '').toLowerCase() === 'remote';
+  }
+
+  const addRemotePayment = async (amount: string|number, paymentType: PaymentType, payable: number) => {
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      return;
+    }
+
+    const gateway = paymentType.gateway as GatewayType | undefined;
+    if (!gateway) {
+      toast.error('Remote payment type is missing a gateway provider.');
+      return;
+    }
+
+    setRemoteProcessing(true);
+    try {
+      const intent = await createPaymentIntent({
+        gateway,
+        amount: numericAmount,
+        currency: import.meta.env.VITE_CURRENCY || 'USD',
+        orderId: order.id.toString(),
+        customer: {
+          name: order?.customer?.name || undefined,
+          email: order?.customer?.email || undefined,
+          phone: order?.customer?.phone !== undefined ? String(order.customer.phone) : undefined,
+        },
+        metadata: {
+          orderId: order.id.toString(),
+          invoiceNumber: order.invoice_number,
+          paymentTypeId: paymentType.id.toString(),
+        },
+      }, {
+        idempotencyKey: `${order.id}-${paymentType.id}-${numericAmount}-${Date.now()}`,
+      });
+
+      if (intent.paymentUrl) {
+        window.open(intent.paymentUrl, '_blank', 'noopener,noreferrer');
+        toast.success('Remote payment link generated.');
+      } else if (intent.clientToken) {
+        toast.success(`Remote token generated: ${intent.clientToken}`);
+      } else {
+        toast.success('Remote payment intent generated.');
+      }
+
+      setPendingRemoteIntents(prev => [
+        ...prev,
+        {
+          id: nanoid(),
+          amount: numericAmount,
+          payable,
+          paymentType,
+          gateway,
+          intentId: intent.intentId,
+          paymentUrl: intent.paymentUrl,
+          clientToken: intent.clientToken,
+          status: intent.status,
+          expiresAt: intent.expiresAt,
+        }
+      ]);
+      setSelectedAmount('');
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to generate remote payment link/token';
+      toast.error(message);
+    } finally {
+      setRemoteProcessing(false);
+    }
+  }
+
+  const addPayment = async (amount: string|number, paymentType: PaymentType, payable: number) => {
     if(amount.toString().length === 0){
+      return;
+    }
+
+    if (isRemotePaymentType(paymentType)) {
+      await addRemotePayment(amount, paymentType, payable);
       return;
     }
 
@@ -229,6 +341,58 @@ export const OrderPaymentReceiving = ({
     setSelectedAmount('');
   }
 
+  const verifyRemoteIntent = async (pendingIntent: PendingRemoteIntent) => {
+    setVerifyingIntentId(pendingIntent.id);
+    try {
+      const result = await verifyPayment({
+        gateway: pendingIntent.gateway,
+        intentId: pendingIntent.intentId,
+        orderId: order.id.toString(),
+        metadata: {
+          orderId: order.id.toString(),
+          invoiceNumber: order.invoice_number,
+          paymentTypeId: pendingIntent.paymentType.id.toString(),
+        },
+      });
+
+      if (result.status !== 'paid' && result.status !== 'authorized') {
+        toast.warning(`Payment is ${result.status}. It must be paid/authorized before adding.`);
+        setPendingRemoteIntents(prev => prev.map(item => (
+          item.id === pendingIntent.id ? { ...item, status: result.status } : item
+        )));
+        return;
+      }
+
+      const comments = JSON.stringify({
+        provider: pendingIntent.gateway,
+        intentId: pendingIntent.intentId,
+        reference: result.reference,
+        verifiedAt: result.verifiedAt,
+        status: result.status,
+        paymentUrl: pendingIntent.paymentUrl,
+        clientToken: pendingIntent.clientToken,
+      });
+
+      setPayments(prev => [
+        ...prev,
+        {
+          payment_type: pendingIntent.paymentType,
+          amount: pendingIntent.amount,
+          payable: pendingIntent.payable,
+          comments,
+          id: nanoid()
+        }
+      ]);
+      setPendingRemoteIntents(prev => prev.filter(item => item.id !== pendingIntent.id));
+      toast.success('Remote payment verified and added.');
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to verify remote payment';
+      toast.error(message);
+    } finally {
+      setVerifyingIntentId(null);
+    }
+  }
+
   const calculateTotal = (taxRate: number, overrideDiscountAmount?: number) => {
     const txAmount = itemsTotal * taxRate / 100;
     const extrasTotal = Object.values(extras).reduce((prev, item) => prev + item, 0);
@@ -239,16 +403,17 @@ export const OrderPaymentReceiving = ({
   // Determine highest tax among existing payments, optionally considering a candidate tax
   const getHighestTaxRate = (candidateRate?: number) => {
     const existingRates = payments
-      .filter(p => !!p.payment_type.tax)
-      .map(p => (p.payment_type.tax as Tax).rate);
+      .map(p => getPaymentTypeTax(p.payment_type))
+      .filter((paymentTax): paymentTax is Tax => !!paymentTax)
+      .map(paymentTax => paymentTax.rate);
     const currentMax = existingRates.length > 0 ? Math.max(...existingRates) : 0;
     return candidateRate === undefined ? currentMax : Math.max(currentMax, candidateRate);
   }
 
   const getHighestTaxObject = (candidate?: Tax): Tax | undefined => {
     const existingTaxes = payments
-      .filter(p => !!p.payment_type.tax)
-      .map(p => p.payment_type.tax as Tax);
+      .map(p => getPaymentTypeTax(p.payment_type))
+      .filter((paymentTax): paymentTax is Tax => !!paymentTax);
     let highest: Tax | undefined = existingTaxes.length > 0
       ? existingTaxes.reduce((acc, t) => (acc.rate >= t.rate ? acc : t))
       : undefined;
@@ -349,15 +514,16 @@ export const OrderPaymentReceiving = ({
                 return;
               }
               const pt = paymentTypes[0];
-              const hasTax = !!pt.tax;
-              const highestTax = hasTax ? getHighestTaxObject(pt.tax) : getHighestTaxObject(undefined);
+              const paymentTypeTax = getPaymentTypeTax(pt);
+              const hasTax = !!paymentTypeTax;
+              const highestTax = hasTax ? getHighestTaxObject(paymentTypeTax) : getHighestTaxObject(undefined);
               if(hasTax){
                 setTax && setTax(highestTax);
               }
               const highestRate = hasTax ? (highestTax ? highestTax.rate : 0) : (tax ? tax.rate : getHighestTaxRate());
               const autoDiscountAmount = applyPaymentTypeDiscountIfAny(pt);
               const payable = calculateTotal(highestRate, autoDiscountAmount);
-              addPayment(total, pt, payable);
+              void addPayment(total, pt, payable);
               setMode('quick');
             }}
           >{withCurrency(total)}</span>
@@ -370,15 +536,16 @@ export const OrderPaymentReceiving = ({
                     return;
                   }
                   const pt = paymentTypes[0];
-                  const hasTax = !!pt.tax;
-                  const highestTax = hasTax ? getHighestTaxObject(pt.tax) : getHighestTaxObject(undefined);
+                  const paymentTypeTax = getPaymentTypeTax(pt);
+                  const hasTax = !!paymentTypeTax;
+                  const highestTax = hasTax ? getHighestTaxObject(paymentTypeTax) : getHighestTaxObject(undefined);
                   if(hasTax){
                     setTax && setTax(highestTax);
                   }
                   const highestRate = hasTax ? (highestTax ? highestTax.rate : 0) : (tax ? tax.rate : getHighestTaxRate());
                   const autoDiscountAmount = applyPaymentTypeDiscountIfAny(pt);
                   const payable = calculateTotal(highestRate, autoDiscountAmount);
-                  addPayment(item, pt, payable);
+                  void addPayment(item, pt, payable);
                   setMode('quick');
                 }}
               >{withCurrency(item)}</span>
@@ -395,8 +562,8 @@ export const OrderPaymentReceiving = ({
               key={item.id}
               onClick={() => {
                 // Determine the effective highest tax after choosing this payment type
-                const hasTax = !!item.tax;
-                const candidateTax = item.tax;
+                const candidateTax = getPaymentTypeTax(item);
+                const hasTax = !!candidateTax;
                 const highestTax = hasTax ? getHighestTaxObject(candidateTax) : getHighestTaxObject(undefined);
                 // Only update global tax when this payment type has a tax attached
                 if (hasTax) {
@@ -414,13 +581,13 @@ export const OrderPaymentReceiving = ({
 
                 if(selectedAmount.trim().length > 0){
                   // Respect typed amount; add with proper payable (includes highest tax)
-                  addPayment(selectedAmount, item, payable)
+                  void addPayment(selectedAmount, item, payable)
                 }else if(changeDue < 0) {
                   // No typed amount: auto-fill remaining for convenience
                   const remaining = payable - tendered;
                   const amt = remaining.toString();
                   setSelectedAmount(amt);
-                  addPayment(amt, item, payable)
+                  void addPayment(amt, item, payable)
                 }else {
                   // Nothing typed and no remaining due – do nothing (card will be blocked inside addPayment)
                 }
@@ -477,7 +644,7 @@ export const OrderPaymentReceiving = ({
                 filled
                 size="lg"
                 onClick={closeOrder}
-                disabled={changeDue < 0 || closing}
+                disabled={changeDue < 0 || closing || remoteProcessing}
                 flat
               >Complete</Button>
             </div>
@@ -485,6 +652,41 @@ export const OrderPaymentReceiving = ({
         </div>
       </div>
       <div className="flex flex-col gap-2 p-3 bg-white rounded-xl h-full">
+        {pendingRemoteIntents.map(intent => (
+          <div key={intent.id} className="border border-warning-400 rounded p-2">
+            <div className="flex justify-between text-sm mb-2">
+              <strong>{intent.paymentType.name} (Remote)</strong>
+              <span>{withCurrency(intent.amount)}</span>
+            </div>
+            <div className="text-xs text-neutral-600 mb-2">Status: {intent.status}</div>
+            <div className="flex gap-2">
+              {intent.paymentUrl && (
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => window.open(intent.paymentUrl as string, '_blank', 'noopener,noreferrer')}
+                >
+                  Open link
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="success"
+                onClick={() => { void verifyRemoteIntent(intent); }}
+                disabled={verifyingIntentId === intent.id}
+              >
+                Verify
+              </Button>
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() => setPendingRemoteIntents(prev => prev.filter(item => item.id !== intent.id))}
+              >
+                Remove
+              </Button>
+            </div>
+          </div>
+        ))}
         {payments.map(payment => (
           <div
             className="flex justify-between text-lg cursor-pointer"

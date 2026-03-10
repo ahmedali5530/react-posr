@@ -2,10 +2,10 @@ import {Order} from "@/api/model/order.ts";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {OrderHeader} from "@/components/orders/order.header.tsx";
 import ScrollContainer from "react-indiana-drag-scroll";
-import React, {CSSProperties, useEffect, useMemo, useRef, useState} from "react";
+import React, {CSSProperties, useCallback, useEffect, useMemo, useState} from "react";
 import {OrderTimes} from "@/components/orders/order.times.tsx";
 import {calculateOrderTotal} from "@/lib/cart.ts";
-import {cn, formatNumber, withCurrency} from "@/lib/utils.ts";
+import {cn, formatNumber, toRecordId, withCurrency} from "@/lib/utils.ts";
 import {OrderPaymentReceiving} from "@/components/orders/payment/order.payment.receiving.tsx";
 import {OrderPaymentTax} from "@/components/orders/payment/order.payment.tax.tsx";
 import {Tax} from "@/api/model/tax.ts";
@@ -24,6 +24,8 @@ import {getOrderFilteredItems} from "@/lib/order.ts";
 import {useAtom} from "jotai";
 import {appPage} from "@/store/jotai.ts";
 import {Tables} from "@/api/db/tables.ts";
+import useApi, { SettingsData } from "@/api/db/use.api.ts";
+import { Extra } from "@/api/model/extra.ts";
 
 interface Props {
   order: Order
@@ -40,10 +42,6 @@ enum PaymentOptions {
   Notes = 'Notes'
 }
 
-const extraItems = {
-  'POS Fee': 1,
-};
-
 export const OrderPayment = ({
   order, onClose
 }: Props) => {
@@ -55,8 +53,6 @@ export const OrderPayment = ({
   }
 
   const itemsTotal = calculateOrderTotal(order);
-  const [extras, setExtras] = useState(extraItems);
-
   const [paymentTypes, setPaymentTypes] = useState<OrderPaymentModal[]>([]);
 
   const [tax, setTax] = useState<Tax>();
@@ -74,6 +70,96 @@ export const OrderPayment = ({
   const [tipAmount, setTipAmount] = useState<number>(0);
 
   const [notes, setNotes] = useState<string>('');
+  const [extraToggles, setExtraToggles] = useState<Record<string, boolean>>({});
+  const [isInitialized, setInitialized] = useState(false);
+
+  const {
+    data: extrasData,
+  } = useApi<SettingsData<Extra>>(Tables.extras, [], ["name asc"], 0, 99999, [
+    "payment_types",
+    "order_types",
+    "tables",
+  ]);
+
+  const selectedPaymentTypeIds = useMemo(() => {
+    return new Set((paymentTypes || []).map(item => item.payment_type?.id?.toString()).filter(Boolean));
+  }, [paymentTypes]);
+
+  const isDeliveryOrder = !!order?.delivery;
+  const orderTypeId = order?.order_type?.id?.toString();
+  const tableId = order?.table?.id?.toString();
+
+  const isExtraApplicable = useCallback((extra: Extra) => {
+    if (extra.apply_to_all) {
+      return true;
+    }
+
+    const hasPaymentTypeRule = (extra.payment_types?.length || 0) > 0;
+    const hasOrderTypeRule = (extra.order_types?.length || 0) > 0;
+    const hasTableRule = (extra.tables?.length || 0) > 0;
+    const hasDeliveryRule = !!extra.delivery;
+    const hasAnyRule = hasPaymentTypeRule || hasOrderTypeRule || hasTableRule || hasDeliveryRule;
+
+    if (!hasAnyRule) {
+      return false;
+    }
+    if (hasDeliveryRule && !isDeliveryOrder) {
+      return false;
+    }
+
+    if (hasOrderTypeRule) {
+      const orderTypeIds = new Set(extra.order_types?.map(item => item.id?.toString()));
+      if (!orderTypeId || !orderTypeIds.has(orderTypeId)) {
+        return false;
+      }
+    }
+
+    if (hasTableRule) {
+      const tableIds = new Set(extra.tables?.map(item => item.id?.toString()));
+      if (!tableId || !tableIds.has(tableId)) {
+        return false;
+      }
+    }
+
+    if (hasPaymentTypeRule) {
+      const extraPaymentTypeIds = new Set(extra.payment_types?.map(item => item.id?.toString()));
+      const hasMatchingPaymentType = [...selectedPaymentTypeIds].some(id => extraPaymentTypeIds.has(id));
+      if (!hasMatchingPaymentType) {
+        return false;
+      }
+    }
+
+    return true;
+  }, [isDeliveryOrder, orderTypeId, tableId, selectedPaymentTypeIds]);
+
+  const defaultExtras = useMemo<Record<string, number>>(() => {
+    const records = extrasData?.data || [];
+    const mapped: Record<string, number> = {};
+
+    records.filter(isExtraApplicable).forEach(item => {
+      mapped[item.name] = Number(item.value || 0);
+    });
+
+    return mapped;
+  }, [extrasData, isExtraApplicable]);
+
+  useEffect(() => {
+    setExtraToggles(prev => {
+      const next: Record<string, boolean> = {};
+      Object.keys(defaultExtras).forEach(extraName => {
+        next[extraName] = prev[extraName] ?? true;
+      });
+      return next;
+    });
+  }, [defaultExtras]);
+
+  const extras = useMemo<Record<string, number>>(() => {
+    const mapped: Record<string, number> = {};
+    Object.entries(defaultExtras).forEach(([name, value]) => {
+      mapped[name] = (extraToggles[name] ?? true) ? value : 0;
+    });
+    return mapped;
+  }, [defaultExtras, extraToggles]);
 
   useEffect(() => {
     if(tax){
@@ -103,31 +189,39 @@ export const OrderPayment = ({
     }
   }, [serviceCharge, itemsTotal, serviceChargeType]);
 
-  const firstTime = useRef(false);
   useEffect(() => {
-    // load first time
-    if(firstTime.current === false){
-      setPaymentTypes(order?.payments ?? []);
-
-      setTax(order?.tax);
-      setTaxAmount(order?.tax_amount ?? 0);
-
-      setDiscount(order?.discount);
-      setDiscountAmount(order?.discount_amount ?? 0);
-
-      setServiceCharge(order?.service_charge ?? 0);
-      setServiceChargeAmount(order?.service_charge_amount ?? 0);
-      setServiceChargeType(order?.service_charge_type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
-
-      setTip(order?.tip ?? 0);
-      setTipAmount(order?.tip_amount ?? 0);
-      setTipType(order?.tip_type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
-
-      setNotes(order?.notes);
-
-      firstTime.current = true;
+    if (isInitialized) {
+      return;
     }
-  }, [order, firstTime.current]);
+
+    setPaymentTypes(order?.payments ?? []);
+    setTax(order?.tax);
+    setTaxAmount(order?.tax_amount ?? 0);
+    setDiscount(order?.discount);
+    setDiscountAmount(order?.discount_amount ?? 0);
+    setServiceCharge(Number(order?.service_charge || 0));
+    setServiceChargeAmount(order?.service_charge_amount ?? 0);
+    setServiceChargeType(order?.service_charge_type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
+
+    setTip(order?.tip ?? 0);
+    setTipAmount(order?.tip_amount ?? 0);
+    setTipType(order?.tip_type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
+    setNotes(order?.notes);
+
+    const orderExtraMap = (order?.extras || []).reduce((acc, item) => {
+      acc[item.name] = Number(item.value || 0);
+      return acc;
+    }, {} as Record<string, number>);
+    setExtraToggles(prev => {
+      const next = { ...prev };
+      Object.keys(orderExtraMap).forEach(extraName => {
+        next[extraName] = orderExtraMap[extraName] > 0;
+      });
+      return next;
+    });
+
+    setInitialized(true);
+  }, [order, isInitialized]);
 
   const total = useMemo(() => {
     const extrasTotal = Object.values(extras).reduce((prev, item) => prev + item, 0);
@@ -153,7 +247,12 @@ export const OrderPayment = ({
     }, 300)
   }
 
-  const saveOrderProgress = async () => {
+  const saveOrderProgress = useCallback(async () => {
+    // Prevent persisting transient default state before first initialization is complete.
+    if (!isInitialized) {
+      return;
+    }
+
     // remove previously attached payments
     for(const payment of order?.payments ?? []){
       await db.delete(payment.id);
@@ -189,7 +288,7 @@ export const OrderPayment = ({
     await db.merge(order.id, {
       payments: orderPayments,
       extras: extraOptions,
-      tax: tax?.id,
+      tax: tax ? toRecordId(tax?.id) : null,
       tax_amount: taxAmount,
       discount: discount?.id,
       discount_amount: discountAmount,
@@ -201,14 +300,29 @@ export const OrderPayment = ({
       service_charge_type: serviceChargeType,
       notes: notes,
     });
-  }
+  }, [
+    order,
+    db,
+    paymentTypes,
+    total,
+    extras,
+    tax,
+    taxAmount,
+    discount,
+    discountAmount,
+    tip,
+    tipAmount,
+    tipType,
+    serviceCharge,
+    serviceChargeAmount,
+    serviceChargeType,
+    notes,
+    isInitialized
+  ])
 
   useEffect(() => {
     saveOrderProgress();
-  }, [
-    paymentTypes, tax, taxAmount, discount, discountAmount, tip, tipAmount, tipType, serviceCharge, serviceChargeAmount,
-    serviceChargeType, notes
-  ]);
+  }, [saveOrderProgress]);
 
   return (
     <Modal
@@ -295,9 +409,9 @@ export const OrderPayment = ({
                 }
                 key={extra}
                 onClick={() => {
-                  setExtras(prev => ({
+                  setExtraToggles(prev => ({
                     ...prev,
-                    [extra]: extras[extra] === 0 ? extraItems[extra] : 0
+                    [extra]: !(prev[extra] ?? true)
                   }))
                 }}
               >

@@ -1,25 +1,36 @@
-import { Button } from "@/components/common/input/button.tsx";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { useAtom } from "jotai";
-import { StringRecordId } from "surrealdb";
 import { useDB } from "@/api/db/db.ts";
 import { Tables } from "@/api/db/tables.ts";
-import useApi, { SettingsData } from "@/api/db/use.api.ts";
-import { Printer } from "@/api/model/printer.ts";
 import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
-import { toast } from "sonner";
-import { appPage } from "@/store/jotai.ts";
 import {Setting} from "@/api/model/setting.ts";
 import {Input} from "@/components/common/input/input.tsx";
+import {DiscountType} from "@/api/model/discount.ts";
+import {toast} from "sonner";
 
 export const ServiceChargesSettings = () => {
   const db = useDB();
-  const [page] = useAtom(appPage);
   const [settings, setSettings] = useState<Setting>();
 
 
   const {control, handleSubmit, reset} = useForm();
+
+  const normalizeType = (rawType: any): string => {
+    if (rawType && typeof rawType === "object") {
+      return rawType.value || rawType.label || DiscountType.Percent;
+    }
+    if (typeof rawType === "string") {
+      return rawType;
+    }
+    return DiscountType.Percent;
+  };
+
+  const normalizeValue = (rawValue: any): number => {
+    if (rawValue && typeof rawValue === "object") {
+      return Number(rawValue.value ?? 0);
+    }
+    return Number(rawValue ?? 0);
+  };
 
   const loadSettings = async () => {
     const [s] = await db.query(`SELECT * FROM ${Tables.settings} where key = $key and is_global = true FETCH values`, {
@@ -30,9 +41,24 @@ export const ServiceChargesSettings = () => {
   }
 
   const saveSettings = async (values: any) => {
-    await db.merge(settings.id, {
-      values: values
-    });
+    const payload = {
+      type: normalizeType(values?.type),
+      value: normalizeValue(values?.value),
+    };
+
+    if (settings?.id) {
+      await db.merge(settings.id, {
+        values: payload
+      });
+    } else {
+      await db.create(Tables.settings, {
+        key: "service_charges",
+        is_global: true,
+        values: payload,
+      });
+    }
+
+    toast.success("Service charges updated");
   }
 
   useEffect(() => {
@@ -41,12 +67,13 @@ export const ServiceChargesSettings = () => {
 
   useEffect(() => {
     if(settings){
+      const serviceChargeType = normalizeType(settings.values?.type);
       reset({
         type: {
-          label: settings.values?.type,
-          value: settings.values?.type
+          label: serviceChargeType,
+          value: serviceChargeType
         },
-        value: settings.values?.value
+        value: normalizeValue(settings.values?.value)
       });
     }
   }, [reset, settings]);
@@ -61,10 +88,12 @@ export const ServiceChargesSettings = () => {
               <div>
                 <label htmlFor="type">Type</label>
                 <ReactSelect
-                  options={['fixed', 'percent'].map(item => ({
-                    label: item,
-                    value: item
-                  }))}
+                  options={[DiscountType.Fixed, DiscountType.Percent].map(a => {
+                    return {
+                      label: a,
+                      value: a
+                    }
+                  })}
                   value={field.value}
                   onChange={field.onChange}
                 />
