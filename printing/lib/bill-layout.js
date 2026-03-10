@@ -38,6 +38,8 @@ function printBillLayout(printer, bill, config, opts) {
 
   // --- Header (CommonBillParts) ---
   printer.align('ct').style('bu').text(title || 'Bill').style('normal');
+  printVatLine(printer, cfg);
+
   printer.style('normal');
   printLineLeftRight(printer, `Invoice# ${bill.orderId || ''}`, bill.date || '');
   printLineLeftRight(printer, `Table: ${bill.table || '-'}`, `Order Type: ${bill.orderType || '-'}`);
@@ -117,7 +119,6 @@ function printBillLayout(printer, bill, config, opts) {
     printer.style('normal');
   }
 
-  printVatLine(printer, cfg);
   if (notes) {
     printer.drawLine();
     printer.text(`Notes: ${String(notes).slice(0, 48)}`);

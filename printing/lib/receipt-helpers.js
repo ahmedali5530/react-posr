@@ -222,7 +222,7 @@ function printBottomDescription(printer, config) {
  */
 function printVatLine(printer, config) {
   if (!config.showVatNumber || !config.vatNumber) return;
-  printer.text(`${config.vatName}: ${config.vatNumber}`);
+  printer.align('ct').text(`${config.vatName}: ${config.vatNumber}`);
 }
 
 /**
