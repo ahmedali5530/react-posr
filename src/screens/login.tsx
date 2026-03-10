@@ -170,7 +170,7 @@ export const Login = () => {
         <div className="flex gap-3">
           <button
             className={cn(
-              "w-56 border-2 transition-all duration-150 btn btn-filled",
+              "w-56 border-2 transition-all duration-150 btn btn-filled lg",
               loginMethod === 'pin'
                 ? "!bg-warning-500 text-black border-warning-500"
                 : "!bg-black text-white"
@@ -182,13 +182,12 @@ export const Login = () => {
               setPassword('');
               setCode('');
             }}
-            size="lg"
           >
             Pin
           </button>
           <button
             className={cn(
-              "w-56 border-2 transition-all duration-150 btn btn-filled",
+              "w-56 border-2 transition-all duration-150 btn btn-filled lg",
               loginMethod === 'form'
                 ? "!bg-warning-500 text-black border-warning-500"
                 : "!bg-black text-white"
@@ -200,7 +199,6 @@ export const Login = () => {
               setPassword('');
               setCode('');
             }}
-            size="lg"
           >
             Form
           </button>
