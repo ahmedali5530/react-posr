@@ -28,8 +28,10 @@ import {
   ORDERS,
   REPORTS,
   SETTINGS,
-  SUMMARY
+  SUMMARY,
+  TIP_DISTRIBUTION
 } from "@/routes/posr.ts";
+import { getUserModules } from "@/lib/access.rules.ts";
 
 export const Sidebar = () => {
   const [page, setPage] = useAtom(appPage);
@@ -69,10 +71,11 @@ export const Sidebar = () => {
     { title: 'Inventory', icon: <FontAwesomeIcon icon={faWarehouse} size="lg"/>, link: INVENTORY, role: 'Admin' },
     { title: 'Manage', icon: <FontAwesomeIcon icon={faGear} size="lg"/>, link: ADMIN, role: 'Admin' },
     { title: 'Reports', icon: <FontAwesomeIcon icon={faLineChart} size="lg"/>, link: REPORTS, role: 'Reports' },
+    { title: 'Tip Dist.', icon: <FontAwesomeIcon icon={faBarChart} size="lg"/>, link: TIP_DISTRIBUTION, role: 'Admin' },
   ];
 
   // Filter sidebar items based on user roles
-  const userRoles = page.user?.roles || [];
+  const userRoles = getUserModules(page.user);
   const sidebarItems = allSidebarItems.filter(item => {
     // If user has no roles, show nothing (or you could show all if that's the desired behavior)
     if (userRoles.length === 0) {

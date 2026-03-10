@@ -9,6 +9,7 @@ export const ADMIN = '/admin';
 export const SETTINGS = '/settings';
 export const CLOCK = '/clock';
 export const INVENTORY = '/inventory';
+export const TIP_DISTRIBUTION = '/tip-distribution';
 
 export const REPORTS = '/reports';
 export const REPORTS_PRODUCT_MIX_WEEKLY = REPORTS + '/product-mix-weekly';
@@ -26,6 +27,7 @@ export const REPORTS_SALES_SERVER = REPORTS + '/sales-server';
 export const REPORTS_SALES_SUMMARY = REPORTS + '/sales-summary';
 export const REPORTS_SALES_SUMMARY2 = REPORTS + '/sales-summary-2';
 export const REPORTS_SALES_WEEKLY = REPORTS + '/sales-weekly';
+export const REPORTS_TIPS = REPORTS + '/tips';
 export const REPORTS_TABLES_SUMMARY = REPORTS + '/tables-summary';
 export const REPORTS_VOIDS = REPORTS + '/voids';
 export const REPORTS_CURRENT_INVENTORY = REPORTS + '/current-inventory';

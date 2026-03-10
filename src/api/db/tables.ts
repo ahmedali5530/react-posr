@@ -25,11 +25,17 @@ export enum Tables {
   order_refunds = 'order_refund',
 
   order_types = 'order_type',
+  extras = 'extra',
   payment_types = 'payment_type',
+  payment_type_gateway_configs = 'payment_type_gateway_config',
   printers = 'printer',
   taxes = 'tax',
   users = 'user',
+  user_roles = 'user_role',
+  shifts = 'shift',
   time_entries = 'time_entry',
+  tip_distributions = 'tip_distribution',
+  tip_distribution_user_shares = 'tip_distribution_user_share',
 
   inventory_items = 'inventory_item',
   inventory_suppliers = 'inventory_supplier',

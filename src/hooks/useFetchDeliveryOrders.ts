@@ -18,15 +18,13 @@ export const useFetchDeliveryOrders = () => {
 
       const [result] = await db.query<any>(
         `SELECT * FROM ${Tables.orders} 
-         WHERE delivery != NONE and delivery != $emptyObject and delivery != $emptyArray
+         WHERE delivery != NONE and delivery != {} and delivery != []
            AND status IN $status
          ORDER BY created_at DESC
          FETCH customer, items, items.item, table, user, order_type, discount, tax, payments, payments.payment_type, extras
          `,
         {
           status: [OrderStatus["In Progress"], OrderStatus['Pending']],
-          emptyObject: {},
-          emptyArray: []
         }
       );
 

@@ -17,6 +17,7 @@ import { AdminUsers } from "@/components/settings/users";
 import ScrollContainer from "react-indiana-drag-scroll";
 import {AdminMenus} from "@/components/settings/menu";
 import {AdminPrints} from "@/components/settings/prints";
+import { AdminExtras } from "@/components/settings/extras";
 
 export const Admin = () => {
   const [selected, setSelected] = useState('dishes');
@@ -34,6 +35,7 @@ export const Admin = () => {
     'print_settings': { component: <AdminPrints/>, title: 'Print settings' },
     'order_types': { component: <AdminOrderTypes/>, title: 'Order Types' },
     'payment_types': { component: <AdminPaymentTypes/>, title: 'Payment types' },
+    'extras': { component: <AdminExtras/>, title: 'Extras' },
     'taxes': { component: <AdminTaxes/>, title: 'Taxes' },
     'users': { component: <AdminUsers/>, title: 'Users' },
   };

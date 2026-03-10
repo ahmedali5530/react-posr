@@ -1,4 +1,4 @@
-import {forwardRef, HTMLProps, Ref, useCallback, useEffect, useRef, useState} from "react";
+import {ChangeEvent, forwardRef, HTMLProps, Ref, useCallback, useEffect, useRef, useState} from "react";
 import { cn } from "@/lib/utils.ts";
 import {VirtualKeyboard} from "@/components/common/input/virtual.keyboard.tsx";
 
@@ -43,6 +43,19 @@ export const Textarea = forwardRef((
     }
   }, []);
 
+  const emitKeyboardChange = useCallback((value: string) => {
+    if (!props.onChange) {
+      return;
+    }
+
+    const syntheticEvent = {
+      target: {value},
+      currentTarget: {value},
+    } as ChangeEvent<HTMLTextAreaElement>;
+
+    props.onChange(syntheticEvent);
+  }, [props]);
+
   // Keep internal keyboardValue in sync with external value when keyboard is not open
   useEffect(() => {
     if (!enableKeyboard) return;
@@ -79,9 +92,7 @@ export const Textarea = forwardRef((
           value={keyboardValue}
           onChange={(v) => {
             setKeyboardValue(v);
-            if (props.onChange) {
-              props.onChange({ target: { value: v } } as any);
-            }
+            emitKeyboardChange(v);
           }}
         />
       )}

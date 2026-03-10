@@ -10,6 +10,11 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect } from "react";
 import { User } from "@/api/model/user.ts";
 import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
+import useApi, { SettingsData } from "@/api/db/use.api.ts";
+import { UserRole } from "@/api/model/user_role.ts";
+import { Shift } from "@/api/model/shift.ts";
+import { StringRecordId } from "surrealdb";
+import _ from "lodash";
 
 interface Props {
   open: boolean
@@ -18,27 +23,50 @@ interface Props {
 }
 
 const validationSchema = yup.object({
+  login_method: yup.object({
+    label: yup.string().required(),
+    value: yup.string().required(),
+  }).required("This is required"),
   first_name: yup.string().required("This is required"),
   last_name: yup.string().required("This is required"),
   login: yup.string().required("This is required"),
-  password: yup.string(),
-  roles: yup.array(yup.object({
+  password: yup.string().nullable(),
+  user_role: yup.object({
     label: yup.string(),
     value: yup.string(),
-  })).default([]).min(1, 'This is required')
+  }).nullable().required('This is required'),
+  user_shift: yup.object({
+    label: yup.string(),
+    value: yup.string(),
+  }).nullable().default(null)
 });
 
 export const UserForm = ({
   open, onClose, data
 }: Props) => {
+  const { register, control, handleSubmit, formState: { errors }, reset, watch } = useForm({
+    resolver: yupResolver(validationSchema),
+    defaultValues: {
+      login_method: {
+        label: "Pin",
+        value: "pin",
+      },
+    },
+  });
+
   const closeModal = () => {
     onClose();
     reset({
+      login_method: {
+        label: "Pin",
+        value: "pin",
+      },
       first_name: null,
       last_name: null,
       login: null,
       password: null,
-      roles: []
+      user_role: null,
+      user_shift: null
     });
   }
 
@@ -46,38 +74,79 @@ export const UserForm = ({
     if( data ) {
       reset({
         ...data,
+        login_method: {
+          label: ((data.login_method || "pin") === "form" ? "Form" : "Pin"),
+          value: (data.login_method || "pin"),
+        },
         first_name: data.first_name,
         last_name: data.last_name,
         login: data.login,
-        roles: data?.roles?.map(item => ({
-          label: item,
-          value: item,
-        })),
+        user_role: data?.user_role ? {
+          label: data.user_role.name,
+          value: data.user_role.id,
+        } : null,
+        user_shift: (data as any)?.user_shift ? {
+          label: (data as any)?.user_shift?.name,
+          value: (data as any)?.user_shift?.id,
+        } : null,
         password: null
       });
     }
-  }, [data]);
+  }, [data, reset]);
 
   const db = useDB();
-
-  const { register, control, handleSubmit, formState: { errors }, reset } = useForm({
-    resolver: yupResolver(validationSchema)
+  const {
+    data: roleData,
+    fetchData: fetchRoles,
+  } = useApi<SettingsData<UserRole>>(Tables.user_roles, [], ["name asc"], 0, 99999, [], {
+    enabled: false,
   });
+  const {
+    data: shiftData,
+    fetchData: fetchShifts,
+  } = useApi<SettingsData<Shift>>(Tables.shifts, [], ["name asc"], 0, 99999, [], {
+    enabled: false,
+  });
+  const selectedLoginMethod = watch("login_method");
+  const isPinLogin = selectedLoginMethod?.value !== "form";
 
   const onSubmit = async (values: any) => {
     const vals = { ...values };
+    const selectedRoleId = values.user_role?.value;
+    const selectedRole = (roleData?.data || []).find((item) => item.id === selectedRoleId);
+    const selectedRoleModules = _.uniq(selectedRole?.roles || []);
 
-    if(vals.roles){
-      vals.roles = vals.roles.map(item => item.value);
+    vals.user_role = selectedRoleId ? new StringRecordId(selectedRoleId) : null;
+    vals.roles = selectedRoleModules;
+    vals.user_shift = values.user_shift?.value ? new StringRecordId(values.user_shift.value) : null;
+    vals.login_method = values.login_method.value;
+
+    if (vals.login_method === "pin") {
+      vals.password = vals.login;
+    }
+
+    if(vals.login_method === "form" && !vals.id && !vals.password){
+      toast.error("Password is required for new user");
+      return;
     }
 
     try {
       if( vals.id ) {
-        await db.query(`UPDATE ${vals.id} set first_name = $first_name, last_name = $last_name, login = $login, password = crypto::bcrypt::generate($password), roles = $roles`, {
-          ...vals
-        });
+        if (vals.login_method === "pin") {
+          await db.query(`UPDATE ${vals.id} set first_name = $first_name, last_name = $last_name, login = $login, login_method = $login_method, password = crypto::bcrypt::generate($password), roles = $roles, user_role = $user_role, user_shift = $user_shift`, {
+            ...vals
+          });
+        } else if (vals.password) {
+          await db.query(`UPDATE ${vals.id} set first_name = $first_name, last_name = $last_name, login = $login, login_method = $login_method, password = crypto::bcrypt::generate($password), roles = $roles, user_role = $user_role, user_shift = $user_shift`, {
+            ...vals
+          });
+        } else {
+          await db.query(`UPDATE ${vals.id} set first_name = $first_name, last_name = $last_name, login = $login, login_method = $login_method, roles = $roles, user_role = $user_role, user_shift = $user_shift`, {
+            ...vals
+          });
+        }
       } else {
-        await db.query(`INSERT INTO user (first_name, last_name, login, password, roles) values ($first_name, $last_name, $login, crypto::bcrypt::generate($password), $roles)`, {
+        await db.query(`INSERT INTO user (first_name, last_name, login, login_method, password, roles, user_role, user_shift) values ($first_name, $last_name, $login, $login_method, crypto::bcrypt::generate($password), $roles, $user_role, $user_shift)`, {
           ...vals
         });
       }
@@ -89,6 +158,15 @@ export const UserForm = ({
       console.log(e)
     }
   }
+
+  useEffect(() => {
+    if (open) {
+      fetchRoles();
+      fetchShifts();
+    }
+  }, [open, fetchRoles, fetchShifts]);
+
+  console.log(errors);
 
   return (
     <>
@@ -106,25 +184,62 @@ export const UserForm = ({
               <Input label="Last name" {...register('last_name')} error={errors?.last_name?.message}/>
             </div>
             <div className="flex-1">
-              <Input label="Login" {...register('login')} error={errors?.login?.message}/>
-            </div>
-            <div className="flex-1">
-              <Input type="password" label="Password" {...register('password')} error={errors?.password?.message}/>
-            </div>
-            <div className="flex-1">
-              <label htmlFor="roles">Roles</label>
+              <label htmlFor="login_method">Login method</label>
               <Controller
-                name="roles"
+                name="login_method"
                 control={control}
                 render={({field}) => (
                   <ReactSelect
                     value={field.value}
                     onChange={field.onChange}
-                    isMulti
-                    options={['Menu', 'Orders', 'Reports', 'Closing', 'Kitchen', 'Delivery', 'Admin', 'Riders'].map(item => ({
-                      label: item,
-                      value: item
+                    options={[
+                      { label: "Pin", value: "pin" },
+                      { label: "Form", value: "form" },
+                    ]}
+                  />
+                )}
+              />
+            </div>
+            <div className="flex-1">
+              <Input label={isPinLogin ? "Pin" : "Username"} {...register('login')} error={errors?.login?.message}/>
+            </div>
+            {!isPinLogin && (
+              <div className="flex-1">
+                <Input type="password" label="Password" {...register('password')} error={errors?.password?.message}/>
+              </div>
+            )}
+            <div className="flex-1">
+              <label htmlFor="user_role">Role</label>
+              <Controller
+                name="user_role"
+                control={control}
+                render={({field}) => (
+                  <ReactSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={(roleData?.data || []).map(item => ({
+                      label: item.name,
+                      value: item.id
                     }))}
+                  />
+                )}
+              />
+              <span className="text-danger-600 text-sm">{errors?.user_role?.message as string}</span>
+            </div>
+            <div className="flex-1">
+              <label htmlFor="user_shift">Shift</label>
+              <Controller
+                name="user_shift"
+                control={control}
+                render={({field}) => (
+                  <ReactSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={(shiftData?.data || []).map(item => ({
+                      label: item.name,
+                      value: item.id
+                    }))}
+                    isClearable
                   />
                 )}
               />

@@ -28,6 +28,7 @@ import {IssueReturnFilter} from "@/components/reports/filters/issue.return.filte
 import {WasteFilter} from "@/components/reports/filters/waste.filter.tsx";
 import {ConsumptionFilter} from "@/components/reports/filters/consumption.filter.tsx";
 import {SaleVsConsumptionFilter} from "@/components/reports/filters/sale.vs.consumption.filter.tsx";
+import { TipsFilter } from "@/components/reports/filters/tips.filter.tsx";
 
 export const Reports = () => {
   const reportCategories = useMemo(() => {
@@ -45,6 +46,7 @@ export const Reports = () => {
         "Sales Summary": <SalesSummaryFilter />,
         "Sales Summary 2": <SalesSummary2Filter />,
         "Sales Weekly": <SalesWeeklyFilter />,
+        "Tips": <TipsFilter />,
         "Advanced Sales": <SalesAdvancedFilter />,
         // "Discounts": <DiscountsFilter />,
         "Voids": <VoidsFilter />,

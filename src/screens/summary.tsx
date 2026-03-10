@@ -124,7 +124,7 @@ export const Summary = () => {
           const qty = safeNumber(item?.quantity);
           const total = safeNumber(calculateOrderItemPrice(item));
           const key = String(item.item.name);
-          const prev = dishMap.get(key) || { name: key, qty: 0, total: 0 };
+          const prev = dishMap.get(key) || { name: key.substring(0, 12), qty: 0, total: 0 };
           prev.qty += qty;
           prev.total += total;
 
@@ -191,7 +191,7 @@ export const Summary = () => {
         const userId = toIdString(entry.user);
         if (!userId) return;
         const current = perUser.get(userId) || {
-          name: getUserDisplayName(entry.user),
+          name: getUserDisplayName(entry.user).substring(0, 12),
           durationMs: 0,
           guests: 0,
           checks: 0,

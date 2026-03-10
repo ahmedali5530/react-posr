@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useCallback, useState, ReactNode } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Surreal } from "surrealdb";
+import { ConnectionUnavailable, HttpConnectionError } from 'surrealdb';
 import { DB_REST_DB, DB_REST_NS, DB_REST_PASS, DB_REST_USER, withApi } from "@/api/db/settings.ts";
 import _ from "lodash";
 
@@ -97,6 +98,12 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({
     }),
     [surrealInstance, isPending, isSuccess, isError, error, connect, close],
   );
+
+  window.addEventListener('unhandledrejection', function(e){
+    if(e.reason.name === 'ConnectionUnavailable' || e.reason.name === 'EngineDisconnected'){
+      // connect();
+    }
+  })
 
   if (isError) {
     return (

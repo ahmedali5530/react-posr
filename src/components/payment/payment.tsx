@@ -14,6 +14,7 @@ import {StringRecordId} from "surrealdb";
 import {MenuItemType} from "@/api/model/cart_item.ts";
 import {dispatchPrint} from "@/lib/print.service.ts";
 import {Kitchen} from "@/api/model/kitchen.ts";
+import {DiscountType} from "@/api/model/discount.ts";
 
 export const Payment = () => {
   const db = useDB();
@@ -127,7 +128,26 @@ export const Payment = () => {
       items: items,
       table: new StringRecordId(state?.table?.id.toString()),
       user: new StringRecordId(page?.user?.id.toString()),
+      service_charge: 0,
+      service_charge_amount: 0,
+      service_charge_type: DiscountType.Percent,
     };
+
+    if (isNewOrder) {
+      const [serviceChargeSettingResult] = await db.query(
+        `SELECT * FROM ${Tables.settings} WHERE key = $key AND is_global = true LIMIT 1 FETCH values`,
+        { key: "service_charges" }
+      );
+      const serviceChargeSetting = serviceChargeSettingResult?.[0]?.values;
+      const defaultTypeRaw = serviceChargeSetting?.type?.value ?? serviceChargeSetting?.type;
+      const defaultValueRaw = serviceChargeSetting?.value?.value ?? serviceChargeSetting?.value;
+      const normalizedType = String(defaultTypeRaw || DiscountType.Percent);
+      const normalizedValue = Number(defaultValueRaw || 0);
+
+      data.service_charge = normalizedValue;
+      data.service_charge_type = normalizedType;
+      data.service_charge_amount = normalizedType === DiscountType.Fixed ? normalizedValue : (total * normalizedValue / 100);
+    }
 
     let orderObj: any;
 

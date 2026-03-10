@@ -11,6 +11,8 @@ services:
       VITE_DB_WEBDOCKET: "ws://localhost:8001/rpc"
       # Printer service base URL (host -> printer container)
       VITE_PRINT_SERVER_URL: "http://localhost:3132"
+      # Payment service base URL (host -> payment container)
+      VITE_PAYMENT_SERVER_URL: "${VITE_PAYMENT_SERVER_URL:-http://localhost:3134}"
     # Dev mode with Bun + Vite, binding to all interfaces.
     # Assumes you've already run `bun install` on the host.
     command: sh -c "bun run dev -- --host 0.0.0.0 --port 5173"
@@ -19,9 +21,10 @@ services:
     depends_on:
       - surrealdb
       - printer
+      - payment
 
   surrealdb:
-    image: surrealdb/surrealdb:latest
+    image: surrealdb/surrealdb:v2.6.2
     # Same as: surreal start -u root -p root surrealkv://database --bind 0.0.0.0:8001
     working_dir: /
     user: "0:0"
@@ -52,6 +55,21 @@ services:
     devices:
       - /dev/bus/usb:/dev/bus/usb
 
+  payment:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./payments:/app
+      - payment-node_modules:/app/node_modules
+    environment:
+      - PAYMENT_PORT=3134
+      - PAYMENT_HOST=0.0.0.0
+      - PAYMENT_BASE_URL=${VITE_PAYMENT_SERVER_URL:-http://localhost:3134}
+    command: sh -c "npm install && node server.js"
+    ports:
+      - "3134:3134"
+
 volumes:
   printer-node_modules:
+  payment-node_modules:
 

@@ -10,7 +10,7 @@ import { TableComponent } from "@/components/common/table/table.tsx";
 import { PaymentTypeForm } from "@/components/settings/payment_types/payment_type.form.tsx";
 
 export const AdminPaymentTypes = () => {
-  const loadHook = useApi<SettingsData<PaymentType>>(Tables.payment_types, [], ['priority asc'], 0, 10, ['tax', 'discounts']);
+  const loadHook = useApi<SettingsData<PaymentType>>(Tables.payment_types, [], ['priority asc'], 0, 10, ['tax', 'discounts', 'gateway_config']);
 
   const [data, setData] = useState<PaymentType>();
   const [formModal, setFormModal] = useState(false);
@@ -23,6 +23,14 @@ export const AdminPaymentTypes = () => {
     }),
     columnHelper.accessor("type", {
       header: 'Type'
+    }),
+    columnHelper.accessor("gateway", {
+      header: 'Gateway',
+      cell: info => info.getValue() ? <span className="tag">{info.getValue()}</span> : <span>-</span>
+    }),
+    columnHelper.accessor("gateway_mode", {
+      header: 'Mode',
+      cell: info => info.getValue() ? <span className="tag">{info.getValue()}</span> : <span>-</span>
     }),
     columnHelper.accessor("tax", {
       header: 'Tax',
