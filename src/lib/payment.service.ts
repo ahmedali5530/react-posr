@@ -1,0 +1,102 @@
+export const PAYMENT_SERVER_URL =
+  (import.meta.env.VITE_PAYMENT_SERVER_URL as string) || "http://localhost:3133";
+
+export type GatewayType = "stripe" | "paypal" | "razorpay" | "jazzcash";
+export type PaymentStatus = "pending" | "authorized" | "paid" | "failed" | "canceled";
+
+export type CreatePaymentIntentRequest = {
+  gateway: GatewayType;
+  amount: number;
+  currency: string;
+  orderId: string;
+  customer?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  };
+  returnUrl?: string;
+  cancelUrl?: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type CreatePaymentIntentResponse = {
+  gateway: GatewayType;
+  intentId: string;
+  paymentUrl: string | null;
+  clientToken: string | null;
+  status: PaymentStatus;
+  expiresAt: string;
+  gatewayPayload: Record<string, unknown>;
+};
+
+export type VerifyPaymentRequest = {
+  gateway: GatewayType;
+  paymentId?: string;
+  intentId?: string;
+  orderId?: string;
+  metadata?: Record<string, unknown>;
+  payload?: Record<string, unknown>;
+};
+
+export type VerifyPaymentResponse = {
+  gateway: GatewayType;
+  status: PaymentStatus;
+  verifiedAt: string;
+  reference: string | null;
+  gatewayPayload: Record<string, unknown>;
+};
+
+type ApiSuccess<T> = {
+  success: true;
+  data: T;
+};
+
+type ApiError = {
+  success: false;
+  error: string;
+  details?: unknown;
+};
+
+async function requestJson<T>(
+  path: string,
+  payload: Record<string, unknown>,
+  options?: { idempotencyKey?: string }
+): Promise<T> {
+  const res = await fetch(`${PAYMENT_SERVER_URL.replace(/\/$/, "")}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options?.idempotencyKey ? { "x-idempotency-key": options.idempotencyKey } : {}),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const text = await res.text();
+  let parsed: ApiSuccess<T> | ApiError | null = null;
+  try {
+    parsed = JSON.parse(text) as ApiSuccess<T> | ApiError;
+  } catch {
+    parsed = null;
+  }
+
+  if (!res.ok || !parsed || parsed.success === false) {
+    const message =
+      (parsed && "error" in parsed && parsed.error) || text || "Payment request failed";
+    throw new Error(message);
+  }
+
+  return parsed.data;
+}
+
+export async function createPaymentIntent(
+  payload: CreatePaymentIntentRequest,
+  options?: { idempotencyKey?: string }
+): Promise<CreatePaymentIntentResponse> {
+  return requestJson<CreatePaymentIntentResponse>("/payments/create-intent", payload, options);
+}
+
+export async function verifyPayment(
+  payload: VerifyPaymentRequest
+): Promise<VerifyPaymentResponse> {
+  return requestJson<VerifyPaymentResponse>("/payments/verify", payload);
+}

@@ -1,0 +1,82 @@
+'use strict';
+
+const { PaymentGateway } = require('../gateways/gateway.types');
+
+const SupportedGateways = new Set(Object.values(PaymentGateway));
+
+function assertObject(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    throw new Error('Request body must be a JSON object');
+  }
+}
+
+function requireField(body, field) {
+  if (body[field] === undefined || body[field] === null || body[field] === '') {
+    throw new Error(`${field} is required`);
+  }
+}
+
+function normalizeGateway(input) {
+  const gateway = String(input || '').toLowerCase();
+  if (!SupportedGateways.has(gateway)) {
+    throw new Error(`Unsupported payment gateway: ${input}`);
+  }
+  return gateway;
+}
+
+function validateCreateIntentRequest(body) {
+  assertObject(body);
+  requireField(body, 'gateway');
+  requireField(body, 'amount');
+  requireField(body, 'currency');
+  requireField(body, 'orderId');
+
+  const gateway = normalizeGateway(body.gateway);
+  const amount = Number(body.amount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error('amount must be a positive number');
+  }
+
+  return {
+    gateway,
+    amount,
+    currency: String(body.currency).toUpperCase(),
+    orderId: String(body.orderId),
+    customer: body.customer || {},
+    returnUrl: body.returnUrl || null,
+    cancelUrl: body.cancelUrl || null,
+    metadata: body.metadata || {},
+  };
+}
+
+function validateVerifyRequest(body) {
+  assertObject(body);
+  requireField(body, 'gateway');
+  const gateway = normalizeGateway(body.gateway);
+  return {
+    gateway,
+    paymentId: body.paymentId || null,
+    intentId: body.intentId || null,
+    orderId: body.orderId || null,
+    metadata: body.metadata || {},
+    payload: body.payload || {},
+  };
+}
+
+function parseWebhookBody(rawBody) {
+  if (!rawBody) return {};
+  const asText = Buffer.isBuffer(rawBody) ? rawBody.toString('utf8') : String(rawBody);
+  if (!asText) return {};
+  try {
+    return JSON.parse(asText);
+  } catch (err) {
+    return { raw: asText };
+  }
+}
+
+module.exports = {
+  validateCreateIntentRequest,
+  validateVerifyRequest,
+  normalizeGateway,
+  parseWebhookBody,
+};
