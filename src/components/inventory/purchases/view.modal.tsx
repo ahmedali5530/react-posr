@@ -27,10 +27,10 @@ export const InventoryPurchaseViewModal = ({open, purchase, onClose}: Props) => 
 
       setLoading(true);
       try {
-        const [result] = await db.query<InventoryPurchase>(
+        const [result] = await db.query(
           `SELECT * FROM ONLY ${purchase.id} FETCH supplier, purchase_order, purchase_order.supplier, items, items.item, items.supplier, items.store, created_by, documents`
         );
-        setViewPurchase(result as InventoryPurchase);
+        setViewPurchase(result as any);
       } catch (e) {
         console.error("Failed to load purchase details", e);
         setViewPurchase(null);

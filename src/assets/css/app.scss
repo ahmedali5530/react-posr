@@ -270,7 +270,7 @@ h1, h2, h3, h4, h5, h6, .title, .card-title, th{
     }
   }
   &.btn-secondary {
-    @apply border-white text-neutral-900 focus:outline-none focus:border-white
+    @apply border-neutral-900 text-neutral-900 focus:outline-none focus:border-white
     hover:bg-neutral-200;
     &:disabled {
       @apply bg-neutral-200;

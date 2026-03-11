@@ -53,14 +53,13 @@ export const Modal: FunctionComponent<ModalProps> = (props) => {
           }
         >
           <ReactAriaModal
-            isOpen={open}
-            isDismissable={props.shouldCloseOnOverlayClick === undefined ? true : props.shouldCloseOnOverlayClick}
-            isKeyboardDismissDisabled={props.shouldCloseOnEsc === undefined ? true : props.shouldCloseOnEsc}
-            onOpenChange={close}
+            // isOpen={open}
+            // isDismissable={props.shouldCloseOnOverlayClick === undefined ? true : props.shouldCloseOnOverlayClick}
+            // isKeyboardDismissDisabled={props.shouldCloseOnEsc === undefined ? true : props.shouldCloseOnEsc}
+            // onOpenChange={close}
             className={cn(
               props.bottomSheet ? 'mb-12' : ''
             )}
-
           >
             <Dialog
               className={cn(
@@ -80,7 +79,7 @@ export const Modal: FunctionComponent<ModalProps> = (props) => {
                 {!props.hideCloseButton && (
                   <button
                     onClick={() => close(false)}
-                    className="bg-neutral-100 absolute top-2 right-2 hover:bg-neutral-200 active:bg-neutral-300 w-12 h-12 rounded inline-flex justify-center items-center"
+                    className="btn btn-secondary btn-flat btn-square absolute top-2 right-2 lg rounded inline-flex justify-center items-center"
                     type="button">
                     <FontAwesomeIcon icon={faTimes} size="lg"/>
                   </button>

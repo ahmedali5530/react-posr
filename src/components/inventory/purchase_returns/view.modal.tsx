@@ -27,10 +27,10 @@ export const InventoryPurchaseReturnViewModal = ({open, purchaseReturn, onClose}
 
       setLoading(true);
       try {
-        const [result] = await db.query<InventoryPurchaseReturn>(
+        const [result] = await db.query(
           `SELECT * FROM ONLY ${purchaseReturn.id} FETCH purchase, purchase.supplier, items, items.item, items.store, items.supplier, created_by, documents`
         );
-        setViewReturn(result as InventoryPurchaseReturn);
+        setViewReturn(result as any);
       } catch (e) {
         console.error("Failed to load purchase return details", e);
         setViewReturn(null);
