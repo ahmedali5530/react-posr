@@ -6,9 +6,9 @@ import {InventoryPurchaseReturn} from "@/api/model/inventory_purchase_return.ts"
 import {TableComponent} from "@/components/common/table/table.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faPencil, faPlus, faDownload} from "@fortawesome/free-solid-svg-icons";
+import {faFile, faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
 import {InventoryPurchaseReturnForm} from "@/components/inventory/purchase_returns/form.tsx";
-import {downloadArrayBuffer, detectMimeType, toArrayBuffer} from "@/utils/files.ts";
+import {InventoryPurchaseReturnViewModal} from "@/components/inventory/purchase_returns/view.modal.tsx";
 
 export const InventoryPurchaseReturns = () => {
   const loadHook = useApi<SettingsData<InventoryPurchaseReturn>>(
@@ -17,11 +17,13 @@ export const InventoryPurchaseReturns = () => {
     ["created_at DESC"],
     0,
     10,
-    ["purchase", "purchase.items", "purchase.items.item", "items", "items.item", "items.purchase_item", "items.purchase_item.store", "items.purchase_item.supplier", "items.store", "items.supplier"]
+    ["purchase", "purchase.items", "purchase.items.item", "items", "items.item", "items.purchase_item", "items.purchase_item.store", "items.purchase_item.supplier", "items.store", "items.supplier", "created_by"]
   );
 
   const [data, setData] = useState<InventoryPurchaseReturn>();
   const [formModal, setFormModal] = useState(false);
+  const [viewReturn, setViewReturn] = useState<InventoryPurchaseReturn | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
 
   const columnHelper = createColumnHelper<InventoryPurchaseReturn>();
 
@@ -49,41 +51,6 @@ export const InventoryPurchaseReturns = () => {
         </div>
       )
     }),
-    columnHelper.accessor("documents", {
-      header: "Documents",
-      cell: info => {
-        const documents = info.getValue() as (ArrayBuffer | string)[] | undefined;
-        if (!documents || documents.length === 0) {
-          return <span className="text-neutral-500">No documents</span>;
-        }
-        return (
-          <div className="flex flex-wrap gap-2">
-            {documents.map((doc, index) => {
-              const buffer = toArrayBuffer(doc);
-              const mimeType = detectMimeType(buffer);
-              const extension = mimeType.split('/')[1] || 'bin';
-              return (
-                <span
-                  title={`Download document ${index + 1}`}
-                >
-                  <Button
-                    key={index}
-                    variant="primary"
-                    size="sm"
-                    iconButton
-                    onClick={() => {
-                      downloadArrayBuffer(buffer, `document-${info.row.original.invoice_number}-${index + 1}.${extension}`, mimeType);
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faDownload} />
-                  </Button>
-                </span>
-              );
-            })}
-          </div>
-        );
-      }
-    }),
     columnHelper.accessor("id", {
       id: "actions",
       header: "Actions",
@@ -91,15 +58,27 @@ export const InventoryPurchaseReturns = () => {
       enableColumnFilter: false,
       cell: (info) => {
         return (
-          <Button
-            variant="primary"
-            onClick={() => {
-              setData(info.row.original);
-              setFormModal(true);
-            }}
-          >
-            <FontAwesomeIcon icon={faPencil}/>
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              iconButton
+              onClick={() => {
+                setViewReturn(info.row.original);
+                setViewModalOpen(true);
+              }}
+            >
+              <FontAwesomeIcon icon={faFile}/>
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setData(info.row.original);
+                setFormModal(true);
+              }}
+            >
+              <FontAwesomeIcon icon={faPencil}/>
+            </Button>
+          </div>
         );
       },
     }),
@@ -133,6 +112,17 @@ export const InventoryPurchaseReturns = () => {
             setFormModal(false);
             setData(undefined);
             loadHook.fetchData();
+          }}
+        />
+      )}
+
+      {viewModalOpen && (
+        <InventoryPurchaseReturnViewModal
+          open={viewModalOpen}
+          purchaseReturn={viewReturn}
+          onClose={() => {
+            setViewModalOpen(false);
+            setViewReturn(null);
           }}
         />
       )}

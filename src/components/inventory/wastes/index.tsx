@@ -6,11 +6,11 @@ import {InventoryWaste} from "@/api/model/inventory_waste.ts";
 import {TableComponent} from "@/components/common/table/table.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faDownload, faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
+import {faFile, faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
 import {InventoryWasteForm} from "@/components/inventory/wastes/form.tsx";
 import {useDB} from "@/api/db/db.ts";
 import {DeleteConfirm} from "@/components/common/table/delete.confirm.tsx";
-import {detectMimeType, downloadArrayBuffer, toArrayBuffer} from "@/utils/files.ts";
+import {InventoryWasteViewModal} from "@/components/inventory/wastes/view.modal.tsx";
 
 export const InventoryWastes = () => {
   const loadHook = useApi<SettingsData<InventoryWaste>>(
@@ -19,12 +19,14 @@ export const InventoryWastes = () => {
     ["created_at DESC"],
     0,
     10,
-    ["purchase", "purchase.items", "purchase.items.item", "issue", "issue.items", "issue.items.item", "items", "items.item", "items.purchase_item", "items.issue_item"]
+    ["purchase", "purchase.items", "purchase.items.item", "issue", "issue.items", "issue.items.item", "items", "items.item", "items.purchase_item", "items.issue_item", "created_by"]
   );
   const db = useDB();
 
   const [data, setData] = useState<InventoryWaste>();
   const [formModal, setFormModal] = useState(false);
+  const [viewWaste, setViewWaste] = useState<InventoryWaste | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
 
   const columnHelper = createColumnHelper<InventoryWaste>();
 
@@ -62,41 +64,6 @@ export const InventoryWastes = () => {
         </div>
       )
     }),
-    columnHelper.accessor("documents", {
-      header: "Documents",
-      cell: info => {
-        const documents = info.getValue() as (ArrayBuffer | string)[] | undefined;
-        if (!documents || documents.length === 0) {
-          return <span className="text-neutral-500">No documents</span>;
-        }
-        return (
-          <div className="flex flex-wrap gap-2">
-            {documents.map((doc, index) => {
-              const buffer = toArrayBuffer(doc);
-              const mimeType = detectMimeType(buffer);
-              const extension = mimeType.split('/')[1] || 'bin';
-              return (
-                <span
-                  title={`Download document ${index + 1}`}
-                >
-                  <Button
-                    key={index}
-                    variant="primary"
-                    size="sm"
-                    iconButton
-                    onClick={() => {
-                      downloadArrayBuffer(buffer, `document-${info.row.original.invoice_number}-${index + 1}.${extension}`, mimeType);
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faDownload}/>
-                  </Button>
-                </span>
-              );
-            })}
-          </div>
-        );
-      }
-    }),
     columnHelper.accessor("id", {
       id: "actions",
       header: "Actions",
@@ -105,6 +72,16 @@ export const InventoryWastes = () => {
       cell: (info) => {
         return (
           <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              iconButton
+              onClick={() => {
+                setViewWaste(info.row.original);
+                setViewModalOpen(true);
+              }}
+            >
+              <FontAwesomeIcon icon={faFile}/>
+            </Button>
             <Button
               variant="primary"
               onClick={() => {
@@ -159,6 +136,17 @@ export const InventoryWastes = () => {
             setFormModal(false);
             setData(undefined);
             loadHook.fetchData();
+          }}
+        />
+      )}
+
+      {viewModalOpen && (
+        <InventoryWasteViewModal
+          open={viewModalOpen}
+          waste={viewWaste}
+          onClose={() => {
+            setViewModalOpen(false);
+            setViewWaste(null);
           }}
         />
       )}

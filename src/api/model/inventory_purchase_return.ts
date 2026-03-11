@@ -3,6 +3,7 @@ import {User} from "@/api/model/user.ts";
 import {InventoryItem} from "@/api/model/inventory_item.ts";
 import {InventoryStore} from "@/api/model/inventory_store.ts";
 import {InventorySupplier} from "@/api/model/inventory_supplier.ts";
+import {Document} from '@/api/model/document.ts';
 
 export interface InventoryPurchaseReturn {
   id: string
@@ -12,7 +13,7 @@ export interface InventoryPurchaseReturn {
   invoice_number: number
   items: InventoryPurchaseReturnItem[]
   store?: InventoryStore
-  documents?: ArrayBuffer[]
+  documents?: Document[]
 }
 
 export interface InventoryPurchaseReturnItem {

@@ -14,7 +14,7 @@ import {InventoryWaste} from "@/api/model/inventory_waste.ts";
 import {InventoryItem} from "@/api/model/inventory_item.ts";
 import {InventoryPurchase} from "@/api/model/inventory_purchase.ts";
 import {InventoryIssue} from "@/api/model/inventory_issue.ts";
-import {StringRecordId} from "surrealdb";
+import {RecordId, StringRecordId} from "surrealdb";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTrash, faPlus} from "@fortawesome/free-solid-svg-icons";
 import _ from "lodash";
@@ -194,28 +194,41 @@ export const InventoryWasteForm = ({open, onClose, data}: Props) => {
     return new StringRecordId(stringValue);
   };
 
-  const convertFilesToArrayBuffer = async (files: FileList | null | undefined): Promise<ArrayBuffer[]> => {
+  const convertFilesToDocuments = async (files: FileList | null | undefined): Promise<RecordId[]> => {
     if (!files || files.length === 0) return [];
-    const arrayBuffers: ArrayBuffer[] = [];
+
+    const documentRefs: RecordId[] = [];
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const arrayBuffer = await file.arrayBuffer();
-      arrayBuffers.push(arrayBuffer);
+      const content = await file.arrayBuffer();
+
+      const [created] = await db.create(Tables.documents, {
+        name: file.name,
+        content,
+        size: file.size,
+        mimeType: file.type || undefined,
+      });
+
+      if (created?.id) {
+        documentRefs.push(created.id as RecordId);
+      }
     }
-    return arrayBuffers;
+
+    return documentRefs;
   };
 
   const onSubmit = async (values: any) => {
     try {
       const purchaseId = values.items?.find((item: any) => item.source_type === "purchase")?.source_id;
       const issueId = values.items?.find((item: any) => item.source_type === "issue")?.source_id;
-      const documentsArray = await convertFilesToArrayBuffer(values.documents);
+      const documentRefs = await convertFilesToDocuments(values.documents);
 
       const payload = {
         invoice_number: Number(values.invoice_number),
         purchase: purchaseId ? toRecordId(purchaseId) : undefined,
         issue: issueId ? toRecordId(issueId) : undefined,
-        documents: documentsArray.length > 0 ? documentsArray : undefined,
+        documents: documentRefs.length > 0 ? documentRefs : undefined,
         items: [],
         created_at: values.date ? calendarDateToDate(values.date) || new Date() : new Date(),
         created_by: toRecordId(state.user.id),

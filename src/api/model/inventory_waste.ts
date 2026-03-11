@@ -2,6 +2,7 @@ import {InventoryPurchase, InventoryPurchaseItem} from "@/api/model/inventory_pu
 import {InventoryIssue, InventoryIssueItem} from "@/api/model/inventory_issue.ts";
 import {User} from "@/api/model/user.ts";
 import {InventoryItem} from "@/api/model/inventory_item.ts";
+import {Document} from '@/api/model/document.ts';
 
 export interface InventoryWaste {
   id: string
@@ -11,7 +12,7 @@ export interface InventoryWaste {
   created_by: User
   invoice_number: number
   items: InventoryWasteItem[]
-  documents?: ArrayBuffer[]
+  documents?: Document[]
 }
 
 export interface InventoryWasteItem {

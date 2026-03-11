@@ -3,6 +3,7 @@ import {InventoryPurchaseOrder} from "@/api/model/inventory_purchase_order.ts";
 import {InventoryItem} from "@/api/model/inventory_item.ts";
 import {InventorySupplier} from "@/api/model/inventory_supplier.ts";
 import {InventoryStore} from "@/api/model/inventory_store.ts";
+import {Document} from '@/api/model/document.ts';
 
 export interface InventoryPurchase {
   id: string
@@ -13,7 +14,7 @@ export interface InventoryPurchase {
   items: InventoryPurchaseItem[]
   supplier?: InventorySupplier
   comments?: string
-  documents?: ArrayBuffer[]
+  documents?: Document[]
   method?: string
   payment_method?: string
   store?: InventoryStore

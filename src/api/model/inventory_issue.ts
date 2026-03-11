@@ -2,6 +2,7 @@ import {User} from "@/api/model/user.ts";
 import {Kitchen} from "@/api/model/kitchen.ts";
 import {InventoryItem} from "@/api/model/inventory_item.ts";
 import {InventoryStore} from "@/api/model/inventory_store.ts";
+import {Document} from '@/api/model/document.ts';
 
 export interface InventoryIssue {
   id: string
@@ -12,6 +13,7 @@ export interface InventoryIssue {
   items: InventoryIssueItem[]
   store?: InventoryStore
   invoice_number?: number
+  documents?: Document[]
 }
 
 export interface InventoryIssueItem {

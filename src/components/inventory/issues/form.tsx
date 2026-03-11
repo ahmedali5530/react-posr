@@ -41,6 +41,7 @@ interface InventoryIssueFormValues {
   issued_to?: { label: string; value: string } | null;
   kitchen?: { label: string; value: string } | null;
   date?: DateValue | null;
+  documents?: FileList;
   update_item_cost?: boolean;
   items: InventoryIssueItemFormValue[];
 }
@@ -93,6 +94,7 @@ const createValidationSchema = (db: ReturnType<typeof useDB>, currentId?: string
     value: yup.string()
   }).required('This is required'),
   date: yup.mixed().nullable().optional(),
+  documents: yup.mixed().optional(),
   update_item_cost: yup.boolean().optional(),
   items: yup.array().of(
     yup.object({
@@ -253,6 +255,7 @@ export const InventoryIssueForm = ({open, onClose, data}: Props) => {
           value: data.kitchen.id
         } : null,
         date: data.created_at ? dateToCalendarDate(data.created_at) : getToday(),
+        documents: undefined,
         update_item_cost: false,
         items: data.items?.map(item => ({
           store: item.store ? {
@@ -276,6 +279,7 @@ export const InventoryIssueForm = ({open, onClose, data}: Props) => {
         issued_to: null,
         kitchen: null,
         date: getToday(),
+        documents: undefined,
         update_item_cost: false,
         items: [createEmptyItem()]
       });
@@ -398,9 +402,34 @@ export const InventoryIssueForm = ({open, onClose, data}: Props) => {
       issued_to: null,
       kitchen: null,
       date: getToday(),
+      documents: undefined,
       update_item_cost: false,
       items: [createEmptyItem()]
     });
+  };
+
+  const convertFilesToDocuments = async (files: FileList | null | undefined): Promise<RecordId[]> => {
+    if (!files || files.length === 0) return [];
+
+    const documentRefs: RecordId[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const content = await file.arrayBuffer();
+
+      const [created] = await db.create(Tables.documents, {
+        name: file.name,
+        content,
+        size: file.size,
+        mimeType: file.type || undefined,
+      });
+
+      if (created?.id) {
+        documentRefs.push(created.id as RecordId);
+      }
+    }
+
+    return documentRefs;
   };
 
   const onSubmit = async (values: any) => {
@@ -411,11 +440,14 @@ export const InventoryIssueForm = ({open, onClose, data}: Props) => {
         return;
       }
 
+      const documentRefs = await convertFilesToDocuments(values.documents);
+
       const payload: Record<string, unknown> = {
         issued_to: values.issued_to ? toRecordId(values.issued_to.value) : undefined,
         kitchen: values.kitchen ? toRecordId(values.kitchen.value) : undefined,
         items: [],
         invoice_number: Number(values.invoice_number),
+        documents: documentRefs.length > 0 ? documentRefs : undefined,
       };
 
       if (!data?.id) {
@@ -586,6 +618,19 @@ export const InventoryIssueForm = ({open, onClose, data}: Props) => {
                 )}
               />
               <InputError error={_.get(errors, ["date", "message"])}/>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label>Documents</label>
+              <input
+                type="file"
+                multiple
+                {...register("documents")}
+                className="w-full px-3 py-2 border border-neutral-400 rounded-lg"
+              />
+              <InputError error={_.get(errors, ["documents", "message"])}/>
             </div>
           </div>
 

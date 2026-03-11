@@ -6,10 +6,11 @@ import {InventoryPurchaseOrder, PurchaseOrderStatus} from "@/api/model/inventory
 import {TableComponent} from "@/components/common/table/table.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
+import {faFile, faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
 import {InventoryPurchaseOrderForm} from "@/components/inventory/purchase_orders/form.tsx";
 import {DeleteConfirm} from "@/components/common/table/delete.confirm.tsx";
 import {useDB} from "@/api/db/db.ts";
+import {InventoryPurchaseOrderViewModal} from "@/components/inventory/purchase_orders/view.modal.tsx";
 
 export const InventoryPurchaseOrders = () => {
   const loadHook = useApi<SettingsData<InventoryPurchaseOrder>>(
@@ -24,6 +25,8 @@ export const InventoryPurchaseOrders = () => {
 
   const [data, setData] = useState<InventoryPurchaseOrder>();
   const [formModal, setFormModal] = useState(false);
+  const [viewOrder, setViewOrder] = useState<InventoryPurchaseOrder | null>(null);
+  const [viewModal, setViewModal] = useState(false);
 
   const columnHelper = createColumnHelper<InventoryPurchaseOrder>();
 
@@ -64,6 +67,16 @@ export const InventoryPurchaseOrders = () => {
 
         return (
           <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              iconButton
+              onClick={() => {
+                setViewOrder(row);
+                setViewModal(true);
+              }}
+            >
+              <FontAwesomeIcon icon={faFile}/>
+            </Button>
             {row.status === PurchaseOrderStatus.pending && (
               <>
                 <Button
@@ -117,6 +130,17 @@ export const InventoryPurchaseOrders = () => {
             setFormModal(false);
             setData(undefined);
             loadHook.fetchData();
+          }}
+        />
+      )}
+
+      {viewModal && (
+        <InventoryPurchaseOrderViewModal
+          open={viewModal}
+          order={viewOrder}
+          onClose={() => {
+            setViewModal(false);
+            setViewOrder(null);
           }}
         />
       )}

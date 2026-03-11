@@ -15,7 +15,7 @@ import {InventoryPurchase} from "@/api/model/inventory_purchase.ts";
 import {InventoryItem} from "@/api/model/inventory_item.ts";
 import {InventoryStore} from "@/api/model/inventory_store.ts";
 import {InventoryPurchaseOrder, PurchaseOrderStatus} from "@/api/model/inventory_purchase_order.ts";
-import {StringRecordId} from "surrealdb";
+import {RecordId, StringRecordId} from "surrealdb";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faPlus, faTrash} from "@fortawesome/free-solid-svg-icons";
 import _ from "lodash";
@@ -366,27 +366,40 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
     return new StringRecordId(stringValue);
   };
 
-  const convertFilesToArrayBuffer = async (files: FileList | null | undefined): Promise<ArrayBuffer[]> => {
+  const convertFilesToDocuments = async (files: FileList | null | undefined): Promise<RecordId[]> => {
     if (!files || files.length === 0) return [];
-    const arrayBuffers: ArrayBuffer[] = [];
+
+    const documentRefs: RecordId[] = [];
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const arrayBuffer = await file.arrayBuffer();
-      arrayBuffers.push(arrayBuffer);
+      const content = await file.arrayBuffer();
+
+      const [created] = await db.create(Tables.documents, {
+        name: file.name,
+        content,
+        size: file.size,
+        mimeType: file.type || undefined,
+      });
+
+      if (created?.id) {
+        documentRefs.push(created.id as RecordId);
+      }
     }
-    return arrayBuffers;
+
+    return documentRefs;
   };
 
   const onSubmit = async (values: any) => {
     try {
-      const documentsArray = await convertFilesToArrayBuffer(values.documents);
+      const documentRefs = await convertFilesToDocuments(values.documents);
       
       const payload = {
         invoice_number: Number(values.invoice_number),
         purchase_order: isPurchaseOrderMethod && values.purchase_order ? toRecordId(values.purchase_order.value) : undefined,
         method: values.method ? values.method.value : 'manual',
         comments: values.comments?.trim() ? values.comments.trim() : undefined,
-        documents: documentsArray.length > 0 ? documentsArray : undefined,
+        documents: documentRefs.length > 0 ? documentRefs : undefined,
         items: [],
         created_at: values.date ? calendarDateToDate(values.date) || new Date() : new Date(),
         created_by: toRecordId(state.user.id)

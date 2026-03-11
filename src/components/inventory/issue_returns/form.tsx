@@ -39,6 +39,7 @@ interface InventoryIssueReturnFormValues {
   issued_to?: { label: string; value: string } | null;
   kitchen?: { label: string; value: string } | null;
   date?: DateValue | null;
+  documents?: FileList;
   items: InventoryIssueReturnItemFormValue[];
 }
 
@@ -88,6 +89,7 @@ const createValidationSchema = (db: ReturnType<typeof useDB>, currentId?: string
     value: yup.string()
   }).nullable().optional(),
   date: yup.mixed().nullable().optional(),
+  documents: yup.mixed().optional(),
   items: yup.array().of(
     yup.object({
       item: yup.object({
@@ -165,6 +167,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
       issuance: null,
       issued_to: null,
       kitchen: null,
+      documents: undefined,
       items: [{
         item: null,
         issued_item: null,
@@ -207,6 +210,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
           value: data.kitchen.id
         } : null,
         date: data.created_at ? dateToCalendarDate(data.created_at) : getToday(),
+        documents: undefined,
         items: data.items?.map(item => ({
           item: item.item ? {
             label: item.item.name,
@@ -228,6 +232,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
         issued_to: null,
         kitchen: null,
         date: getToday(),
+        documents: undefined,
         items: [{
           item: null,
           issued_item: null,
@@ -321,6 +326,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
       issued_to: null,
       kitchen: null,
       date: getToday(),
+      documents: undefined,
       items: [{
         item: null,
         issued_item: null,
@@ -333,6 +339,30 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
 
   const [state, ] = useAtom(appPage);
 
+  const convertFilesToDocuments = async (files: FileList | null | undefined): Promise<RecordId[]> => {
+    if (!files || files.length === 0) return [];
+
+    const documentRefs: RecordId[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const content = await file.arrayBuffer();
+
+      const [created] = await db.create(Tables.documents, {
+        name: file.name,
+        content,
+        size: file.size,
+        mimeType: file.type || undefined,
+      });
+
+      if (created?.id) {
+        documentRefs.push(created.id as RecordId);
+      }
+    }
+
+    return documentRefs;
+  };
+
   const onSubmit = async (values: any) => {
     try {
       const toRecordId = (value?: string | { toString(): string }) => {
@@ -341,6 +371,8 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
         return new StringRecordId(stringValue);
       };
 
+      const documentRefs = await convertFilesToDocuments(values.documents);
+
       const payload = {
         invoice_number: Number(values.invoice_number),
         issuance: values.issuance ? toRecordId(values.issuance.value) : undefined,
@@ -348,6 +380,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
         kitchen: values.kitchen ? toRecordId(values.kitchen.value) : undefined,
         store: values.store ? toRecordId(values.store.value) : undefined,
         items: [],
+        documents: documentRefs.length > 0 ? documentRefs : undefined,
         created_at: values.date ? calendarDateToDate(values.date) || new Date() : new Date(),
         created_by: toRecordId(state.user.id)
       };
@@ -528,6 +561,19 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
                 )}
               />
               <InputError error={_.get(errors, ["date", "message"])}/>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label>Documents</label>
+              <input
+                type="file"
+                multiple
+                {...register("documents")}
+                className="w-full px-3 py-2 border border-neutral-400 rounded-lg"
+              />
+              <InputError error={_.get(errors, ["documents", "message"])}/>
             </div>
           </div>
 

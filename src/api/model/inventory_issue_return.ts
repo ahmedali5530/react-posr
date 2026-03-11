@@ -3,6 +3,7 @@ import {Kitchen} from "@/api/model/kitchen.ts";
 import {InventoryItem} from "@/api/model/inventory_item.ts";
 import {InventoryIssue, InventoryIssueItem} from "@/api/model/inventory_issue.ts";
 import {InventoryStore} from "@/api/model/inventory_store.ts";
+import {Document} from '@/api/model/document.ts';
 
 export interface InventoryIssueReturn {
   id: string
@@ -14,6 +15,7 @@ export interface InventoryIssueReturn {
   issuance?: InventoryIssue
   store?: InventoryStore
   invoice_number: number
+  documents?: Document[]
 }
 
 export interface InventoryIssueReturnItem {

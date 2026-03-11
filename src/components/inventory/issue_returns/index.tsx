@@ -6,8 +6,9 @@ import {InventoryIssueReturn} from "@/api/model/inventory_issue_return.ts";
 import {TableComponent} from "@/components/common/table/table.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
+import {faFile, faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
 import {InventoryIssueReturnForm} from "@/components/inventory/issue_returns/form.tsx";
+import {InventoryIssueReturnViewModal} from "@/components/inventory/issue_returns/view.modal.tsx";
 
 export const InventoryIssueReturns = () => {
   const loadHook = useApi<SettingsData<InventoryIssueReturn>>(
@@ -21,6 +22,8 @@ export const InventoryIssueReturns = () => {
 
   const [data, setData] = useState<InventoryIssueReturn>();
   const [formModal, setFormModal] = useState(false);
+  const [viewIssueReturn, setViewIssueReturn] = useState<InventoryIssueReturn | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
 
   const columnHelper = createColumnHelper<InventoryIssueReturn>();
 
@@ -65,15 +68,27 @@ export const InventoryIssueReturns = () => {
       enableColumnFilter: false,
       cell: (info) => {
         return (
-          <Button
-            variant="primary"
-            onClick={() => {
-              setData(info.row.original);
-              setFormModal(true);
-            }}
-          >
-            <FontAwesomeIcon icon={faPencil}/>
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              iconButton
+              onClick={() => {
+                setViewIssueReturn(info.row.original);
+                setViewModalOpen(true);
+              }}
+            >
+              <FontAwesomeIcon icon={faFile}/>
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setData(info.row.original);
+                setFormModal(true);
+              }}
+            >
+              <FontAwesomeIcon icon={faPencil}/>
+            </Button>
+          </div>
         );
       },
     }),
@@ -107,6 +122,17 @@ export const InventoryIssueReturns = () => {
             setFormModal(false);
             setData(undefined);
             loadHook.fetchData();
+          }}
+        />
+      )}
+
+      {viewModalOpen && (
+        <InventoryIssueReturnViewModal
+          open={viewModalOpen}
+          issueReturn={viewIssueReturn}
+          onClose={() => {
+            setViewModalOpen(false);
+            setViewIssueReturn(null);
           }}
         />
       )}

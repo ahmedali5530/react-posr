@@ -6,10 +6,10 @@ import {InventoryPurchase} from "@/api/model/inventory_purchase.ts";
 import {TableComponent} from "@/components/common/table/table.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faPencil, faPlus, faUpload, faDownload, faFile} from "@fortawesome/free-solid-svg-icons";
+import {faFile, faPencil, faPlus, faUpload} from "@fortawesome/free-solid-svg-icons";
 import {InventoryPurchaseForm} from "@/components/inventory/purchases/form.tsx";
 import {InventoryPurchaseUpload} from "@/components/inventory/purchases/upload.tsx";
-import {downloadArrayBuffer, detectMimeType, toArrayBuffer} from "@/utils/files.ts";
+import {InventoryPurchaseViewModal} from "@/components/inventory/purchases/view.modal.tsx";
 
 export const InventoryPurchases = () => {
   const loadHook = useApi<SettingsData<InventoryPurchase>>(
@@ -18,12 +18,14 @@ export const InventoryPurchases = () => {
     ["created_at DESC"],
     0,
     10,
-    ["supplier", "purchase_order", "items", "items.item", "items.supplier", 'items.store']
+    ["supplier", "purchase_order", "items", "items.item", "items.supplier", "items.store", "created_by"]
   );
 
   const [data, setData] = useState<InventoryPurchase>();
   const [formModal, setFormModal] = useState(false);
   const [uploadModal, setUploadModal] = useState(false);
+  const [viewPurchase, setViewPurchase] = useState<InventoryPurchase | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
 
   const columnHelper = createColumnHelper<InventoryPurchase>();
 
@@ -55,57 +57,35 @@ export const InventoryPurchases = () => {
         </div>
       )
     }),
-    columnHelper.accessor("documents", {
-      header: "Documents",
-      cell: info => {
-        const documents = info.getValue() as (ArrayBuffer | string)[] | undefined;
-        if (!documents || documents.length === 0) {
-          return <span className="text-neutral-500">No documents</span>;
-        }
-        return (
-          <div className="flex flex-wrap gap-2">
-            {documents.map((doc, index) => {
-              const buffer = toArrayBuffer(doc);
-              const mimeType = detectMimeType(buffer);
-              const extension = mimeType.split('/')[1] || 'bin';
-              return (
-                <div
-                  title={`Download document ${index + 1}`}
-                  key={index}
-                >
-                <Button
-
-                  size="sm"
-                  flat
-                  onClick={() => {
-                    downloadArrayBuffer(buffer, `document-${info.row.original.invoice_number}-${index + 1}.${extension}`, mimeType);
-                  }}
-                >
-                  <FontAwesomeIcon icon={faDownload} className="mr-1" /> Download
-                </Button>
-                </div>
-              );
-            })}
-          </div>
-        );
-      }
-    }),
     columnHelper.accessor("id", {
       id: "actions",
       header: "Actions",
       enableSorting: false,
       enableColumnFilter: false,
       cell: (info) => {
+        const row = info.row.original;
         return (
-          <Button
-            variant="primary"
-            onClick={() => {
-              setData(info.row.original);
-              setFormModal(true);
-            }}
-          >
-            <FontAwesomeIcon icon={faPencil}/>
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              iconButton
+              onClick={() => {
+                setViewPurchase(row);
+                setViewModalOpen(true);
+              }}
+            >
+              <FontAwesomeIcon icon={faFile}/>
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setData(row);
+                setFormModal(true);
+              }}
+            >
+              <FontAwesomeIcon icon={faPencil}/>
+            </Button>
+          </div>
         );
       },
     }),
@@ -149,6 +129,17 @@ export const InventoryPurchases = () => {
             setUploadModal(false);
             setData(undefined);
             loadHook.fetchData();
+          }}
+        />
+      )}
+
+      {viewModalOpen && (
+        <InventoryPurchaseViewModal
+          open={viewModalOpen}
+          purchase={viewPurchase}
+          onClose={() => {
+            setViewModalOpen(false);
+            setViewPurchase(null);
           }}
         />
       )}

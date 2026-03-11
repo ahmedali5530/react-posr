@@ -37,6 +37,7 @@ interface InventoryPurchaseOrderFormValues {
   status: string;
   supplier?: { label: string; value: string } | null;
   date?: DateValue | null;
+  documents?: FileList | null;
   items: PurchaseOrderItemFormValue[];
 }
 
@@ -78,6 +79,7 @@ const createValidationSchema = (db: ReturnType<typeof useDB>, currentId?: string
     value: yup.string()
   }).nullable().optional(),
   date: yup.mixed().nullable().optional(),
+  documents: yup.mixed().optional(),
   items: yup.array().of(
     yup.object({
       item: yup.object({
@@ -119,6 +121,7 @@ export const InventoryPurchaseOrderForm = ({open, onClose, data}: Props) => {
 
   const {
     control,
+    register,
     handleSubmit,
     formState: {errors},
     reset,
@@ -138,6 +141,30 @@ export const InventoryPurchaseOrderForm = ({open, onClose, data}: Props) => {
   });
   const selectedSupplier = watch("supplier");
   const selectedSupplierId = selectedSupplier?.value;
+
+  const convertFilesToDocuments = async (files: FileList | null | undefined) => {
+    if (!files || files.length === 0) return [];
+
+    const documentRefs: RecordId[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const content = await file.arrayBuffer();
+
+      const [created] = await db.create(Tables.documents, {
+        name: file.name,
+        content,
+        size: file.size,
+        mimeType: file.type || undefined,
+      });
+
+      if (created?.id) {
+        documentRefs.push(created.id as RecordId);
+      }
+    }
+
+    return documentRefs;
+  };
 
   useEffect(() => {
     if (open) {
@@ -177,6 +204,7 @@ export const InventoryPurchaseOrderForm = ({open, onClose, data}: Props) => {
           value: data.supplier.id
         } : null,
         date: data.created_at ? dateToCalendarDate(data.created_at) : getToday(),
+        documents: undefined,
         items: data?.items?.map(item => ({
           item: {
             label: `${item.item.name}-${item.item.code}`,
@@ -199,6 +227,7 @@ export const InventoryPurchaseOrderForm = ({open, onClose, data}: Props) => {
       po_number: 0,
       supplier: null,
       date: getToday(),
+      documents: undefined,
       items: [{
         item: null,
         quantity: 1,
@@ -216,13 +245,16 @@ export const InventoryPurchaseOrderForm = ({open, onClose, data}: Props) => {
 
   const onSubmit = async (values: any) => {
     try {
+      const documentRefs = await convertFilesToDocuments(values.documents);
+
       const payload = {
         po_number: Number(values.po_number),
         supplier: values.supplier ? toRecordId(values.supplier.value) : undefined,
         items: [],
         created_at: values.date ? calendarDateToDate(values.date) || new Date() : new Date(),
         created_by: state.user.id,
-        status: PurchaseOrderStatus.pending
+        status: PurchaseOrderStatus.pending,
+        documents: documentRefs.length > 0 ? documentRefs : undefined,
       };
 
       let orderId: any = data?.id;
@@ -388,6 +420,19 @@ export const InventoryPurchaseOrderForm = ({open, onClose, data}: Props) => {
                   )}
                 />
                 <InputError error={_.get(errors, ["date", "message"])}/>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label>Documents</label>
+                <input
+                  type="file"
+                  multiple
+                  {...register("documents")}
+                  className="w-full px-3 py-2 border border-neutral-400 rounded-lg"
+                />
+                <InputError error={_.get(errors, ["documents", "message"])}/>
               </div>
             </div>
 

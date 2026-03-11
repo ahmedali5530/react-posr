@@ -37,6 +37,8 @@ export enum Tables {
   tip_distributions = 'tip_distribution',
   tip_distribution_user_shares = 'tip_distribution_user_share',
 
+  documents = 'document',
+
   inventory_items = 'inventory_item',
   inventory_suppliers = 'inventory_supplier',
   inventory_categories = 'inventory_category',

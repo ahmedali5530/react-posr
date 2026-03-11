@@ -6,8 +6,9 @@ import {InventoryIssue} from "@/api/model/inventory_issue.ts";
 import {TableComponent} from "@/components/common/table/table.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
+import {faFile, faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
 import {InventoryIssueForm} from "@/components/inventory/issues/form.tsx";
+import {InventoryIssueViewModal} from "@/components/inventory/issues/view.modal.tsx";
 
 export const InventoryIssues = () => {
   const loadHook = useApi<SettingsData<InventoryIssue>>(
@@ -21,6 +22,8 @@ export const InventoryIssues = () => {
 
   const [data, setData] = useState<InventoryIssue>();
   const [formModal, setFormModal] = useState(false);
+  const [viewIssue, setViewIssue] = useState<InventoryIssue | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
 
   const columnHelper = createColumnHelper<InventoryIssue>();
 
@@ -63,15 +66,27 @@ export const InventoryIssues = () => {
       enableColumnFilter: false,
       cell: (info) => {
         return (
-          <Button
-            variant="primary"
-            onClick={() => {
-              setData(info.row.original);
-              setFormModal(true);
-            }}
-          >
-            <FontAwesomeIcon icon={faPencil}/>
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              iconButton
+              onClick={() => {
+                setViewIssue(info.row.original);
+                setViewModalOpen(true);
+              }}
+            >
+              <FontAwesomeIcon icon={faFile}/>
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setData(info.row.original);
+                setFormModal(true);
+              }}
+            >
+              <FontAwesomeIcon icon={faPencil}/>
+            </Button>
+          </div>
         );
       },
     }),
@@ -105,6 +120,17 @@ export const InventoryIssues = () => {
             setFormModal(false);
             setData(undefined);
             loadHook.fetchData();
+          }}
+        />
+      )}
+
+      {viewModalOpen && (
+        <InventoryIssueViewModal
+          open={viewModalOpen}
+          issue={viewIssue}
+          onClose={() => {
+            setViewModalOpen(false);
+            setViewIssue(null);
           }}
         />
       )}
