@@ -11,6 +11,7 @@ import {useDB} from "@/api/db/db.ts";
 import {Table} from "@/api/model/table.ts";
 import {Tax} from "@/api/model/tax.ts";
 import {Discount, DiscountType} from "@/api/model/discount.ts";
+import { Coupon } from "@/api/model/coupon.ts";
 import {OrderPayment} from "@/api/model/order_payment.ts";
 import {nanoid} from "nanoid";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
@@ -53,6 +54,8 @@ interface Props {
   serviceChargeType: DiscountType
 
   notes: string
+  coupon?: Coupon
+  couponAmount?: number
 }
 
 type PendingRemoteIntent = {
@@ -70,7 +73,7 @@ type PendingRemoteIntent = {
 
 export const OrderPaymentReceiving = ({
   total, order, onComplete, extras, setTax, tax, taxAmount, discount, discountAmount, setDiscount, setDiscountAmount, tipType, tip, tipAmount,
-  payments, setPayments, itemsTotal, serviceChargeAmount, serviceCharge, serviceChargeType, notes
+  payments, setPayments, itemsTotal, serviceChargeAmount, serviceCharge, serviceChargeType, notes, coupon, couponAmount
 }: Props) => {
   const db = useDB();
   const [alert, setAlert] = useAtom(appAlert);
@@ -162,6 +165,16 @@ export const OrderPaymentReceiving = ({
         notes: notes,
         completed_at: new Date()
       });
+
+      if (coupon && couponAmount && couponAmount > 0) {
+        await db.create(Tables.coupon_redemptions, {
+          coupon: coupon.id,
+          user: page?.user?.id ? new StringRecordId(page.user.id.toString()) : null,
+          order: order.id,
+          discount_amount: couponAmount,
+          redeemed_at: new Date(),
+        });
+      }
 
       onComplete();
     } catch (e) {
@@ -397,7 +410,8 @@ export const OrderPaymentReceiving = ({
     const txAmount = itemsTotal * taxRate / 100;
     const extrasTotal = Object.values(extras).reduce((prev, item) => prev + item, 0);
     const effectiveDiscount = overrideDiscountAmount !== undefined ? overrideDiscountAmount : (discountAmount ?? 0);
-    return itemsTotal + extrasTotal + txAmount + serviceChargeAmount - effectiveDiscount + tipAmount;
+    const couponDiscount = couponAmount ?? 0;
+    return itemsTotal + extrasTotal + txAmount + serviceChargeAmount - effectiveDiscount - couponDiscount + tipAmount;
   }
 
   // Determine highest tax among existing payments, optionally considering a candidate tax

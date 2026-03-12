@@ -16,7 +16,7 @@ interface Props {
 export const OrderPaymentServiceCharges = ({
   serviceCharge, setServiceCharge, serviceChargeType, setServiceChargeType
 }: Props) => {
-  const [quickPercentOptions] = useState([
+  const [quickPercentOptions, setQuickPercentOptions] = useState([
     3, 5, 12
   ]);
 
@@ -32,6 +32,11 @@ export const OrderPaymentServiceCharges = ({
     const valueRaw = values?.value?.value ?? values?.value;
     const type = String(typeRaw || DiscountType.Percent);
     const value = Number(valueRaw || 0);
+
+    setQuickPercentOptions(prev => [
+      ...prev, value
+    ]);
+
     return type === DiscountType.Fixed ? `${value}` : `${value}%`;
   }, [serviceChargeSettings]);
 

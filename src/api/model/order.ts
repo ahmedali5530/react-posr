@@ -8,6 +8,7 @@ import { OrderType } from "@/api/model/order_type.ts";
 import { User } from "@/api/model/user.ts";
 import { Table } from "@/api/model/table.ts";
 import { OrderPayment } from "@/api/model/order_payment.ts";
+import { OrderCoupon } from "@/api/model/order_coupon.ts";
 
 export interface Order extends ID{
   covers?: number
@@ -46,6 +47,8 @@ export interface Order extends ID{
   extras?: OrderExtra[]
 
   payments?: OrderPayment[]
+
+  coupon?: OrderCoupon
 }
 
 export interface OrderExtra extends ID{
@@ -63,4 +66,20 @@ export enum OrderStatus {
   Pending = 'Pending'
 }
 
-export const ORDER_FETCHES = ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'payments', 'payments.payment_type', 'extras', 'extras.order_extras'];
+export const ORDER_FETCHES = [
+  'items',
+  'items.item',
+  'item.item.modifiers',
+  'table',
+  'user',
+  'order_type',
+  'customer',
+  'discount',
+  'tax',
+  'payments',
+  'payments.payment_type',
+  'extras',
+  'extras.order_extras',
+  'coupon',
+  'coupon.coupon'
+];

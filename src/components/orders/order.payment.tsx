@@ -26,6 +26,9 @@ import {appPage} from "@/store/jotai.ts";
 import {Tables} from "@/api/db/tables.ts";
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Extra } from "@/api/model/extra.ts";
+import { Coupon, CouponRedemption, WeekDay } from "@/api/model/coupon.ts";
+import { OrderPaymentCoupon } from "@/components/orders/payment/order.payment.coupon.tsx";
+import {toast} from "sonner";
 
 interface Props {
   order: Order
@@ -72,6 +75,10 @@ export const OrderPayment = ({
   const [notes, setNotes] = useState<string>('');
   const [extraToggles, setExtraToggles] = useState<Record<string, boolean>>({});
   const [isInitialized, setInitialized] = useState(false);
+
+  const [coupon, setCoupon] = useState<Coupon | undefined>();
+  const [couponAmount, setCouponAmount] = useState<number>(0);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const {
     data: extrasData,
@@ -208,6 +215,14 @@ export const OrderPayment = ({
     setTipType(order?.tip_type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
     setNotes(order?.notes);
 
+    if (order?.coupon) {
+      setCoupon(order.coupon.coupon);
+      setCouponAmount(order.coupon.discount ?? 0);
+    } else {
+      setCoupon(undefined);
+      setCouponAmount(0);
+    }
+
     const orderExtraMap = (order?.extras || []).reduce((acc, item) => {
       acc[item.name] = Number(item.value || 0);
       return acc;
@@ -225,10 +240,178 @@ export const OrderPayment = ({
 
   const total = useMemo(() => {
     const extrasTotal = Object.values(extras).reduce((prev, item) => prev + item, 0);
-    return itemsTotal + extrasTotal + taxAmount + serviceChargeAmount - discountAmount + tipAmount;
-  }, [itemsTotal, taxAmount, discountAmount, serviceChargeAmount, extras, tipAmount]);
+    return itemsTotal + extrasTotal + taxAmount + serviceChargeAmount - discountAmount - couponAmount + tipAmount;
+  }, [itemsTotal, taxAmount, discountAmount, serviceChargeAmount, extras, tipAmount, couponAmount]);
 
   const [mode, setMode] = useState(PaymentOptions.Tax);
+
+  const applyCoupon = async (code: string) => {
+    if (!code) {
+      return;
+    }
+
+    setIsApplyingCoupon(true);
+    try {
+      const now = new Date();
+
+      const [coupons] = await db.query<Coupon[]>(
+        `SELECT * FROM ${Tables.coupons} WHERE code = $code AND is_active = true ORDER BY priority ASC LIMIT 1`,
+        { code }
+      );
+
+      const couponRecord = (coupons || [])[0];
+      if (!couponRecord) {
+        toast.error("Coupon not found or inactive");
+        return;
+      }
+
+      if (couponRecord.coupon_type !== "order") {
+        toast.error("This coupon type is not supported on orders");
+        return;
+      }
+
+      if (
+        couponRecord.min_order_amount !== undefined &&
+        couponRecord.min_order_amount !== null &&
+        itemsTotal < Number(couponRecord.min_order_amount)
+      ) {
+        toast.error("Order total is below minimum amount for this coupon");
+        return;
+      }
+
+      const dayMap: WeekDay[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+      if (Array.isArray(couponRecord.valid_days) && couponRecord.valid_days.length > 0) {
+        const today = dayMap[now.getDay()];
+        if (!couponRecord.valid_days.includes(today)) {
+          toast.error("Coupon is not valid today");
+          return;
+        }
+      }
+
+      if (couponRecord.start_time || couponRecord.end_time) {
+        const [h, m] = now.toTimeString().split(":").map(Number);
+        const currentMinutes = h * 60 + m;
+
+        const toMinutesFromField = (value: unknown) => {
+          if (!value) return undefined;
+          if (typeof value === "string") {
+            const [hh, mm] = value.split(":").map(Number);
+            if (Number.isNaN(hh) || Number.isNaN(mm)) return undefined;
+            return hh * 60 + mm;
+          }
+          const d = new Date(value as any);
+          if (Number.isNaN(d.getTime())) return undefined;
+          return d.getHours() * 60 + d.getMinutes();
+        };
+
+        const startMinutes = toMinutesFromField(couponRecord.start_time);
+        const endMinutes = toMinutesFromField(couponRecord.end_time);
+
+        if (
+          (startMinutes !== undefined && currentMinutes < startMinutes) ||
+          (endMinutes !== undefined && currentMinutes > endMinutes)
+        ) {
+          toast.error("Coupon is not valid at this time");
+          return;
+        }
+      }
+
+      if (couponRecord.start_date) {
+        const startDate = new Date(couponRecord.start_date as any);
+        if (now < startDate) {
+          toast.error("Coupon is not active yet");
+          return;
+        }
+      }
+      if (couponRecord.end_date) {
+        const endDate = new Date(couponRecord.end_date as any);
+        if (now > endDate) {
+          toast.error("Coupon has expired");
+          return;
+        }
+      }
+
+      if (
+        couponRecord.usage_limit !== undefined &&
+        couponRecord.usage_limit !== null
+      ) {
+        const [allRedemptions] = await db.query(
+          `SELECT * FROM ${Tables.coupon_redemptions} WHERE coupon = $couponId`,
+          { couponId: couponRecord.id }
+        );
+        if ((allRedemptions || []).length >= Number(couponRecord.usage_limit)) {
+          toast.error("Coupon usage limit reached");
+          return;
+        }
+      }
+
+      if (
+        couponRecord.usage_limit_per_user !== undefined &&
+        couponRecord.usage_limit_per_user !== null &&
+        page?.user?.id
+      ) {
+        const [userRedemptions] = await db.query(
+          `SELECT * FROM ${Tables.coupon_redemptions} WHERE coupon = $couponId AND user = $userId`,
+          {
+            couponId: couponRecord.id,
+            userId: page.user.id,
+          }
+        );
+        if (
+          (userRedemptions || []).length >=
+          Number(couponRecord.usage_limit_per_user)
+        ) {
+          toast.error("You have reached the usage limit for this coupon");
+          return;
+        }
+
+        if (couponRecord.first_order_only && (userRedemptions || []).length > 0) {
+          toast.error("This coupon is only valid on the first order");
+          return;
+        }
+      }
+
+      if (!couponRecord.stackable && discountAmount > 0) {
+        toast.error("This coupon cannot be used together with other discounts");
+        return;
+      }
+
+      let computed = 0;
+      if (couponRecord.discount_type === "fixed") {
+        computed = Number(couponRecord.discount_value || 0);
+      } else {
+        const percent = Number(couponRecord.discount_value || 0);
+        computed = (itemsTotal * percent) / 100;
+      }
+
+      if (
+        couponRecord.max_discount_amount !== undefined &&
+        couponRecord.max_discount_amount !== null
+      ) {
+        computed = Math.min(computed, Number(couponRecord.max_discount_amount));
+      }
+
+      computed = Math.min(computed, itemsTotal);
+
+      if (computed <= 0) {
+        toast.error("This coupon does not provide any discount for this order");
+        return;
+      }
+
+      setCoupon(couponRecord);
+      setCouponAmount(computed);
+      toast.success("Coupon applied");
+    } catch (e) {
+      toast.error(e);
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const clearCoupon = () => {
+    setCoupon(undefined);
+    setCouponAmount(0);
+  };
 
   const print = async () => {
     // fetch latest order from database
@@ -285,6 +468,30 @@ export const OrderPayment = ({
       extraOptions.push(record.id);
     }
 
+    // Handle order-level coupon persistence
+    let orderCouponId: string | null = null;
+    const hasCoupon = coupon && couponAmount > 0;
+
+    if (hasCoupon) {
+      if (order?.coupon?.id) {
+        await db.merge(order.coupon.id, {
+          coupon: coupon.id,
+          discount: couponAmount,
+        });
+        orderCouponId = order.coupon.id as any;
+      } else {
+        const [created] = await db.create(Tables.order_coupons, {
+          coupon: coupon.id,
+          discount: couponAmount,
+          created_at: new Date(),
+        });
+        orderCouponId = (created as any)?.id ?? created.id;
+      }
+    } else if (order?.coupon?.id) {
+      // Clear existing coupon if it was removed
+      await db.delete(order.coupon.id);
+    }
+
     await db.merge(order.id, {
       payments: orderPayments,
       extras: extraOptions,
@@ -299,6 +506,7 @@ export const OrderPayment = ({
       service_charge_amount: serviceChargeAmount,
       service_charge_type: serviceChargeType,
       notes: notes,
+      coupon: orderCouponId,
     });
   }, [
     order,
@@ -317,6 +525,8 @@ export const OrderPayment = ({
     serviceChargeAmount,
     serviceChargeType,
     notes,
+    coupon,
+    couponAmount,
     isInitialized
   ])
 
@@ -377,6 +587,16 @@ export const OrderPayment = ({
                 Discount <FontAwesomeIcon icon={faPencil}/>
               </div>
               <div className="text-right">{withCurrency(discountAmount)}</div>
+            </div>
+
+            <div className={
+              cn(
+                "flex justify-between p-3 cursor-pointer",
+                mode === PaymentOptions.Coupon && 'bg-neutral-900 text-warning-500'
+              )
+            } onClick={() => setMode(PaymentOptions.Coupon)}>
+              <div>Coupon <FontAwesomeIcon icon={faPencil}/></div>
+              <div className="text-right">{withCurrency(couponAmount)}</div>
             </div>
 
             <div className={
@@ -446,6 +666,15 @@ export const OrderPayment = ({
               itemsTotal={itemsTotal}
             />
           )}
+          {mode === PaymentOptions.Coupon && (
+            <OrderPaymentCoupon
+              coupon={coupon}
+              couponAmount={couponAmount}
+              isApplying={isApplyingCoupon}
+              onApply={applyCoupon}
+              onClear={clearCoupon}
+            />
+          )}
           {mode === PaymentOptions['Service Charges'] && (
             <OrderPaymentServiceCharges
               serviceCharge={serviceCharge}
@@ -485,6 +714,8 @@ export const OrderPayment = ({
             serviceCharge={serviceCharge}
             serviceChargeType={serviceChargeType}
             notes={notes}
+            coupon={coupon}
+            couponAmount={couponAmount}
           />
         </div>
       </div>
