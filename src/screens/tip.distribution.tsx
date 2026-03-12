@@ -89,7 +89,7 @@ export const TipDistributionScreen = () => {
       }
       const { fromDate, toDate } = range;
 
-      const [orders] = await db.query<Order>(
+      const [orders] = await db.query(
         `SELECT * FROM ${Tables.orders}
          WHERE status = $status
            AND completed_at >= $fromAt
