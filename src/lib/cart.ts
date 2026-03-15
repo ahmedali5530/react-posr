@@ -41,6 +41,46 @@ export const calculateOrderTotal = (order?: Order) => {
     price += calculateOrderItemPrice(item);
   }
 
-  // TODO: calculate tax, service charges, discounts etc...
   return price;
 }
+
+export const calculateExtrasTotalFromRecord = (extras: Record<string, number> | undefined | null) => {
+  if (!extras) {
+    return 0;
+  }
+  return Object.values(extras).reduce((prev, value) => prev + Number(value || 0), 0);
+};
+
+export interface OrderTotalsInput {
+  itemsTotal: number;
+  extrasTotal?: number;
+  taxAmount?: number;
+  discountAmount?: number;
+  serviceChargeAmount?: number;
+  couponAmount?: number;
+  tipAmount?: number;
+}
+
+export const calculateOrderGrandTotal = ({
+  itemsTotal,
+  extrasTotal = 0,
+  taxAmount = 0,
+  discountAmount = 0,
+  serviceChargeAmount = 0,
+  couponAmount = 0,
+  tipAmount = 0,
+}: OrderTotalsInput) => {
+  return (
+    itemsTotal +
+    extrasTotal +
+    taxAmount +
+    serviceChargeAmount -
+    discountAmount -
+    couponAmount +
+    tipAmount
+  );
+};
+
+export const calculateChangeDue = (tendered: number, total: number) => {
+  return tendered - total;
+};

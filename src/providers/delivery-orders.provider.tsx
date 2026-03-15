@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useMemo, useState, useCallback, ReactNode, useRef } from "react";
 import { useDB } from "@/api/db/db.ts";
 import { Tables } from "@/api/db/tables.ts";
-import { Order } from "@/api/model/order.ts";
+import { Order, ORDER_FETCHES } from "@/api/model/order.ts";
 import { useFetchDeliveryOrders } from "@/hooks/useFetchDeliveryOrders.ts";
 import { dispatchPrint } from "@/lib/print.service.ts";
 import { PRINT_TYPE } from "@/lib/print.registry.tsx";
@@ -23,7 +23,7 @@ export interface DeliveryOrdersProviderProps {
   children: ReactNode;
 }
 
-const DELIVERY_ORDER_FETCH = 'FETCH customer, items, items.item, table, user, order_type, discount, tax, payments, payments.payment_type, extras';
+const DELIVERY_ORDER_FETCH = `FETCH ${ORDER_FETCHES.join(", ")}`;
 
 export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ children }) => {
   const db = useDB();

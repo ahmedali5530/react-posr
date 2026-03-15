@@ -16,6 +16,7 @@ interface CategoryAggregate {
   amountDue: number;
   netSales: number;
   discounts: number;
+  coupons: number;
   taxes: number;
   grossSale: number;
   guests: number;
@@ -30,6 +31,7 @@ interface DayPartAggregate {
   taxes: number;
   payments: number;
   serviceCharges: number;
+  coupons: number;
 }
 
 interface UserReportSection {
@@ -138,6 +140,7 @@ interface TempCategoryTotals {
   amountDue: number;
   netSales: number;
   discounts: number;
+  coupons: number;
   taxes: number;
   grossSale: number;
 }
@@ -161,6 +164,7 @@ const collectCategoryTotals = (order: Order): Map<string, TempCategoryTotals> =>
         amountDue: 0,
         netSales: 0,
         discounts: 0,
+        coupons: 0,
         taxes: 0,
         grossSale: 0,
       };
@@ -206,6 +210,17 @@ const collectCategoryTotals = (order: Order): Map<string, TempCategoryTotals> =>
     });
   }
 
+  const couponDiscount = safeNumber(order.coupon?.discount);
+  if (couponDiscount > 0 && totals.gross > 0) {
+    map.forEach(row => {
+      const ratio = row.grossSale / totals.gross;
+      const couponShare = couponDiscount * ratio;
+      row.coupons += couponShare;
+      row.netSales -= couponShare;
+      row.amountDue -= couponShare;
+    });
+  }
+
   return map;
 };
 
@@ -219,6 +234,7 @@ const ensureDayPartEntry = (map: Record<DayPartLabel, DayPartAggregate>, label: 
       taxes: 0,
       payments: 0,
       serviceCharges: 0,
+      coupons: 0,
     };
   }
   return map[label];
@@ -235,6 +251,7 @@ const ensureCategoryAggregate = (
       amountDue: 0,
       netSales: 0,
       discounts: 0,
+      coupons: 0,
       taxes: 0,
       grossSale: 0,
       guests: 0,
@@ -285,7 +302,9 @@ export const SalesServerReport = () => {
                 items.item.categories,
                 table,
                 floor,
-                payments
+                payments,
+                coupon,
+                coupon.coupon
         `;
 
         const result: any = await queryRef.current(query, params);
@@ -379,12 +398,14 @@ export const SalesServerReport = () => {
       dayPart.taxes += safeNumber(order.tax_amount);
       dayPart.payments += sumPayments(order.payments);
       dayPart.serviceCharges += safeNumber(order.service_charge_amount);
+      dayPart.coupons += safeNumber(order.coupon?.discount);
 
       categoryTotals.forEach(catTotals => {
         const category = ensureCategoryAggregate(entry.categoryMap, catTotals);
         category.amountDue += catTotals.amountDue;
         category.netSales += catTotals.netSales;
         category.discounts += catTotals.discounts;
+        category.coupons += catTotals.coupons;
         category.taxes += catTotals.taxes;
         category.grossSale += catTotals.grossSale;
         category.checks += 1;
@@ -407,6 +428,7 @@ export const SalesServerReport = () => {
         taxes: 0,
         payments: 0,
         serviceCharges: 0,
+        coupons: 0,
       }),
     }));
   }, [filteredOrders]);
@@ -454,6 +476,7 @@ export const SalesServerReport = () => {
             amountDue: totals.amountDue + row.amountDue,
             netSales: totals.netSales + row.netSales,
             discounts: totals.discounts + row.discounts,
+            coupons: totals.coupons + row.coupons,
             taxes: totals.taxes + row.taxes,
             grossSale: totals.grossSale + row.grossSale,
             guests: totals.guests + row.guests,
@@ -462,6 +485,7 @@ export const SalesServerReport = () => {
             amountDue: 0,
             netSales: 0,
             discounts: 0,
+            coupons: 0,
             taxes: 0,
             grossSale: 0,
             guests: 0,
@@ -475,6 +499,7 @@ export const SalesServerReport = () => {
             taxes: totals.taxes + row.taxes,
             payments: totals.payments + row.payments,
             serviceCharges: totals.serviceCharges + row.serviceCharges,
+            coupons: totals.coupons + row.coupons,
           }), {
             netSales: 0,
             guests: 0,
@@ -482,6 +507,7 @@ export const SalesServerReport = () => {
             taxes: 0,
             payments: 0,
             serviceCharges: 0,
+            coupons: 0,
           });
 
           return (
@@ -499,6 +525,7 @@ export const SalesServerReport = () => {
                       <th className="text-right">Amount Due</th>
                       <th className="text-right">Net Sales Due</th>
                       <th className="text-right">Discounts</th>
+                      <th className="text-right">Coupons</th>
                       <th className="text-right">Taxes</th>
                       <th className="text-right">Gross Sale</th>
                       <th className="text-right">Avg Check</th>
@@ -515,6 +542,7 @@ export const SalesServerReport = () => {
                           <td className="text-right">{withCurrency(row.amountDue)}</td>
                           <td className="text-right">{withCurrency(row.netSales)}</td>
                           <td className="text-right">{withCurrency(row.discounts)}</td>
+                          <td className="text-right">{withCurrency(row.coupons)}</td>
                           <td className="text-right">{withCurrency(row.taxes)}</td>
                           <td className="text-right">{withCurrency(row.grossSale)}</td>
                           <td className="text-right">{withCurrency(avgCheck)}</td>
@@ -524,7 +552,7 @@ export const SalesServerReport = () => {
                     })}
                     {section.categories.length === 0 && (
                       <tr>
-                        <td colSpan={8} className="text-center text-gray-500 py-4">
+                        <td colSpan={9} className="text-center text-gray-500 py-4">
                           No category data found for this server.
                         </td>
                       </tr>
@@ -536,6 +564,7 @@ export const SalesServerReport = () => {
                       <td className="text-right">{withCurrency(categoryTotals.amountDue)}</td>
                       <td className="text-right">{withCurrency(categoryTotals.netSales)}</td>
                       <td className="text-right">{withCurrency(categoryTotals.discounts)}</td>
+                      <td className="text-right">{withCurrency(categoryTotals.coupons)}</td>
                       <td className="text-right">{withCurrency(categoryTotals.taxes)}</td>
                       <td className="text-right">{withCurrency(categoryTotals.grossSale)}</td>
                       <td className="text-right">
@@ -560,6 +589,7 @@ export const SalesServerReport = () => {
                       <th className="text-right">Taxes</th>
                       <th className="text-right">Payments</th>
                       <th className="text-right">Service Charges</th>
+                      <th className="text-right">Coupons</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -572,6 +602,7 @@ export const SalesServerReport = () => {
                         <td className="text-right">{withCurrency(row.taxes)}</td>
                         <td className="text-right">{withCurrency(row.payments)}</td>
                         <td className="text-right">{withCurrency(row.serviceCharges)}</td>
+                        <td className="text-right">{withCurrency(row.coupons)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -584,6 +615,7 @@ export const SalesServerReport = () => {
                       <td className="text-right">{withCurrency(dayPartTotals.taxes)}</td>
                       <td className="text-right">{withCurrency(dayPartTotals.payments)}</td>
                       <td className="text-right">{withCurrency(dayPartTotals.serviceCharges)}</td>
+                      <td className="text-right">{withCurrency(dayPartTotals.coupons)}</td>
                     </tr>
                   </tfoot>
                 </table>

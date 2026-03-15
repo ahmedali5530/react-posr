@@ -62,8 +62,9 @@ const calculateOrderNetSales = (order: Order): number => {
   const grossTotal = order.items?.reduce((sum, item) => sum + calculateOrderItemPrice(item), 0) ?? 0;
   const lineDiscounts = order.items?.reduce((sum, item) => sum + safeNumber(item?.discount), 0) ?? 0;
   const orderDiscount = safeNumber(order.discount_amount);
+  const couponDiscount = safeNumber(order.coupon?.discount);
   const extraDiscount = Math.max(0, orderDiscount - lineDiscounts);
-  const net = grossTotal - lineDiscounts - extraDiscount;
+  const net = grossTotal - lineDiscounts - extraDiscount - couponDiscount;
   return net > 0 ? net : 0;
 };
 
@@ -72,6 +73,7 @@ interface DayMetrics {
   cashPayments: number;
   nonCashPayments: number;
   amountCollected: number;
+  coupons: number;
   salesByDayPart: Record<DayPartLabel, number>;
   voids: number;
   comps: number;
@@ -107,7 +109,7 @@ export const SalesWeeklyReport = () => {
           SELECT * FROM ${Tables.orders}
           WHERE time::format(created_at, "%Y-%m-%d") >= $start
             AND time::format(created_at, "%Y-%m-%d") <= $end
-          FETCH payments, payments.payment_type, discount, order_type, items, items.item, items.item.categories, extras, user
+          FETCH payments, payments.payment_type, discount, order_type, items, items.item, items.item.categories, extras, user, coupon, coupon.coupon
         `;
 
         const ordersResult: any = await queryRef.current(ordersQuery, params);
@@ -146,6 +148,7 @@ export const SalesWeeklyReport = () => {
         cashPayments: 0,
         nonCashPayments: 0,
         amountCollected: 0,
+        coupons: 0,
         salesByDayPart: {
           Breakfast: 0,
           Lunch: 0,
@@ -173,6 +176,7 @@ export const SalesWeeklyReport = () => {
       // Net sales
       const netSales = calculateOrderNetSales(order);
       dayMetric.netSales += netSales;
+      dayMetric.coupons += safeNumber(order.coupon?.discount);
 
       // Payments
       order.payments?.forEach(payment => {
@@ -291,6 +295,14 @@ export const SalesWeeklyReport = () => {
       label: "Amount Collected",
       values: amountCollectedValues,
       total: amountCollectedValues.reduce((sum, val) => sum + val, 0),
+      formatter: withCurrency,
+    });
+
+    const couponValues = dayHeaders.map(h => dayMetrics[h.dateKey]?.coupons || 0);
+    rowData.push({
+      label: "Coupons",
+      values: couponValues,
+      total: couponValues.reduce((sum, val) => sum + val, 0),
       formatter: withCurrency,
     });
 

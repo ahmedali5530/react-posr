@@ -1,13 +1,12 @@
-import { Layout } from "@/screens/partials/layout.tsx";
-import useApi, { SettingsData } from "@/api/db/use.api.ts";
-import { Order as OrderModel, OrderStatus } from "@/api/model/order.ts";
-import { Tables } from "@/api/db/tables.ts";
+import {Layout} from "@/screens/partials/layout.tsx";
+import {Order as OrderModel, ORDER_FETCHES, OrderStatus} from "@/api/model/order.ts";
+import {Tables} from "@/api/db/tables.ts";
 import {useCallback, useEffect, useMemo, useState} from "react";
-import { DateValue } from "react-aria-components";
-import { getLocalTimeZone, today } from "@internationalized/date";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {DateValue} from "react-aria-components";
+import {getLocalTimeZone, today} from "@internationalized/date";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faArrowLeft, faArrowRight, faPrint, faSpinner} from "@fortawesome/free-solid-svg-icons";
-import { Calendar } from "@/components/common/react-aria/calendar.tsx";
+import {Calendar} from "@/components/common/react-aria/calendar.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {Summary as SummaryComponent} from '@/components/summary/summary.tsx';
 import {useDB} from "@/api/db/db.ts";
@@ -16,12 +15,12 @@ import {PRINT_TYPE} from "@/lib/print.registry.tsx";
 import {useAtom} from "jotai";
 import {appPage} from "@/store/jotai.ts";
 import {useQueryBuilder} from "@/api/db/query-builder.ts";
-import { getOrderFilteredItems } from "@/lib/order.ts";
-import { calculateOrderItemPrice } from "@/lib/cart.ts";
-import { TimeEntry } from "@/api/model/time_entry.ts";
+import {getOrderFilteredItems} from "@/lib/order.ts";
+import {calculateOrderItemPrice} from "@/lib/cart.ts";
+import {TimeEntry} from "@/api/model/time_entry.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
-import { toast } from "sonner";
-import { DateTime } from "luxon";
+import {toast} from "sonner";
+import ScrollContainer from "react-indiana-drag-scroll";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -87,7 +86,7 @@ export const Summary = () => {
 
   const ordersQb = useQueryBuilder(
     Tables.orders, '*', orderFilters.map(item => `and ${item}`), 99999, 0, ['created_at desc'],
-    ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'payments', 'payments.payment_type', 'extras', 'extras.order_extras']
+    ORDER_FETCHES
   );
 
   useEffect(() => {
@@ -110,7 +109,7 @@ export const Summary = () => {
     void dispatchPrint(db, PRINT_TYPE.summary, {
       orders,
       date: date.toString(),
-    }, { userId: page?.user?.id });
+    }, {userId: page?.user?.id});
   }, [db, orders, date, page?.user?.id]);
 
   const handlePrintProductMix = useCallback(async () => {
@@ -124,7 +123,7 @@ export const Summary = () => {
           const qty = safeNumber(item?.quantity);
           const total = safeNumber(calculateOrderItemPrice(item));
           const key = String(item.item.name);
-          const prev = dishMap.get(key) || { name: key.substring(0, 12), qty: 0, total: 0 };
+          const prev = dishMap.get(key) || {name: key.substring(0, 12), qty: 0, total: 0};
           prev.qty += qty;
           prev.total += total;
 
@@ -142,25 +141,40 @@ export const Summary = () => {
       }
 
       const tableRows: Array<Array<Record<string, unknown>>> = [
-        [{ text: `PRODUCT MIX REPORT (${date.toString()})`, align: 'CENTER', width: 1, style: 'B' }],
-        [{ text: 'Item', align: 'LEFT', width: 0.30, style: 'B' }, { text: 'Qty', align: 'RIGHT', width: 0.18, style: 'B' }, { text: 'Ttl', align: 'RIGHT', width: 0.23, style: 'B' }, { text: '%', align: 'RIGHT', width: 0.23, style: 'B' }],
+        [{text: `PRODUCT MIX REPORT (${date.toString()})`, align: 'CENTER', width: 1, style: 'B'}],
+        [{text: 'Item', align: 'LEFT', width: 0.30, style: 'B'}, {
+          text: 'Qty',
+          align: 'RIGHT',
+          width: 0.18,
+          style: 'B'
+        }, {text: 'Ttl', align: 'RIGHT', width: 0.23, style: 'B'}, {
+          text: '%',
+          align: 'RIGHT',
+          width: 0.23,
+          style: 'B'
+        }],
         ...rows.map((row) => {
           const percent = totalSale > 0 ? (row.total / totalSale) * 100 : 0;
           return [
-            { text: row.name, align: 'LEFT', width: 0.30 },
-            { text: String(formatNumber(row.qty)), align: 'RIGHT', width: 0.18 },
-            { text: formatNumber(row.total), align: 'RIGHT', width: 0.23 },
-            { text: `${percent.toFixed(2)}%`, align: 'RIGHT', width: 0.23 },
+            {text: row.name, align: 'LEFT', width: 0.30},
+            {text: String(formatNumber(row.qty)), align: 'RIGHT', width: 0.18},
+            {text: formatNumber(row.total), align: 'RIGHT', width: 0.23},
+            {text: `${percent.toFixed(2)}%`, align: 'RIGHT', width: 0.23},
           ];
         }),
-        [{ text: 'TOTAL', align: 'LEFT', width: 0.50, style: 'B' }, { text: withCurrency(undefined) + formatNumber(totalSale), align: 'RIGHT', width: 0.50, style: 'B' }],
+        [{
+          text: 'TOTAL',
+          align: 'LEFT',
+          width: 0.50,
+          style: 'B'
+        }, {text: withCurrency(undefined) + formatNumber(totalSale), align: 'RIGHT', width: 0.50, style: 'B'}],
       ];
 
       await dispatchPrint(db, PRINT_TYPE.summary, {
         printType: 'table',
         rows: tableRows,
         cut: true,
-      }, { userId: page?.user?.id });
+      }, {userId: page?.user?.id});
     } finally {
       setIsPrintingMix(false);
     }
@@ -169,15 +183,17 @@ export const Summary = () => {
   const handlePrintServerSales = useCallback(async () => {
     setIsPrintingServerSales(true);
     try {
-      
+
       const reportDate = date.toString();
       const [entryRes] = await db.query(
-        `SELECT * FROM ${Tables.time_entries}
+        `SELECT *
+         FROM ${Tables.time_entries}
          WHERE clock_out != NONE
            AND time::format(clock_in, "%Y-%m-%d") = $date
-           AND time::format(clock_out, "%Y-%m-%d") = $date
-         FETCH user`,
-        { date: reportDate }
+           AND time ::format(clock_out
+             , "%Y-%m-%d") = $date
+             FETCH user`,
+        {date: reportDate}
       );
 
       const entries = (Array.isArray(entryRes) ? entryRes : []) as TimeEntry[];
@@ -186,7 +202,13 @@ export const Summary = () => {
         return;
       }
 
-      const perUser = new Map<string, { name: string; durationMs: number; guests: number; checks: number; sales: number }>();
+      const perUser = new Map<string, {
+        name: string;
+        durationMs: number;
+        guests: number;
+        checks: number;
+        sales: number
+      }>();
       entries.forEach((entry) => {
         const userId = toIdString(entry.user);
         if (!userId) return;
@@ -223,26 +245,51 @@ export const Summary = () => {
         guests: acc.guests + row.guests,
         checks: acc.checks + row.checks,
         sales: acc.sales + row.sales,
-      }), { durationMs: 0, guests: 0, checks: 0, sales: 0 });
+      }), {durationMs: 0, guests: 0, checks: 0, sales: 0});
 
       const tableRows: Array<Array<Record<string, unknown>>> = [
-        [{ text: `SERVER SALES (${reportDate})`, align: 'CENTER', width: 1, style: 'B' }],
-        [{ text: 'Name', align: 'LEFT', width: 0.22, style: 'B' }, { text: 'Time', align: 'RIGHT', width: 0.20, style: 'B' }, { text: 'Gsts', align: 'RIGHT', width: 0.12, style: 'B' }, { text: 'Chks', align: 'RIGHT', width: 0.12, style: 'B' }, { text: 'Sale', align: 'RIGHT', width: 0.22, style: 'B' }],
+        [{text: `SERVER SALES (${reportDate})`, align: 'CENTER', width: 1, style: 'B'}],
+        [{text: 'Name', align: 'LEFT', width: 0.22, style: 'B'}, {
+          text: 'Time',
+          align: 'RIGHT',
+          width: 0.20,
+          style: 'B'
+        }, {text: 'Gsts', align: 'RIGHT', width: 0.12, style: 'B'}, {
+          text: 'Chks',
+          align: 'RIGHT',
+          width: 0.12,
+          style: 'B'
+        }, {text: 'Sale', align: 'RIGHT', width: 0.22, style: 'B'}],
         ...rows.map((row) => ([
-          { text: row.name, align: 'LEFT', width: 0.22 },
-          { text: formatDuration(row.durationMs), align: 'RIGHT', width: 0.20 },
-          { text: String(Math.round(row.guests)), align: 'RIGHT', width: 0.12 },
-          { text: String(Math.round(row.checks)), align: 'RIGHT', width: 0.12 },
-          { text: formatNumber(row.sales), align: 'RIGHT', width: 0.22 },
+          {text: row.name, align: 'LEFT', width: 0.22},
+          {text: formatDuration(row.durationMs), align: 'RIGHT', width: 0.20},
+          {text: String(Math.round(row.guests)), align: 'RIGHT', width: 0.12},
+          {text: String(Math.round(row.checks)), align: 'RIGHT', width: 0.12},
+          {text: formatNumber(row.sales), align: 'RIGHT', width: 0.22},
         ])),
-        [{ text: 'TOTAL', align: 'LEFT', width: 0.22, style: 'B' }, { text: formatDuration(totals.durationMs), align: 'RIGHT', width: 0.20, style: 'B' }, { text: String(Math.round(totals.guests)), align: 'RIGHT', width: 0.12, style: 'B' }, { text: String(Math.round(totals.checks)), align: 'RIGHT', width: 0.12, style: 'B' }, { text: withCurrency(undefined) + formatNumber(totals.sales), align: 'RIGHT', width: 0.22, style: 'B' }],
+        [{text: 'TOTAL', align: 'LEFT', width: 0.22, style: 'B'}, {
+          text: formatDuration(totals.durationMs),
+          align: 'RIGHT',
+          width: 0.20,
+          style: 'B'
+        }, {
+          text: String(Math.round(totals.guests)),
+          align: 'RIGHT',
+          width: 0.12,
+          style: 'B'
+        }, {
+          text: String(Math.round(totals.checks)),
+          align: 'RIGHT',
+          width: 0.12,
+          style: 'B'
+        }, {text: withCurrency(undefined) + formatNumber(totals.sales), align: 'RIGHT', width: 0.22, style: 'B'}],
       ];
 
       await dispatchPrint(db, PRINT_TYPE.summary, {
         printType: 'table',
         rows: tableRows,
         cut: true,
-      }, { userId: page?.user?.id });
+      }, {userId: page?.user?.id});
     } finally {
       setIsPrintingServerSales(false);
     }
@@ -251,8 +298,8 @@ export const Summary = () => {
   return (
     <Layout overflowHidden>
       <div className="flex gap-5 p-3 flex-col">
-        <div className="bg-white rounded-xl flex gap-10 justify-center">
-          <div className="flex justify-center items-center flex-col">
+        <div className="bg-white rounded-xl flex gap-10 justify-center ">
+          <div className="flex justify-center items-center flex-col flex-1">
             <div>
               <Calendar
                 onChange={setDate}
@@ -285,17 +332,19 @@ export const Summary = () => {
               >
                 Next date</Button>
             </div>
-            <div className="flex gap-3 mt-3">
+            <div className="flex gap-3 mt-3 flex-wrap">
               <Button
                 icon={faPrint}
                 variant="lg"
                 onClick={handlePrintSummary}
-              >Print</Button>
+              >Print summary</Button>
               <Button
                 icon={faPrint}
                 variant="lg"
                 isLoading={isPrintingMix}
-                onClick={() => { void handlePrintProductMix(); }}
+                onClick={() => {
+                  void handlePrintProductMix();
+                }}
               >
                 Product Mix Report
               </Button>
@@ -303,21 +352,23 @@ export const Summary = () => {
                 icon={faPrint}
                 variant="lg"
                 isLoading={isPrintingServerSales}
-                onClick={() => { void handlePrintServerSales(); }}
+                onClick={() => {
+                  void handlePrintServerSales();
+                }}
               >
                 Server Sales
               </Button>
             </div>
           </div>
-          <div className="max-h-[calc(100vh_-_30px)] overflow-y-auto flex-1 flex-basis-[500px] py-10">
+          <ScrollContainer className="max-h-[calc(100vh_-_30px)] overflow-y-auto flex-1 flex-basis-[500px] py-10 select-none">
             {isLoading ? (
               <div className="flex h-screen w-full justify-center items-center flex-1">
                 <FontAwesomeIcon icon={faSpinner} spin size="5x"/>
               </div>
             ) : (
-              <SummaryComponent orders={orders} date={date.toString()} />
+              <SummaryComponent orders={orders} date={date.toString()}/>
             )}
-          </div>
+          </ScrollContainer>
         </div>
       </div>
     </Layout>

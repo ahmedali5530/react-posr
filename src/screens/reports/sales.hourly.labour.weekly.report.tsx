@@ -10,11 +10,12 @@ import {OrderPayment} from "@/api/model/order_payment.ts";
 import {DateTime} from "luxon";
 
 type WeekdayName = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
-type MetricKey = 'amountCollected' | 'grossSales' | 'labourMinutes';
+type MetricKey = 'amountCollected' | 'grossSales' | 'couponAmount' | 'labourMinutes';
 
 interface HourlyMetricData {
   amountCollected: Record<WeekdayName, number>;
   grossSales: Record<WeekdayName, number>;
+  couponAmount: Record<WeekdayName, number>;
   labourMinutes: Record<WeekdayName, number>;
 }
 
@@ -32,6 +33,7 @@ const WEEK_DAYS: WeekdayName[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 
 const METRICS: { key: MetricKey; label: string; formatter: (value: number) => string }[] = [
   { key: 'amountCollected', label: 'Amount Collected', formatter: withCurrency },
   { key: 'grossSales', label: 'Gross Sales', formatter: withCurrency },
+  { key: 'couponAmount', label: 'Coupon Amount', formatter: withCurrency },
   { key: 'labourMinutes', label: 'Labour Hours (mins)', formatter: (value) => formatNumber(value) },
 ];
 
@@ -97,7 +99,7 @@ export const SalesHourlyLabourWeeklyReport = () => {
           WHERE status = 'Paid'
             AND time::format(created_at, "%Y-%m-%d") >= $start
             AND time::format(created_at, "%Y-%m-%d") <= $end
-          FETCH payments, items, items.item, items.item.categories
+          FETCH payments, items, items.item, items.item.categories, coupon, coupon.coupon
         `;
 
         const timeEntriesQuery = `
@@ -136,6 +138,7 @@ export const SalesHourlyLabourWeeklyReport = () => {
     const emptyHours: HourlyMetricData[] = Array.from({length: 24}, () => ({
       amountCollected: createEmptyDayRecord(),
       grossSales: createEmptyDayRecord(),
+      couponAmount: createEmptyDayRecord(),
       labourMinutes: createEmptyDayRecord(),
     }));
 
@@ -157,9 +160,11 @@ export const SalesHourlyLabourWeeklyReport = () => {
 
       const amountCollected = sumPayments(order.payments);
       const grossSale = Number(calculateOrderTotal(order)) || 0;
+      const couponAmount = Number(order.coupon?.discount) || 0;
 
       emptyHours[hour].amountCollected[dayName] += amountCollected;
       emptyHours[hour].grossSales[dayName] += grossSale;
+      emptyHours[hour].couponAmount[dayName] += couponAmount;
     });
 
     const weekStartBoundary = weekStart.startOf('day');
@@ -273,7 +278,7 @@ export const SalesHourlyLabourWeeklyReport = () => {
               <th>Hour</th>
               <th>Metric</th>
               {dayHeaders.map(({day, dateLabel}) => (
-                <th key={day} className="text-center">
+                <th key={day} className="text-right">
                   <div>{day}</div>
                   <div className="text-xs text-gray-500">{dateLabel}</div>
                 </th>

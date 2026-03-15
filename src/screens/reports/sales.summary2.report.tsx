@@ -50,6 +50,7 @@ interface OrderTypeMetrics {
   amountDue: number;
   serviceCharges: number;
   discounts: number;
+  coupons: number;
   net: number;
   percentOfTotal: number;
   guests: number;
@@ -96,7 +97,7 @@ export const SalesSummary2Report = () => {
         const ordersQuery = `
           SELECT * FROM ${Tables.orders}
           ${orderConditions.length ? `WHERE ${orderConditions.join(" AND ")}` : ""}
-          FETCH payments, payments.payment_type, discount, order_type, items, items.item, items.item.categories, extras, user
+          FETCH payments, payments.payment_type, discount, order_type, items, items.item, items.item.categories, extras, user, coupon, coupon.coupon
         `;
 
         const ordersResult: any = await queryRef.current(ordersQuery, params);
@@ -136,7 +137,7 @@ export const SalesSummary2Report = () => {
           const carriedOverQuery = `
             SELECT * FROM ${Tables.orders}
             WHERE ${carriedOverConditions.join(" AND ")}
-            FETCH payments, payments.payment_type, discount, order_type, items, items.item, items.item.categories, extras, user
+            FETCH payments, payments.payment_type, discount, order_type, items, items.item, items.item.categories, extras, user, coupon, coupon.coupon
           `;
 
           const carriedOverResult: any = await queryRef.current(carriedOverQuery, carriedOverParams);
@@ -167,11 +168,12 @@ export const SalesSummary2Report = () => {
     );
     const lineDiscounts = itemDiscounts;
     const orderDiscount = safeNumber(order.discount_amount);
+    const couponDiscount = safeNumber(order.coupon?.discount);
     const subtotalDiscount = Math.max(0, safeNumber(orderDiscount - lineDiscounts));
     const totalDiscounts = safeNumber(lineDiscounts + subtotalDiscount);
     const taxes = safeNumber(order.tax_amount);
     const serviceCharges = safeNumber(order.service_charge_amount);
-    const amountDue = safeNumber(salePriceWithoutTax + taxes + serviceCharges - totalDiscounts);
+    const amountDue = safeNumber(salePriceWithoutTax + taxes + serviceCharges - totalDiscounts - couponDiscount);
     const amountCollected = safeNumber(
       order.payments?.reduce((sum, payment) => sum + safeNumber(payment?.amount), 0) ?? 0
     );
@@ -188,6 +190,7 @@ export const SalesSummary2Report = () => {
       amountDue,
       serviceCharges,
       discounts: totalDiscounts,
+      coupons: couponDiscount,
       net,
       turnTime,
     };
@@ -231,8 +234,13 @@ export const SalesSummary2Report = () => {
         return sum + extraDiscount;
       }, 0)
     );
+    const couponDiscounts = safeNumber(
+      orders.reduce((sum, order) => sum + safeNumber(order.coupon?.discount), 0)
+    );
 
-    const amountDue = safeNumber(salePriceWithoutTax + taxCollected + serviceCharges - itemDiscounts - subtotalDiscounts);
+    const amountDue = safeNumber(
+      salePriceWithoutTax + taxCollected + serviceCharges - itemDiscounts - subtotalDiscounts - couponDiscounts
+    );
 
     const amountCollected = safeNumber(
       orders.reduce((sum, order) => {
@@ -264,7 +272,7 @@ export const SalesSummary2Report = () => {
     );
 
     const totalDiscounts = safeNumber(itemDiscounts + subtotalDiscounts);
-    const gross = safeNumber(amountCollected + refunds + totalDiscounts);
+    const gross = safeNumber(amountCollected + refunds + totalDiscounts + couponDiscounts);
 
     return {
       salePriceWithoutTax,
@@ -272,6 +280,7 @@ export const SalesSummary2Report = () => {
       serviceCharges,
       itemDiscounts,
       subtotalDiscounts,
+      couponDiscounts,
       amountDue,
       amountCollected,
       rounding,
@@ -298,6 +307,7 @@ export const SalesSummary2Report = () => {
           amountDue: 0,
           serviceCharges: 0,
           discounts: 0,
+          coupons: 0,
           net: 0,
           percentOfTotal: 0,
           guests: 0,
@@ -316,6 +326,7 @@ export const SalesSummary2Report = () => {
       metrics.amountDue = safeNumber(metrics.amountDue + safeNumber(orderMetrics.amountDue));
       metrics.serviceCharges = safeNumber(metrics.serviceCharges + safeNumber(orderMetrics.serviceCharges));
       metrics.discounts = safeNumber(metrics.discounts + safeNumber(orderMetrics.discounts));
+      metrics.coupons = safeNumber(metrics.coupons + safeNumber(orderMetrics.coupons));
       metrics.net = safeNumber(metrics.net + safeNumber(orderMetrics.net));
       metrics.guests = safeNumber(metrics.guests + safeNumber(order.covers));
       metrics.checks += 1;
@@ -352,6 +363,7 @@ export const SalesSummary2Report = () => {
         amountDue: 0,
         serviceCharges: 0,
         discounts: 0,
+        coupons: 0,
         net: 0,
         percentOfTotal: 0,
         guests: 0,
@@ -372,6 +384,7 @@ export const SalesSummary2Report = () => {
       metrics.amountDue = safeNumber(metrics.amountDue + safeNumber(orderMetrics.amountDue));
       metrics.serviceCharges = safeNumber(metrics.serviceCharges + safeNumber(orderMetrics.serviceCharges));
       metrics.discounts = safeNumber(metrics.discounts + safeNumber(orderMetrics.discounts));
+      metrics.coupons = safeNumber(metrics.coupons + safeNumber(orderMetrics.coupons));
       metrics.net = safeNumber(metrics.net + safeNumber(orderMetrics.net));
       metrics.guests = safeNumber(metrics.guests + safeNumber(order.covers));
       metrics.checks += 1;
@@ -458,6 +471,7 @@ export const SalesSummary2Report = () => {
 
   const discountTypesBreakdown = useMemo(() => {
     const discountTypes = new Map<string, {quantity: number; total: number; percent: number}>();
+    const couponTypes = new Map<string, {quantity: number; total: number}>();
     orders.forEach(order => {
       if (order.discount) {
         const discountName =
@@ -474,6 +488,18 @@ export const SalesSummary2Report = () => {
           }
         }
         discountTypes.set(discountName, existing);
+      }
+
+      const couponAmount = safeNumber(order.coupon?.discount);
+      if (couponAmount > 0) {
+        const couponName =
+          order.coupon?.coupon?.name ||
+          order.coupon?.coupon?.code ||
+          "Unnamed coupon";
+        const existing = couponTypes.get(couponName) || {quantity: 0, total: 0};
+        existing.quantity += 1;
+        existing.total += couponAmount;
+        couponTypes.set(couponName, existing);
       }
     });
 
@@ -525,6 +551,13 @@ export const SalesSummary2Report = () => {
         total: data.total,
         percent: data.percent,
       })),
+      couponTypes: Array.from(couponTypes.entries())
+        .map(([name, data]) => ({
+          name,
+          quantity: data.quantity,
+          total: data.total,
+        }))
+        .sort((a, b) => b.total - a.total),
       serviceChargesBreakdown,
       taxesBreakdown,
       tipsBreakdown,
@@ -673,6 +706,12 @@ export const SalesSummary2Report = () => {
                       {withCurrency(-financialMetrics.subtotalDiscounts)}
                     </td>
                   </tr>
+                  <tr>
+                    <td className="py-1.5 text-neutral-700">- Coupon discount</td>
+                    <td className="py-1.5 text-right font-semibold text-red-600">
+                      {withCurrency(-financialMetrics.couponDiscounts)}
+                    </td>
+                  </tr>
                   <tr className="border-t border-neutral-300">
                     <td className="py-1.5 font-semibold text-neutral-900">= Amount due</td>
                     <td className="py-1.5 text-right font-bold text-neutral-900">
@@ -737,6 +776,12 @@ export const SalesSummary2Report = () => {
                     <td className="py-1.5 text-neutral-700">+ Discounts</td>
                     <td className="py-1.5 text-right font-semibold text-neutral-900">
                       {withCurrency(financialMetrics.itemDiscounts + financialMetrics.subtotalDiscounts)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 text-neutral-700">+ Coupons</td>
+                    <td className="py-1.5 text-right font-semibold text-neutral-900">
+                      {withCurrency(financialMetrics.couponDiscounts)}
                     </td>
                   </tr>
                   <tr className="border-t-2 border-neutral-300">
@@ -860,6 +905,24 @@ export const SalesSummary2Report = () => {
                     </table>
                   </div>
                 )}
+                {discountTypesBreakdown.couponTypes.length > 0 && (
+                  <div>
+                    <h5 className="mb-2  font-semibold text-neutral-600">Coupons</h5>
+                    <table className="min-w-full ">
+                      <tbody className="divide-y divide-neutral-100">
+                        {discountTypesBreakdown.couponTypes.map(coupon => (
+                          <tr key={coupon.name}>
+                            <td className="py-1 text-neutral-700">{coupon.name}</td>
+                            <td className="py-1 text-right text-neutral-700">{formatNumber(coupon.quantity)}</td>
+                            <td className="py-1 text-right font-semibold text-neutral-900">
+                              {withCurrency(coupon.total)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
                 {Object.keys(discountTypesBreakdown.serviceChargesBreakdown).length > 0 && (
                   <div>
                     <h5 className="mb-2  font-semibold text-neutral-600">Service Charges</h5>
@@ -938,6 +1001,7 @@ export const SalesSummary2Report = () => {
                   <th className="py-3 px-3 text-right  font-semibold text-neutral-700">Amount Due</th>
                   <th className="py-3 px-3 text-right  font-semibold text-neutral-700">Service Charges</th>
                   <th className="py-3 px-3 text-right  font-semibold text-neutral-700">Discounts</th>
+                  <th className="py-3 px-3 text-right  font-semibold text-neutral-700">Coupons</th>
                   <th className="py-3 px-3 text-right  font-semibold text-neutral-700">Net</th>
                   <th className="py-3 px-3 text-right  font-semibold text-neutral-700">% of Total</th>
                   <th className="py-3 px-3 text-right  font-semibold text-neutral-700">Guests</th>
@@ -960,6 +1024,7 @@ export const SalesSummary2Report = () => {
                       {withCurrency(metrics.serviceCharges)}
                     </td>
                     <td className="py-3 px-3 text-right text-neutral-700">{withCurrency(metrics.discounts)}</td>
+                    <td className="py-3 px-3 text-right text-neutral-700">{withCurrency(metrics.coupons)}</td>
                     <td className="py-3 px-3 text-right font-semibold text-neutral-900">
                       {withCurrency(metrics.net)}
                     </td>
@@ -977,7 +1042,7 @@ export const SalesSummary2Report = () => {
                 ))}
                 {orderTypeMetrics.length === 0 && (
                   <tr>
-                    <td colSpan={13} className="py-6 text-center text-neutral-500">
+                    <td colSpan={14} className="py-6 text-center text-neutral-500">
                       No order type data available
                     </td>
                   </tr>
@@ -1000,6 +1065,7 @@ export const SalesSummary2Report = () => {
                   <th className="py-3 px-3 text-right  font-semibold text-neutral-700">Amount Due</th>
                   <th className="py-3 px-3 text-right  font-semibold text-neutral-700">Service Charges</th>
                   <th className="py-3 px-3 text-right  font-semibold text-neutral-700">Discounts</th>
+                  <th className="py-3 px-3 text-right  font-semibold text-neutral-700">Coupons</th>
                   <th className="py-3 px-3 text-right  font-semibold text-neutral-700">Net</th>
                   <th className="py-3 px-3 text-right  font-semibold text-neutral-700">% of Total</th>
                   <th className="py-3 px-3 text-right  font-semibold text-neutral-700">Guests</th>
@@ -1022,6 +1088,7 @@ export const SalesSummary2Report = () => {
                       {withCurrency(metrics.serviceCharges)}
                     </td>
                     <td className="py-3 px-3 text-right text-neutral-700">{withCurrency(metrics.discounts)}</td>
+                    <td className="py-3 px-3 text-right text-neutral-700">{withCurrency(metrics.coupons)}</td>
                     <td className="py-3 px-3 text-right font-semibold text-neutral-900">
                       {withCurrency(metrics.net)}
                     </td>

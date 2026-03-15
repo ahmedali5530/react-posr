@@ -69,6 +69,7 @@ export enum OrderStatus {
 export const ORDER_FETCHES = [
   'items',
   'items.item',
+  'item.item.category',
   'item.item.modifiers',
   'table',
   'user',

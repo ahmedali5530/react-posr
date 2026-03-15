@@ -4,7 +4,7 @@ import {OrderHeader} from "@/components/orders/order.header.tsx";
 import ScrollContainer from "react-indiana-drag-scroll";
 import React, {CSSProperties, useCallback, useEffect, useMemo, useState} from "react";
 import {OrderTimes} from "@/components/orders/order.times.tsx";
-import {calculateOrderTotal} from "@/lib/cart.ts";
+import {calculateOrderGrandTotal, calculateOrderTotal} from "@/lib/cart.ts";
 import {cn, formatNumber, toRecordId, withCurrency} from "@/lib/utils.ts";
 import {OrderPaymentReceiving} from "@/components/orders/payment/order.payment.receiving.tsx";
 import {OrderPaymentTax} from "@/components/orders/payment/order.payment.tax.tsx";
@@ -240,7 +240,15 @@ export const OrderPayment = ({
 
   const total = useMemo(() => {
     const extrasTotal = Object.values(extras).reduce((prev, item) => prev + item, 0);
-    return itemsTotal + extrasTotal + taxAmount + serviceChargeAmount - discountAmount - couponAmount + tipAmount;
+    return calculateOrderGrandTotal({
+      itemsTotal,
+      extrasTotal,
+      taxAmount,
+      discountAmount,
+      serviceChargeAmount,
+      couponAmount,
+      tipAmount,
+    });
   }, [itemsTotal, taxAmount, discountAmount, serviceChargeAmount, extras, tipAmount, couponAmount]);
 
   const [mode, setMode] = useState(PaymentOptions.Tax);

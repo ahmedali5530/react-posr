@@ -51,7 +51,16 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
 
   const total = useMemo(() => {
     const extrasTotal = order?.extras ? order.extras.reduce((prev, item) => prev + Number(item.value), 0) : 0;
-    return itemsTotal + extrasTotal + Number(order?.tax_amount || 0) - Number(order?.discount_amount || 0) + Number(order.service_charge_amount ?? 0);
+    const couponDiscount = order?.coupon ? Number(order.coupon.discount || 0) : 0;
+
+    return (
+      itemsTotal +
+      extrasTotal +
+      Number(order?.tax_amount || 0) -
+      Number(order?.discount_amount || 0) -
+      couponDiscount +
+      Number(order.service_charge_amount ?? 0)
+    );
   }, [itemsTotal, order]);
 
   const customer = order.customer;
@@ -64,7 +73,7 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
         try {
           setLoadingRiders(true);
           const [result] = await db.query<any>(
-            `SELECT * FROM ${Tables.users} WHERE array::find(roles, 'Riders') != None ORDER BY first_name ASC, last_name ASC`
+            `SELECT * FROM ${Tables.users} WHERE array::find(user_role.roles, 'Riders') != None ORDER BY first_name ASC, last_name ASC`
           );
 
           setRiders(result as User[]);
@@ -115,7 +124,7 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
 
       toast.success(`Order ${getInvoiceNumber(order)} sent for delivery`);
       onOrderUpdate?.();
-      onClose();
+      // onClose();
     } catch (error) {
       console.error("Error sending order:", error);
       toast.error("Failed to send order");
@@ -457,6 +466,14 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
                   <div className="flex justify-between text-danger-600">
                     <span className="text-sm font-medium">Discount:</span>
                     <span className="text-base">-{order.discount_amount.toFixed(2)}</span>
+                  </div>
+                ) : null}
+                {order.coupon && order.coupon.discount > 0 ? (
+                  <div className="flex justify-between text-danger-600">
+                    <span className="text-sm font-medium">
+                      Coupon{order.coupon.coupon?.code ? ` (${order.coupon.coupon.code})` : ""}:
+                    </span>
+                    <span className="text-base">-{order.coupon.discount.toFixed(2)}</span>
                   </div>
                 ) : null}
                 {order.tax_amount && order.tax_amount > 0 ? (

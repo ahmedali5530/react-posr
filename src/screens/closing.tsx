@@ -13,6 +13,7 @@ import {nanoid} from "nanoid";
 import {toast} from "sonner";
 import {Input} from "@/components/common/input/input.tsx";
 import {Textarea} from "@/components/common/input/textarea.tsx";
+import ScrollContainer from "react-indiana-drag-scroll";
 
 export const Closing = () => {
   const db = useDB();
@@ -219,7 +220,7 @@ export const Closing = () => {
 
   return (
     <Layout overflowHidden>
-      <div className="max-h-[calc(100vh_-_30px)] overflow-y-auto">
+      <ScrollContainer className="overflow-y-auto h-[calc(100vh_-_30px)] select-none">
         <div className="p-6">
           <h1 className="text-3xl font-bold mb-6 text-center">Daily Closing as of {today}</h1>
 
@@ -414,7 +415,7 @@ export const Closing = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </ScrollContainer>
     </Layout>
   );
 };

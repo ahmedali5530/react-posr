@@ -23,12 +23,13 @@ import {InventoryPurchaseOrderForm} from "@/components/inventory/purchase_orders
 import {useAtom} from "jotai";
 import {appPage} from "@/store/jotai.ts";
 import {CsvUploadModal} from "@/components/common/table/csv.uploader.tsx";
-import {deflateRaw} from "node:zlib";
 import {fetchNextSequentialNumber, isUniqueRecordNumber} from "@/utils/recordNumbers.ts";
 import {DatePicker} from "@/components/common/react-aria/datepicker.tsx";
 import {DateValue} from "react-aria-components";
-import {dateToCalendarDate, calendarDateToDate, getToday} from "@/utils/date.ts";
+import {calendarDateToDate, dateToCalendarDate, getToday} from "@/utils/date.ts";
 import {Switch} from "@/components/common/input/switch.tsx";
+import {OrderStatus} from "@/api/model/order.ts";
+import {DateTime} from "luxon";
 
 type PurchaseMethod = "manual" | "csv" | "purchase_order";
 
@@ -162,7 +163,7 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
     [],
     0,
     9999,
-    ["supplier", "items", "items.item", "items.supplier"],
+    ["supplier", "items", "items.item", "items.supplier", 'items.item.stores'],
     {
       enabled: false
     });
@@ -205,7 +206,7 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
 
   useEffect(() => {
     // auto open csv modal if csv mode is selected
-    if(isCsvMethod){
+    if (isCsvMethod) {
       setCsvModal(true);
     }
   }, [isCsvMethod])
@@ -258,7 +259,10 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
           label: orderItem.supplier.name,
           value: orderItem.supplier.id
         }
-        : null,
+        : (order.supplier ? {
+          label: order.supplier.name,
+          value: order.supplier.id
+        } : null),
       store: orderItem.item?.stores && orderItem.item.stores.length === 1
         ? {
           label: orderItem.item.stores[0].name,
@@ -303,7 +307,10 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
           label: `PO #${data.purchase_order.po_number}`,
           value: data.purchase_order.id
         } : null,
-        method: data.method ? {label: data.method, value: data.method.toLowerCase()} : {label: "Manual", value: "manual"},
+        method: data.method ? {label: data.method, value: data.method.toLowerCase()} : {
+          label: "Manual",
+          value: "manual"
+        },
         comments: data.comments ?? "",
         documents: undefined,
         date: data.created_at ? dateToCalendarDate(data.created_at) : getToday(),
@@ -352,11 +359,11 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
       invoice_number: 1,
       purchase_order: null,
       method: {label: "Manual", value: "manual"},
-        comments: "",
-        documents: undefined,
-        date: getToday(),
-        update_item_cost: false,
-        items: []
+      comments: "",
+      documents: undefined,
+      date: getToday(),
+      update_item_cost: false,
+      items: []
     });
   };
 
@@ -391,9 +398,10 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
   };
 
   const onSubmit = async (values: any) => {
+    console.log(values.items)
     try {
       const documentRefs = await convertFilesToDocuments(values.documents);
-      
+
       const payload = {
         invoice_number: Number(values.invoice_number),
         purchase_order: isPurchaseOrderMethod && values.purchase_order ? toRecordId(values.purchase_order.value) : undefined,
@@ -433,6 +441,8 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
         throw new Error("Failed to resolve purchase identifier");
       }
 
+      console.log(values.items)
+
       const itemsRefs = [];
       await Promise.all(
         values.items.map(async (item) => {
@@ -442,13 +452,13 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
             requested: item.requested !== undefined && item.requested !== "" ? Number(item.requested) : undefined,
             price: Number(item.price),
             base_quantity: Number(item.base_quantity),
-            expiry_date: item.expiry_date ? calendarDateToDate(item.expiry_date)?.toISOString().split('T')[0] : undefined,
-            manufacturing_date: item.manufacturing_date ? calendarDateToDate(item.manufacturing_date)?.toISOString().split('T')[0] : undefined,
+            expiry_date: item.expiry_date ? calendarDateToDate(item.expiry_date) : undefined,
+            manufacturing_date: item.manufacturing_date ? calendarDateToDate(item.manufacturing_date) : undefined,
             comments: item.comments?.trim() ? item.comments.trim() : undefined,
             supplier: item.supplier ? toRecordId(item.supplier.value) : undefined,
             store: item.store ? toRecordId(item.store.value) : undefined,
             code: item.code?.trim() || undefined,
-            purchase: toRecordId(purchaseId)
+            purchase: toRecordId(purchaseIdString)
           });
 
           if (created?.id) {
@@ -464,7 +474,7 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
         })
       );
 
-      await db.merge(purchaseIdString, {
+      await db.merge(toRecordId(purchaseIdString), {
         items: itemsRefs,
       });
 
@@ -472,6 +482,13 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
         await db.merge(toRecordId(selectedPurchaseOrderId), {
           status: PurchaseOrderStatus.fulfilled
         });
+
+        const [purchaseOrder] = await db.query(`SELECT * FROM ONLY ${toRecordId(selectedPurchaseOrderId)} fetch supplier`);
+        if(data === undefined && purchaseOrder.supplier){
+          await db.merge(toRecordId(purchaseOrder.supplier.id), {
+            purchases: Array.from(new Set([...(purchaseOrder.supplier.purchases || []), purchaseIdString])),
+          });
+        }
       }
 
       toast.success("Purchase saved");
@@ -933,24 +950,28 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
             label: 'Comments'
           }]}
           onCreateRow={async (rowData) => {
-            try{
+            try {
               // find item
-              const [item] = await db.query(`SELECT * FROM ${Tables.inventory_items} where name = $name and code = $code fetch suppliers, stores`, {
+              const [item] = await db.query(`SELECT *
+                                             FROM ${Tables.inventory_items}
+                                             where name = $name
+                                               and code = $code fetch suppliers
+                                                 , stores`, {
                 name: rowData.name,
                 code: rowData.code,
               });
 
-              if(item.length === 0){
+              if (item.length === 0) {
                 throw new Error('Item not found');
               }
 
               const supplier = item[0]?.suppliers.find(item => item.name === rowData.supplier);
-              if(supplier === undefined){
+              if (supplier === undefined) {
                 throw new Error('Supplier not found');
               }
 
               const store = item[0]?.stores.find(item => item.name === rowData.store);
-              if(store === undefined){
+              if (store === undefined) {
                 throw new Error('Store not found');
               }
 
@@ -976,12 +997,12 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
                   value: store.id
                 }
               });
-            }catch(e){
+            } catch (e) {
               throw e;
             }
           }}
           onDone={(data) => {
-            if(data.total === data.success) {
+            if (data.total === data.success) {
               setCsvModal(false);
             }
           }}

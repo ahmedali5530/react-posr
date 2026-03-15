@@ -7,7 +7,7 @@ import {calculateCartItemPrice} from "@/lib/cart.ts";
 import {useDB} from "@/api/db/db.ts";
 import {DateTime} from "luxon";
 import {Tables} from "@/api/db/tables.ts";
-import {Order, OrderStatus} from "@/api/model/order.ts";
+import {Order, OrderStatus, ORDER_FETCHES} from "@/api/model/order.ts";
 import {OrderPayment} from "@/components/orders/order.payment.tsx";
 import {withCurrency} from "@/lib/utils.ts";
 import {StringRecordId} from "surrealdb";
@@ -243,7 +243,9 @@ export const Payment = () => {
         orderId = result[0].id;
       }
 
-      const freshOrder = await db.query(`SELECT * FROM ${orderId} FETCH items, items.item, item.item.modifiers, table, user, order_type, customer, discount, tax`);
+      const freshOrder = await db.query(
+        `SELECT * FROM ${orderId} FETCH ${ORDER_FETCHES.join(", ")}`
+      );
       setOrder(freshOrder[0][0]);
       setPayment(true);
     }

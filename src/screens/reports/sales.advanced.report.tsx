@@ -137,7 +137,7 @@ export const SalesAdvancedReport = () => {
         const ordersQuery = `
           SELECT * FROM ${Tables.orders}
           ${orderConditions.length ? `WHERE ${orderConditions.join(" AND ")}` : ""}
-          FETCH payments, payments.payment_type, discount, order_type, items, items.item, items.item.categories, extras, user, cashier, table, floor
+          FETCH payments, payments.payment_type, discount, order_type, items, items.item, items.item.categories, extras, user, cashier, table, floor, coupon, coupon.coupon
         `;
 
         const ordersResult: any = await queryRef.current(ordersQuery, params);
@@ -255,11 +255,12 @@ export const SalesAdvancedReport = () => {
     );
     const lineDiscounts = itemDiscounts;
     const orderDiscount = safeNumber(order.discount_amount);
+    const couponDiscount = safeNumber(order.coupon?.discount);
     const subtotalDiscount = Math.max(0, safeNumber(orderDiscount - lineDiscounts));
     const totalDiscounts = safeNumber(lineDiscounts + subtotalDiscount);
     const taxes = safeNumber(order.tax_amount);
     const serviceCharges = safeNumber(order.service_charge_amount);
-    const amountDue = safeNumber(salePriceWithoutTax + taxes + serviceCharges - totalDiscounts);
+    const amountDue = safeNumber(salePriceWithoutTax + taxes + serviceCharges - totalDiscounts - couponDiscount);
     const amountCollected = safeNumber(
       order.payments?.reduce((sum, payment) => sum + safeNumber(payment?.amount), 0) ?? 0
     );
@@ -271,6 +272,7 @@ export const SalesAdvancedReport = () => {
       amountDue,
       serviceCharges,
       discounts: totalDiscounts,
+      coupons: couponDiscount,
       net,
       amountCollected,
     };
@@ -285,6 +287,7 @@ export const SalesAdvancedReport = () => {
         acc.amountDue += orderTotals.amountDue;
         acc.serviceCharges += orderTotals.serviceCharges;
         acc.discounts += orderTotals.discounts;
+        acc.coupons += orderTotals.coupons;
         acc.net += orderTotals.net;
         acc.amountCollected += orderTotals.amountCollected;
         acc.ordersCount += 1;
@@ -296,6 +299,7 @@ export const SalesAdvancedReport = () => {
         amountDue: 0,
         serviceCharges: 0,
         discounts: 0,
+        coupons: 0,
         net: 0,
         amountCollected: 0,
         ordersCount: 0,
@@ -349,6 +353,10 @@ export const SalesAdvancedReport = () => {
                   <td className="py-2 text-right font-semibold text-red-600">{withCurrency(-totals.discounts)}</td>
                 </tr>
                 <tr>
+                  <td className="py-2 text-neutral-700">Coupons</td>
+                  <td className="py-2 text-right font-semibold text-red-600">{withCurrency(-totals.coupons)}</td>
+                </tr>
+                <tr>
                   <td className="py-2 text-neutral-700">Amount Due</td>
                   <td className="py-2 text-right font-semibold text-neutral-900">{withCurrency(totals.amountDue)}</td>
                 </tr>
@@ -386,6 +394,7 @@ export const SalesAdvancedReport = () => {
                       <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Taxes</th>
                       <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Service Charges</th>
                       <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Discounts</th>
+                      <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Coupons</th>
                       <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Amount Due</th>
                       <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Amount Collected</th>
                       <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Net</th>
@@ -443,6 +452,7 @@ export const SalesAdvancedReport = () => {
                             <td className="py-3 px-3 text-right text-sm text-neutral-700">{withCurrency(orderTotals.taxes)}</td>
                             <td className="py-3 px-3 text-right text-sm text-neutral-700">{withCurrency(orderTotals.serviceCharges)}</td>
                             <td className="py-3 px-3 text-right text-sm text-red-600">{withCurrency(-orderTotals.discounts)}</td>
+                            <td className="py-3 px-3 text-right text-sm text-red-600">{withCurrency(-orderTotals.coupons)}</td>
                             <td className="py-3 px-3 text-right text-sm text-neutral-700">{withCurrency(orderTotals.amountDue)}</td>
                             <td className="py-3 px-3 text-right text-sm text-neutral-700">{withCurrency(orderTotals.amountCollected)}</td>
                             <td className="py-3 px-3 text-right text-sm font-semibold text-neutral-900">{withCurrency(orderTotals.net)}</td>
@@ -454,7 +464,7 @@ export const SalesAdvancedReport = () => {
                       </tr>
                       {hasItems && (
                         <tr key={`${order.id}-items`} className="bg-neutral-50">
-                          <td colSpan={filters.showDetails ? 15 : 9} className="py-3 pl-6 pr-6">
+                          <td colSpan={filters.showDetails ? 16 : 9} className="py-3 pl-6 pr-6">
                             <div className="space-y-2">
                               <div className="text-xs font-semibold text-neutral-700 mb-2">Menu Items:</div>
                               <table className="w-full text-xs">
@@ -494,7 +504,7 @@ export const SalesAdvancedReport = () => {
                 })}
                 {filteredOrders.length === 0 && (
                   <tr>
-                    <td colSpan={filters.showDetails ? 15 : 9} className="py-6 text-center text-sm text-neutral-500">
+                    <td colSpan={filters.showDetails ? 16 : 9} className="py-6 text-center text-sm text-neutral-500">
                       No orders found for the selected filters.
                     </td>
                   </tr>

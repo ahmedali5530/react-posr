@@ -71,8 +71,17 @@ export const Summary = ({
     );
   }, [orders]);
 
-  // Total discounts
-  const discounts = safeNumber(itemDiscounts + subtotalDiscounts);
+  // Coupon discounts
+  const couponDiscounts = useMemo(() => {
+    return safeNumber(
+      orders?.reduce((sum, order) => {
+        return sum + safeNumber(order.coupon?.discount);
+      }, 0) ?? 0
+    );
+  }, [orders]);
+
+  // Total discounts (including coupons)
+  const discounts = safeNumber(itemDiscounts + subtotalDiscounts + couponDiscounts);
 
   // Total extras
   const totalExtras = useMemo(() => {
@@ -85,10 +94,18 @@ export const Summary = ({
     );
   }, [orders]);
 
-  // Amount due (including extras)
+  // Amount due (including extras and coupons)
   const amountDue = useMemo(() => {
-    return safeNumber(salePriceWithoutTax + taxCollected + serviceCharges + totalExtras - itemDiscounts - subtotalDiscounts);
-  }, [salePriceWithoutTax, taxCollected, serviceCharges, totalExtras, itemDiscounts, subtotalDiscounts]);
+    return safeNumber(
+      salePriceWithoutTax +
+        taxCollected +
+        serviceCharges +
+        totalExtras -
+        itemDiscounts -
+        subtotalDiscounts -
+        couponDiscounts
+    );
+  }, [salePriceWithoutTax, taxCollected, serviceCharges, totalExtras, itemDiscounts, subtotalDiscounts, couponDiscounts]);
 
   // Amount collected
   const amountCollected = useMemo(() => {
@@ -155,6 +172,23 @@ export const Summary = ({
         }
 
         list[`${order?.discount?.name}`] += safeNumber(order?.discount_amount);
+      }
+    });
+    return list;
+  }, [orders]);
+
+  const couponsTotal = couponDiscounts;
+
+  const couponsList = useMemo(() => {
+    const list = {};
+    orders?.forEach(order => {
+      if (order?.coupon) {
+        const code = order.coupon.coupon?.code || 'Unknown';
+        if (!list[code]) {
+          list[code] = 0;
+        }
+
+        list[code] += safeNumber(order.coupon.discount);
       }
     });
     return list;
@@ -313,6 +347,10 @@ export const Summary = ({
           <span>{withCurrency(discounts)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+          <span>Coupons</span>
+          <span>{withCurrency(couponsTotal)}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Taxes</span>
           <span>{withCurrency(taxes)}</span>
         </div>
@@ -327,11 +365,11 @@ export const Summary = ({
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>Amount due</span>
-            <span>{withCurrency(amountDue)}</span>
+          <span>Amount due</span>
+          <span>{withCurrency(amountDue)}</span>
           </div>
           <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
-            Items total + Taxes + Service charges + Extras - Discounts
+            Items total + Taxes + Service charges + Extras - Discounts - Coupons
           </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
@@ -473,6 +511,24 @@ export const Summary = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }} key={extra}>
             <span>{extra}</span>
             <span>{withCurrency(extras[extra])}</span>
+          </div>
+        ))}
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+          <span></span>
+          <span></span>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #e5e7eb', padding: '0.75rem', fontWeight: 700 }}>
+          <span>Coupons</span>
+        </div>
+        {Object.keys(couponsList).map(code => (
+          <div
+            style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}
+            key={code}
+          >
+            <span>{code}</span>
+            <span>{withCurrency(couponsList[code])}</span>
           </div>
         ))}
       </div>

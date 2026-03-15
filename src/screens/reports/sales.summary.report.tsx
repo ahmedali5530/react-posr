@@ -51,8 +51,9 @@ const calculateOrderNetSales = (order: Order): number => {
   const grossTotal = order.items?.reduce((sum, item) => sum + calculateOrderItemPrice(item), 0) ?? 0;
   const lineDiscounts = order.items?.reduce((sum, item) => sum + safeNumber(item?.discount), 0) ?? 0;
   const orderDiscount = safeNumber(order.discount_amount);
+  const couponDiscount = safeNumber(order.coupon?.discount);
   const extraDiscount = Math.max(0, orderDiscount - lineDiscounts);
-  const net = grossTotal - lineDiscounts - extraDiscount;
+  const net = grossTotal - lineDiscounts - extraDiscount - couponDiscount;
   return net > 0 ? net : 0;
 };
 
@@ -100,7 +101,7 @@ export const SalesSummaryReport = () => {
         const ordersQuery = `
           SELECT * FROM ${Tables.orders}
           WHERE ${orderConditions.join(" AND ")}
-          FETCH payments, payments.payment_type, discount, order_type, items, items.item
+          FETCH payments, payments.payment_type, discount, order_type, items, items.item, coupon, coupon.coupon
         `;
 
         const ordersResult: any = await queryRef.current(ordersQuery, params);
@@ -186,6 +187,10 @@ export const SalesSummaryReport = () => {
 
   const totalDiscounts = useMemo(
     () => orders.reduce((sum, order) => sum + safeNumber(order.discount_amount), 0),
+    [orders],
+  );
+  const totalCoupons = useMemo(
+    () => orders.reduce((sum, order) => sum + safeNumber(order.coupon?.discount), 0),
     [orders],
   );
 
@@ -287,6 +292,7 @@ export const SalesSummaryReport = () => {
       {label: "Taxes", value: withCurrency(taxes)},
       {label: "Non cash payments", value: withCurrency(paymentSummary.nonCashPayments), breakdown: nonCashItems},
       {label: "Discounts", value: withCurrency(totalDiscounts)},
+      {label: "Coupons", value: withCurrency(totalCoupons)},
       {label: "Voids", value: withCurrency(totalVoids)},
     ];
   }, [
@@ -300,6 +306,7 @@ export const SalesSummaryReport = () => {
     serviceCharges,
     taxes,
     totalDiscounts,
+    totalCoupons,
     totalNetSales,
     totalVoids,
   ]);

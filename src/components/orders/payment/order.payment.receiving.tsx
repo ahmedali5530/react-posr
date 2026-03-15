@@ -22,6 +22,7 @@ import {dispatchPrint} from "@/lib/print.service.ts";
 import {PRINT_TYPE} from "@/lib/print.registry.tsx";
 import {StringRecordId} from "surrealdb";
 import {createPaymentIntent, GatewayType, verifyPayment} from "@/lib/payment.service.ts";
+import {calculateChangeDue, calculateOrderGrandTotal} from "@/lib/cart.ts";
 
 interface Props {
   order: Order
@@ -234,7 +235,7 @@ export const OrderPaymentReceiving = ({
   }, [payments])
 
   const changeDue = useMemo(() => {
-    return tendered - total;
+    return calculateChangeDue(tendered, total);
   }, [total, tendered]);
 
   const isRemotePaymentType = (paymentType: PaymentType): boolean => {
@@ -407,11 +408,19 @@ export const OrderPaymentReceiving = ({
   }
 
   const calculateTotal = (taxRate: number, overrideDiscountAmount?: number) => {
-    const txAmount = itemsTotal * taxRate / 100;
+    const txAmount = (itemsTotal * taxRate) / 100;
     const extrasTotal = Object.values(extras).reduce((prev, item) => prev + item, 0);
     const effectiveDiscount = overrideDiscountAmount !== undefined ? overrideDiscountAmount : (discountAmount ?? 0);
     const couponDiscount = couponAmount ?? 0;
-    return itemsTotal + extrasTotal + txAmount + serviceChargeAmount - effectiveDiscount - couponDiscount + tipAmount;
+    return calculateOrderGrandTotal({
+      itemsTotal,
+      extrasTotal,
+      taxAmount: txAmount,
+      discountAmount: effectiveDiscount,
+      serviceChargeAmount,
+      couponAmount: couponDiscount,
+      tipAmount,
+    });
   }
 
   // Determine highest tax among existing payments, optionally considering a candidate tax

@@ -12,6 +12,7 @@ interface HourlyData {
   startTime: string;
   amountCollected: number;
   grossSale: number;
+  couponAmount: number;
   guests: number;
   guestAvg: number;
   checks: number;
@@ -59,7 +60,7 @@ export const SalesHourlyLabourReport = () => {
         const ordersQuery = `
           SELECT * FROM ${Tables.orders}
           WHERE ${orderConditions.join(' AND ')}
-          FETCH payments, payments.payment_type, items
+          FETCH payments, payments.payment_type, items, coupon, coupon.coupon
         `;
 
         const ordersResult: any = await queryRef.current(ordersQuery, orderParams);
@@ -140,6 +141,10 @@ export const SalesHourlyLabourReport = () => {
         const total = Number(orderTotal);
         return sum + (isNaN(total) ? 0 : total);
       }, 0);
+      const couponAmount = hourOrders.reduce((sum, order) => {
+        const coupon = Number(order.coupon?.discount) || 0;
+        return sum + (isNaN(coupon) ? 0 : coupon);
+      }, 0);
 
       const guests = hourOrders.reduce((sum, order) => {
         const covers = Number(order.covers) || 0;
@@ -192,6 +197,7 @@ export const SalesHourlyLabourReport = () => {
         startTime,
         amountCollected: isNaN(amountCollected) ? 0 : amountCollected,
         grossSale: isNaN(grossSale) ? 0 : grossSale,
+        couponAmount: isNaN(couponAmount) ? 0 : couponAmount,
         guests: isNaN(guests) ? 0 : guests,
         guestAvg: isNaN(guestAvg) ? 0 : guestAvg,
         checks: isNaN(checks) ? 0 : checks,
@@ -207,6 +213,7 @@ export const SalesHourlyLabourReport = () => {
     return hourlyData.reduce((acc, row) => {
       const amountCollected = Number(row.amountCollected) || 0;
       const grossSale = Number(row.grossSale) || 0;
+      const couponAmount = Number(row.couponAmount) || 0;
       const guests = Number(row.guests) || 0;
       const checks = Number(row.checks) || 0;
       const labourHours = Number(row.labourHours) || 0;
@@ -214,6 +221,7 @@ export const SalesHourlyLabourReport = () => {
       return {
         amountCollected: acc.amountCollected + (isNaN(amountCollected) ? 0 : amountCollected),
         grossSale: acc.grossSale + (isNaN(grossSale) ? 0 : grossSale),
+        couponAmount: acc.couponAmount + (isNaN(couponAmount) ? 0 : couponAmount),
         guests: acc.guests + (isNaN(guests) ? 0 : guests),
         checks: acc.checks + (isNaN(checks) ? 0 : checks),
         labourHours: acc.labourHours + (isNaN(labourHours) ? 0 : labourHours)
@@ -221,6 +229,7 @@ export const SalesHourlyLabourReport = () => {
     }, {
       amountCollected: 0,
       grossSale: 0,
+      couponAmount: 0,
       guests: 0,
       checks: 0,
       labourHours: 0
@@ -265,6 +274,7 @@ export const SalesHourlyLabourReport = () => {
             <th>Start Time</th>
             <th className="text-right">Amount Collected</th>
             <th className="text-right">Gross Sale</th>
+            <th className="text-right">Coupon Amount</th>
             <th className="text-right">Guests</th>
             <th className="text-right">Guest Avg</th>
             <th className="text-right">Checks</th>
@@ -278,6 +288,7 @@ export const SalesHourlyLabourReport = () => {
               <td>{row.startTime}</td>
               <td className="text-right">{withCurrency(row.amountCollected)}</td>
               <td className="text-right">{withCurrency(row.grossSale)}</td>
+              <td className="text-right">{withCurrency(row.couponAmount)}</td>
               <td className="text-right">{formatNumber(row.guests)}</td>
               <td className="text-right">{withCurrency(row.guestAvg)}</td>
               <td className="text-right">{formatNumber(row.checks)}</td>
@@ -287,7 +298,7 @@ export const SalesHourlyLabourReport = () => {
           ))}
           {hourlyData.length === 0 && (
             <tr>
-              <td colSpan={8} className="text-center p-8 text-gray-500">
+              <td colSpan={9} className="text-center p-8 text-gray-500">
                 No data available for the selected date range
               </td>
             </tr>
@@ -298,6 +309,7 @@ export const SalesHourlyLabourReport = () => {
             <td>Totals</td>
             <td className="text-right">{withCurrency(totals.amountCollected)}</td>
             <td className="text-right">{withCurrency(totals.grossSale)}</td>
+            <td className="text-right">{withCurrency(totals.couponAmount)}</td>
             <td className="text-right">{formatNumber(totals.guests)}</td>
             <td className="text-right">{withCurrency(totalGuestAvg)}</td>
             <td className="text-right">{formatNumber(totals.checks)}</td>

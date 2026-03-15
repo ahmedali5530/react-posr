@@ -3,6 +3,7 @@ import { Dish } from "@/api/model/dish.ts";
 import { DishModifierGroup } from "@/api/model/dish_modifier_group.ts";
 import { MenuItemType } from "@/api/model/cart_item.ts";
 import {User} from "@/api/model/user.ts";
+import {Category} from "@/api/model/category.ts";
 
 export interface OrderItem extends ID {
   comments?: string
