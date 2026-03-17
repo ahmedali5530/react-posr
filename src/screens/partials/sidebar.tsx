@@ -10,7 +10,8 @@ import {
   faMotorcycle,
   faStore,
   faUtensils, faWarehouse, faWrench,
-  faClock
+  faClock,
+  faPowerOff
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils.ts";
 import { Button } from "@/components/common/input/button.tsx";
@@ -32,6 +33,8 @@ import {
   TIP_DISTRIBUTION
 } from "@/routes/posr.ts";
 import { getUserModules } from "@/lib/access.rules.ts";
+import { useSecurity } from "@/hooks/useSecurity.ts";
+import ScrollContainer from "react-indiana-drag-scroll";
 
 export const Sidebar = () => {
   const [page, setPage] = useAtom(appPage);
@@ -39,6 +42,7 @@ export const Sidebar = () => {
   const pathInfo = location.pathname;
 
   const navigation = useNavigate();
+  const { protectAction } = useSecurity();
 
   const logout = () => {
     setPage(prev => ({
@@ -48,6 +52,15 @@ export const Sidebar = () => {
     }));
 
     navigation(LOGIN);
+  }
+
+  const protectedNavigate = (to: string, module?: string, description?: string) => {
+    return navigation(to); // Disable auth for now
+
+    protectAction(() => navigation(to), {
+      description: description || `Authenticate to access ${to}`,
+      module
+    });
   }
 
   const lock = () => {
@@ -88,31 +101,36 @@ export const Sidebar = () => {
   return (
     <div className="flex flex-col justify-between h-screen items-center sidebar border border-y-0 border-white bg-white/50 backdrop-blur">
       <div className="w-full">
-        <div className="p-2 flex flex-col">
-          {sidebarItems.map(item => (
-            <NavLink
-              to={item.link}
-              className={cn(
-                'flex flex-col text-center cursor-pointer p-[0.4rem] gap-1 rounded-xl pressable no-underline',
-                pathInfo === item.link ? 'shadow-xl bg-gradient' : 'text-neutral-900 border-[3px] border-transparent'
-              )}
-              key={item.title}
-              style={{
-                '--padding': '0.4rem'
-              } as CSSProperties}
-            >
-              <span className="icon">{item.icon}</span>
-              <span className="label text-[12px]">{item.title}</span>
-            </NavLink>
-          ))}
-        </div>
+        <ScrollContainer className="h-[calc(100vh_-_150px)]">
+          <div className="p-2 flex flex-col">
+            {sidebarItems.map(item => (
+              <button
+                onClick={() => {
+                  protectedNavigate(item.link, item.role);
+                }}
+                className={cn(
+                  'flex flex-col text-center cursor-pointer p-[0.4rem] gap-1 rounded-xl pressable no-underline w-full',
+                  pathInfo === item.link ? 'shadow-xl bg-gradient' : 'text-neutral-900 border-[3px] border-transparent'
+                )}
+                key={item.title}
+                style={{
+                  '--padding': '0.4rem'
+                } as CSSProperties}
+              >
+                <span className="icon">{item.icon}</span>
+                <span className="label text-[12px]">{item.title}</span>
+              </button>
+            ))}
+          </div>
+        </ScrollContainer>
       </div>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-2 w-full p-2">
         <div className="input-group">
-          <NavLink
-            to={SETTINGS}
+          <button
+            onClick={() => protectedNavigate(SETTINGS, 'Admin')}
             className={cn(
-              'btn btn-secondary',
+              'btn btn-secondary lg flex-1',
+              pathInfo === SETTINGS ? 'active' : ''
             )}
             key={'settings'}
             style={{
@@ -120,11 +138,12 @@ export const Sidebar = () => {
             } as CSSProperties}
           >
             <FontAwesomeIcon icon={faWrench} />
-          </NavLink>
+          </button>
           <NavLink
             to={CLOCK}
             className={cn(
-              'btn btn-secondary',
+              'btn btn-secondary lg flex-1',
+              pathInfo === CLOCK ? 'active' : ''
             )}
             style={{
               '--padding': '0.5rem'
@@ -133,10 +152,14 @@ export const Sidebar = () => {
             <FontAwesomeIcon icon={faClock} />
           </NavLink>
         </div>
-        <Button variant="primary" onClick={lock} flat>
-          <FontAwesomeIcon icon={faLock} />
-        </Button>
-        <Button variant="danger" onClick={logout} flat>Logout</Button>
+        <div className="input-group">
+          <Button className="flex-1" variant="primary" onClick={lock} size="lg">
+            <FontAwesomeIcon icon={faLock} />
+          </Button>
+          <Button className="flex-1" variant="danger" onClick={logout} size="lg">
+            <FontAwesomeIcon icon={faPowerOff} />
+          </Button>
+        </div>
       </div>
     </div>
   )

@@ -34,9 +34,10 @@
                           from var(--bg-angle),
                           theme('colors.danger.500'),
                           theme('colors.warning.500'),
-                          theme('colors.info.500'),
                           theme('colors.success.500'),
-                          theme('colors.danger.500')
+                          theme('colors.info.500'),
+                          theme('colors.warning.500'),
+                          theme('colors.danger.500'),
           )
           border-box;
   animation: spin var(--duration) infinite linear;

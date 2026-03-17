@@ -17,7 +17,7 @@ export const Layout = (props: Props) => {
       )
     }>
       <div className="flex">
-        <div className="flex-grow-0 flex-shrink-0 w-[100px]">
+        <div className="flex-grow-0 flex-shrink-0 w-[130px]">
           <Sidebar/>
         </div>
         <div className={
