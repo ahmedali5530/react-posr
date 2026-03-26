@@ -29,6 +29,7 @@ import { Extra } from "@/api/model/extra.ts";
 import { Coupon, CouponRedemption, WeekDay } from "@/api/model/coupon.ts";
 import { OrderPaymentCoupon } from "@/components/orders/payment/order.payment.coupon.tsx";
 import {toast} from "sonner";
+import {useSecurity} from "@/hooks/useSecurity.ts";
 
 interface Props {
   order: Order
@@ -49,6 +50,8 @@ export const OrderPayment = ({
   order, onClose
 }: Props) => {
   const db = useDB();
+  const {protectAction} = useSecurity();
+
   const [page] = useAtom(appPage);
 
   const closeModal = () => {
@@ -578,7 +581,12 @@ export const OrderPayment = ({
                 "flex justify-between p-3 cursor-pointer",
                 mode === PaymentOptions.Tax && 'bg-neutral-900 text-warning-500'
               )
-            } onClick={() => setMode(PaymentOptions.Tax)}>
+            } onClick={() => {
+              protectAction(() => setMode(PaymentOptions.Tax), {
+                module: 'Apply tax',
+                description: 'Apply tax'
+              });
+            }}>
               <div>
                 Tax {tax && <>({tax.name} {tax.rate}%)</>} <FontAwesomeIcon icon={faPencil}/>
               </div>
@@ -590,7 +598,12 @@ export const OrderPayment = ({
                 "flex justify-between p-3 cursor-pointer",
                 mode === PaymentOptions.Discount && 'bg-neutral-900 text-warning-500'
               )
-            } onClick={() => setMode(PaymentOptions.Discount)}>
+            } onClick={() => {
+              protectAction(() => setMode(PaymentOptions.Discount), {
+                module: 'Apply discount',
+                description: 'Apply discount'
+              });
+            }}>
               <div>
                 Discount <FontAwesomeIcon icon={faPencil}/>
               </div>
@@ -602,7 +615,12 @@ export const OrderPayment = ({
                 "flex justify-between p-3 cursor-pointer",
                 mode === PaymentOptions.Coupon && 'bg-neutral-900 text-warning-500'
               )
-            } onClick={() => setMode(PaymentOptions.Coupon)}>
+            } onClick={() => {
+              protectAction(() => setMode(PaymentOptions.Coupon), {
+                module: 'Apply coupon',
+                description: 'Apply coupon'
+              });
+            }}>
               <div>Coupon <FontAwesomeIcon icon={faPencil}/></div>
               <div className="text-right">{withCurrency(couponAmount)}</div>
             </div>
@@ -612,7 +630,12 @@ export const OrderPayment = ({
                 "flex justify-between p-3 cursor-pointer",
                 mode === PaymentOptions['Service Charges'] && 'bg-neutral-900 text-warning-500'
               )
-            } onClick={() => setMode(PaymentOptions['Service Charges'])}>
+            } onClick={() => {
+              protectAction(() => setMode(PaymentOptions['Service Charges']), {
+                module: 'Apply service charges',
+                description: 'Apply service charges'
+              });
+            }}>
               <div>Service charges ({serviceCharge}{serviceChargeType === DiscountType.Percent ? '%' : ''}) <FontAwesomeIcon icon={faPencil}/></div>
               <div className="text-right">{withCurrency(serviceChargeAmount)}</div>
             </div>
@@ -622,7 +645,12 @@ export const OrderPayment = ({
                 "flex justify-between p-3 cursor-pointer",
                 mode === PaymentOptions.Tip && 'bg-neutral-900 text-warning-500'
               )
-            } onClick={() => setMode(PaymentOptions.Tip)}>
+            } onClick={() => {
+              protectAction(() => setMode(PaymentOptions.Tip), {
+                module: 'Apply tip',
+                description: 'Apply tip'
+              });
+            }}>
               <div>Tip ({tip}{tipType === DiscountType.Percent && '%'}) <FontAwesomeIcon icon={faPencil}/></div>
               <div className="text-right">{withCurrency(tipAmount)}</div>
             </div>
@@ -637,10 +665,13 @@ export const OrderPayment = ({
                 }
                 key={extra}
                 onClick={() => {
-                  setExtraToggles(prev => ({
+                  protectAction(() => setExtraToggles(prev => ({
                     ...prev,
                     [extra]: !(prev[extra] ?? true)
-                  }))
+                  })), {
+                    module: 'Change extras',
+                    description: 'Change extras'
+                  });
                 }}
               >
                 <div>{extra}</div>

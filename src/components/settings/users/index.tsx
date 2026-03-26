@@ -14,6 +14,7 @@ import { AdminUserRoles } from "@/components/settings/users/roles";
 import { AdminShifts } from "@/components/settings/users/shifts";
 import { shiftDisplayTime } from "@/lib/shift.utils.ts";
 import { AdminTipDistribution } from "@/components/settings/users/tip_distribution";
+import {useSecurity} from "@/hooks/useSecurity.ts";
 
 const AdminUsersList = () => {
   const loadHook = useApi<SettingsData<User>>(Tables.users, [], [], 0, 10, ["user_role", "user_shift"]);
@@ -38,7 +39,7 @@ const AdminUsersList = () => {
       enableColumnFilter: false,
       cell: info => {
         const role = info.getValue();
-        return role ? <span className="tag mr-2">{role?.name}</span> : '-';
+        return role ? <div className="flex gap-2 flex-wrap"><span className="tag mr-2">{role?.name}</span></div> : '-';
       }
     }),
     columnHelper.accessor("user_shift", {
@@ -46,7 +47,7 @@ const AdminUsersList = () => {
       enableColumnFilter: false,
       cell: info => {
         const shift = info.getValue();
-        return shift ? <span className="tag mr-2">{shift.name} ({shiftDisplayTime(shift)})</span> : '-';
+        return shift ? <div className="flex gap-2 flex-wrap"><span className="tag mr-2">{shift.name} ({shiftDisplayTime(shift)})</span></div> : '-';
       }
     }),
     columnHelper.accessor("id", {
@@ -97,24 +98,36 @@ const AdminUsersList = () => {
 }
 
 export const AdminUsers = () => {
+  const [s, setS] = useState('Users');
+  const {protectAction} = useSecurity();
+
   return (
-    <Tabs className="w-full flex flex-col" defaultSelectedKey="users">
+    <Tabs
+      className="w-full flex flex-col"
+      selectedKey={s}
+      onSelectionChange={(k: string) => {
+        protectAction(() => setS(k), {
+          module: k,
+          description: `Access ${k}`
+        });
+      }}
+    >
       <TabList aria-label="Manage users tabs" className="flex gap-3 p-3 bg-white border-b border-neutral-200">
-        <Tab id="users">Users</Tab>
-        <Tab id="roles">Roles</Tab>
-        <Tab id="shifts">Shifts</Tab>
-        <Tab id="tip_distribution">Tip distribution</Tab>
+        <Tab id="Users">Users</Tab>
+        <Tab id="Roles">Roles</Tab>
+        <Tab id="Shifts">Shifts</Tab>
+        <Tab id="Tips definition">Tips definition</Tab>
       </TabList>
-      <TabPanel id="users" className="bg-white">
+      <TabPanel id="Users" className="bg-white">
         <AdminUsersList />
       </TabPanel>
-      <TabPanel id="roles" className="bg-white">
+      <TabPanel id="Roles" className="bg-white">
         <AdminUserRoles />
       </TabPanel>
-      <TabPanel id="shifts" className="bg-white">
+      <TabPanel id="Shifts" className="bg-white">
         <AdminShifts />
       </TabPanel>
-      <TabPanel id="tip_distribution" className="bg-white">
+      <TabPanel id="Tips definition" className="bg-white">
         <AdminTipDistribution />
       </TabPanel>
     </Tabs>

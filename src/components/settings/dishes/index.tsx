@@ -40,7 +40,11 @@ export const AdminDishes = () => {
     }),
     columnHelper.accessor("categories", {
       header: 'Categories',
-      cell: info => info.getValue()?.map((item, index) => <span className="tag mr-2" key={index}>{item.name}</span>)
+      cell: info => <div className="flex gap-2 flex-wrap">
+        {info.getValue()?.map((item, index) => (
+          <span className="tag" key={`${item.id}-${index}`}>{item.name}</span>
+        ))}
+      </div>,
     }),
     columnHelper.accessor("id", {
       id: "actions",

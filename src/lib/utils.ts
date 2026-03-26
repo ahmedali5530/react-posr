@@ -46,6 +46,11 @@ export const transformValue = {
 }
 
 export const toRecordId = (id: any) => {
+  if(id === undefined){
+    console.trace(id);
+    return id;
+  }
+
   if(typeof id === 'string'){
     return new StringRecordId(id);
   }

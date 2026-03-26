@@ -46,7 +46,13 @@ export const CartActions = () => {
   const deleteSelectedCartItems = () => {
     setState(prev => ({
       ...prev,
-      cart: prev.cart.filter(item => !item.isSelected)
+      cart: prev.cart.filter(item => {
+        if(item.newOrOld === 'new' && item.isSelected){
+          return false;
+        }
+
+        return true;
+      })
     }))
   }
 

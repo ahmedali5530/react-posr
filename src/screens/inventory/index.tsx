@@ -15,15 +15,17 @@ import {InventoryIssues} from "@/components/inventory/issues/index.tsx";
 import {InventoryIssueReturns} from "@/components/inventory/issue_returns/index.tsx";
 import {InventoryWastes} from "@/components/inventory/wastes/index.tsx";
 import {InventorySummary} from "@/components/inventory/inventory/summary.tsx";
+import {useSecurity} from "@/hooks/useSecurity.ts";
 
 export const Inventory = () => {
   const [selected, setSelected] = useState('inventory');
+  const {protectAction} = useSecurity();
 
   const pages = {
     'inventory': {component: <InventorySummary/>, title: 'Inventory'},
     'items': {component: <InventoryItems/>, title: 'Items'},
     'suppliers': {component: <InventorySuppliers/>, title: 'Suppliers'},
-    'categories': {component: <InventoryCategories/>, title: 'Categories'},
+    'categories': {component: <InventoryCategories/>, title: 'Item Categories'},
     'stores': {component: <InventoryStores/>, title: 'Stores'},
     'item-groups': {component: <InventoryItemGroups/>, title: 'Item Groups'},
     'purchase-orders': {component: <InventoryPurchaseOrders/>, title: 'Purchase Orders'},
@@ -41,7 +43,14 @@ export const Inventory = () => {
       <Tabs
         className="w-full flex flex-col rounded-xl"
         selectedKey={selected}
-        onSelectionChange={(key: string) => setSelected(key)}
+        onSelectionChange={(key: string) => {
+          protectAction(() => {
+            setSelected(key);
+          }, {
+            module: pages[key].title,
+            description: `Access ${pages[key].title}`
+          });
+        }}
       >
         <ScrollContainer mouseScroll hideScrollbars={false} className="flex-grow-0 flex-shrink bg-white">
           <TabList aria-label="Tabs"

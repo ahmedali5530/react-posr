@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
-export type AuthType = 'pin' | 'password' | 'biometric' | 'admin-code';
+export type AuthType = 'pin' | 'password' | 'qrcode';
 
 export interface SecurityAction {
   id: string;
@@ -9,6 +9,8 @@ export interface SecurityAction {
   module?: string;
   onConfirm: () => void;
   onCancel?: () => void;
+  onError?: () => void;
+  payload?: any
 }
 
 interface SecurityContextType {
@@ -42,7 +44,7 @@ interface SecurityProviderProps {
 
 export const SecurityProvider: React.FC<SecurityProviderProps> = ({ 
   children,
-  availableAuthTypes = ['pin', 'password', 'biometric', 'admin-code']
+  availableAuthTypes = ['pin', 'password', 'qrcode']
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentAction, setCurrentAction] = useState<SecurityAction | null>(null);

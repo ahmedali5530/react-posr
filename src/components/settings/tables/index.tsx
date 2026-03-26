@@ -36,13 +36,21 @@ export const AdminTables = () => {
     }),
     columnHelper.accessor('payment_types', {
       header: 'Payment types',
-      cell: info => info.getValue()?.map((paymentType, index) => <span className="tag mr-2" key={index}>{paymentType.name}</span>),
+      cell: info => <div className="flex gap-2 flex-wrap">
+        {info.getValue()?.map((item, index) => (
+          <span className="tag" key={`${item.id}-${index}`}>{item.name}</span>
+        ))}
+      </div>,
       enableColumnFilter: false,
       enableSorting: false
     }),
     columnHelper.accessor('order_types', {
       header: 'Order types',
-      cell: info => info.getValue()?.map((orderType, index) => <span className="tag mr-2" key={index}>{orderType.name}</span>),
+      cell: info => <div className="flex gap-2 flex-wrap">
+        {info.getValue()?.map((item, index) => (
+          <span className="tag" key={`${item.id}-${index}`}>{item.name}</span>
+        ))}
+      </div>,
       enableColumnFilter: false,
       enableSorting: false
     }),

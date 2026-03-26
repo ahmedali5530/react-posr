@@ -26,19 +26,23 @@ export const AdminPaymentTypes = () => {
     }),
     columnHelper.accessor("gateway", {
       header: 'Gateway',
-      cell: info => info.getValue() ? <span className="tag">{info.getValue()}</span> : <span>-</span>
+      cell: info => info.getValue() ? <div className="flex flex-wrap gap-2"><span className="tag">{info.getValue()}</span></div> : <span>-</span>
     }),
     columnHelper.accessor("gateway_mode", {
       header: 'Mode',
-      cell: info => info.getValue() ? <span className="tag">{info.getValue()}</span> : <span>-</span>
+      cell: info => info.getValue() ? <div className="flex gap-2 flex-wrap"><span className="tag">{info.getValue()}</span></div> : <span>-</span>
     }),
     columnHelper.accessor("tax", {
       header: 'Tax',
-      cell: info => info.getValue() && <span className="tag">{info.getValue()?.name} {info.getValue()?.rate}%</span>
+      cell: info => info.getValue() && <div className="flex gap-2 flex-wrap"><span className="tag">{info.getValue()?.name} {info.getValue()?.rate}%</span></div>
     }),
     columnHelper.accessor("discounts", {
       header: 'Discounts',
-      cell: info => info.getValue()?.map(item => <span className="tag" key={item.id}>{item?.name}</span>)
+      cell: info => <div className="flex gap-2 flex-wrap">
+        {info.getValue()?.map((item, index) => (
+          <span className="tag" key={`${item.id}-${index}`}>{item.name}</span>
+        ))}
+      </div>,
     }),
     columnHelper.accessor("priority", {
       header: 'Priority'

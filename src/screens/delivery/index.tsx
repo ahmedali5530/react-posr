@@ -5,14 +5,16 @@ import {Delivery} from "@/screens/delivery/delivery.tsx";
 import {DeliverySettings} from "@/screens/delivery/settings.tsx";
 import {Layout} from "@/screens/partials/layout.tsx";
 import {DeliveryAreas} from "@/screens/delivery/delivery.areas.tsx";
+import {useSecurity} from "@/hooks/useSecurity.ts";
 
 export const Index = () => {
   const [selected, setSelected] = useState('delivery');
+  const {protectAction} = useSecurity();
 
   const pages = {
     'delivery': {component: <Delivery/>, title: 'Delivery orders'},
     'areas': {component: <DeliveryAreas/>, title: 'Delivery areas'},
-    'settings': {component: <DeliverySettings/>, title: 'Settings'},
+    'settings': {component: <DeliverySettings/>, title: 'Delivery settings'},
   };
 
   return (
@@ -20,7 +22,12 @@ export const Index = () => {
       <Tabs
         className="w-full flex flex-col rounded-xl"
         selectedKey={selected}
-        onSelectionChange={(key: string) => setSelected(key)}
+        onSelectionChange={(key: string) => {
+          protectAction(() => setSelected(key), {
+            module: pages[key].title,
+            description: `Access ${pages[key].title}`
+          });
+        }}
       >
         <TabList aria-label="Tabs"
                  className="flex flex-row gap-3 px-1 py-3 flex-nowrap">

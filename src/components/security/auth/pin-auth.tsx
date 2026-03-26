@@ -1,6 +1,9 @@
 import { Button } from '@/components/common/input/button';
 import React, { useState, useEffect } from 'react';
 import { SecurityAction } from '@/providers/security.provider';
+import {cn} from "@/lib/utils.ts";
+import {useDB} from "@/api/db/db.ts";
+import {Tables} from "@/api/db/tables.ts";
 
 interface PinAuthProps {
   onSuccess: () => void;
@@ -15,6 +18,7 @@ export const PinAuth: React.FC<PinAuthProps> = ({
 }) => {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
+  const db = useDB();
 
   const handleNumberClick = (num: string) => {
     if (pin.length < 4) {
@@ -33,15 +37,27 @@ export const PinAuth: React.FC<PinAuthProps> = ({
     setError('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // TODO: Authenticate against database
-    // For now, just call onSuccess to allow authentication
-    onSuccess();
-    setPin('');
+    await validatePIN();
   };
+
+  const validatePIN = async () => {
+    const [userWithModules] = await db.query(`SELECT * FROM ${Tables.users} where $module IN user_role.roles and login_method = 'pin' and login = $pin and crypto::bcrypt::compare(password, $pin) = true `, {
+      module: currentAction.module,
+      pin
+    });
+
+    if(userWithModules.length > 0){
+      onSuccess();
+    }else{
+      setError(`Invalid PIN, or user not found with ${currentAction.module} permission`);
+    }
+
+    setPin('');
+  }
 
   const handleKeyPress = (key: string) => {
     switch (key) {
@@ -67,27 +83,29 @@ export const PinAuth: React.FC<PinAuthProps> = ({
     return () => document.removeEventListener('keydown', (e) => handleKeyPress(e.key));
   }, []);
 
-  const btnClasses = 'size-[85px] sm:size-[100px] md:size-[120px] p-0 text-neutral-900 active:scale-[0.95] transition-all duration-75 bg-neutral-100 active:text-neutral-100 active:bg-neutral-900 rounded-full text-3xl';
+  useEffect(() => {
+    if(pin.length === 4){
+      validatePIN();
+    }
+  }, [pin]);
+
+  const btnClasses = 'size-[60px] sm:size-[60px] md:size-[90px] p-0 text-neutral-900 transition-all duration-75 bg-neutral-100 rounded-full text-3xl';
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        {currentAction?.module && (
-          <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
-            <strong>Module:</strong> {currentAction.module}
-          </div>
-        )}
-        
-        {error && (
-          <div className="my-4 alert alert-danger">{error}</div>
-        )}
+        {/*{error && (*/}
+        {/*  <div className="my-4 alert alert-danger">{error}</div>*/}
+        {/*)}*/}
         
         {/* PIN Dots Display */}
-        <div className="flex justify-center space-x-2 mb-6">
+        <div className={
+          cn("flex justify-center space-x-2 mb-6", !!error && 'login-error')
+        }>
           {Array.from({ length: 4 }, (_, i) => (
             <div
               key={i}
-              className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
+              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                 i < pin.length 
                   ? 'bg-gray-900 border-gray-900' 
                   : 'bg-gray-100 border-gray-300'
@@ -103,7 +121,7 @@ export const PinAuth: React.FC<PinAuthProps> = ({
 
       {/* Numeric Keypad */}
       <div className="flex justify-center ">
-        <div className="wrapper w-[400px]">
+        <div className="wrapper w-[300px]">
           <div className="grid grid-cols-3 gap-2 sm:gap-5 place-items-center">
             {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
               <button
@@ -119,7 +137,9 @@ export const PinAuth: React.FC<PinAuthProps> = ({
             <button
               type="button"
               onClick={handleDelete}
-              className="btn-login danger"
+              className={
+                cn(btnClasses, 'bg-danger-500 pressable text-white')
+              }
             >
               ←
             </button>
@@ -135,7 +155,9 @@ export const PinAuth: React.FC<PinAuthProps> = ({
             <button
               type="button"
               onClick={handleClear}
-              className="btn-login danger"
+              className={
+                cn(btnClasses, 'bg-danger-500 pressable text-white')
+              }
             >
               C
             </button>
@@ -143,24 +165,24 @@ export const PinAuth: React.FC<PinAuthProps> = ({
         </div>
       </div>
 
-      <div className="flex space-x-3 pt-4">
-        <Button
-          type="button"
-          onClick={onCancel}
-          variant="secondary"
-          className="flex-1 lg"
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          className="flex-1 lg"
-          variant="primary"
-          active
-        >
-          Confirm
-        </Button>
-      </div>
+      {/*<div className="mx-auto flex space-x-3 pt-5 w-[400px] mt-5">*/}
+      {/*  <Button*/}
+      {/*    type="button"*/}
+      {/*    onClick={onCancel}*/}
+      {/*    variant="secondary"*/}
+      {/*    className="flex-1 lg"*/}
+      {/*  >*/}
+      {/*    Cancel*/}
+      {/*  </Button>*/}
+      {/*  <Button*/}
+      {/*    type="submit"*/}
+      {/*    className="flex-1 lg"*/}
+      {/*    variant="primary"*/}
+      {/*    active*/}
+      {/*  >*/}
+      {/*    Confirm*/}
+      {/*  </Button>*/}
+      {/*</div>*/}
     </form>
   );
 };

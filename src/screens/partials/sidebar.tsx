@@ -54,12 +54,13 @@ export const Sidebar = () => {
     navigation(LOGIN);
   }
 
-  const protectedNavigate = (to: string, module?: string, description?: string) => {
-    return navigation(to); // Disable auth for now
-
-    protectAction(() => navigation(to), {
-      description: description || `Authenticate to access ${to}`,
-      module
+  const protectedNavigate = async (to: string, module?: string, description?: string) => {
+    await protectAction(() => navigation(to), {
+      description: description || `Authenticate to access ${module}`,
+      module,
+      payload: {
+        page: ''
+      }
     });
   }
 
@@ -77,7 +78,7 @@ export const Sidebar = () => {
   const allSidebarItems = [
     { title: 'Menu', icon: <FontAwesomeIcon icon={faBars} size="lg"/>, link: MENU, role: 'Menu' },
     { title: 'Orders', icon: <FontAwesomeIcon icon={faList} size="lg"/>, link: ORDERS, role: 'Orders' },
-    { title: 'Summary', icon: <FontAwesomeIcon icon={faClipboardList} size="lg"/>, link: SUMMARY, role: 'Orders' },
+    { title: 'Summary', icon: <FontAwesomeIcon icon={faClipboardList} size="lg"/>, link: SUMMARY, role: 'Summary' },
     { title: 'Kitchen', icon: <FontAwesomeIcon icon={faUtensils} size="lg"/>, link: KITCHEN, role: 'Kitchen' },
     { title: 'Delivery', icon: <FontAwesomeIcon icon={faMotorcycle} size="lg"/>, link: DELIVERY, role: 'Delivery' },
     { title: 'Closing', icon: <FontAwesomeIcon icon={faStore} size="lg"/>, link: CLOSING, role: 'Closing' },
@@ -90,9 +91,11 @@ export const Sidebar = () => {
   // Filter sidebar items based on user roles
   const userRoles = getUserModules(page.user);
   const sidebarItems = allSidebarItems.filter(item => {
+    return true; // show all pages and handle the auth to manage pages permissions
+
     // If user has no roles, show nothing (or you could show all if that's the desired behavior)
     if (userRoles.length === 0) {
-      return false;
+      // return false;
     }
     // Check if user has the required role for this item
     return userRoles.includes(item.role);
@@ -127,7 +130,7 @@ export const Sidebar = () => {
       <div className="flex flex-col gap-2 w-full p-2">
         <div className="input-group">
           <button
-            onClick={() => protectedNavigate(SETTINGS, 'Admin')}
+            onClick={() => protectedNavigate(SETTINGS, 'Settings')}
             className={cn(
               'btn btn-secondary lg flex-1',
               pathInfo === SETTINGS ? 'active' : ''

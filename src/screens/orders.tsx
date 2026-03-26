@@ -40,7 +40,7 @@ export const Orders = () => {
   const [mergingTable, setMergingTable] = useState<string>();
 
   const [, setAlert] = useAtom(appAlert);
-  const [app, ] = useAtom(appPage);
+  const [app,] = useAtom(appPage);
 
   const [orders, setOrders] = useState<OrderModel[]>([]);
 
@@ -126,7 +126,7 @@ export const Orders = () => {
   const runLiveQuery = async () => {
     const result = await db.live(Tables.orders, function (action,) {
       // delete or adding new orders will result in new data
-      if(action === 'CREATE' || action === 'DELETE'){
+      if (action === 'CREATE' || action === 'DELETE') {
         fetchOrders();
       }
 
@@ -150,7 +150,9 @@ export const Orders = () => {
 
   const nextInvoiceNumber = async () => {
     return await db.query(
-      `SELECT math::max(invoice_number) as invoice_number from ${Tables.orders} group all`
+      `SELECT math::max(invoice_number) as invoice_number
+       from ${Tables.orders}
+       group all`
     );
   }
 

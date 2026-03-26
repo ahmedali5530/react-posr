@@ -23,9 +23,13 @@ export const AdminUserRoles = () => {
     columnHelper.accessor("roles", {
       header: "Modules",
       enableColumnFilter: false,
-      cell: (info) => info.getValue()?.map((item, index) => (
-        <span className="tag mr-2" key={`${item}-${index}`}>{item}</span>
-      )),
+      cell: (info) => (
+        <div className="flex gap-2 flex-wrap">
+          {info.getValue()?.map((item, index) => (
+            <span className="tag" key={`${item}-${index}`}>{item}</span>
+          ))}
+        </div>
+      ),
     }),
     columnHelper.accessor("id", {
       id: "actions",

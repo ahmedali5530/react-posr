@@ -11,6 +11,7 @@ import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
 import { toast } from "sonner";
 import { appPage } from "@/store/jotai.ts";
 import {toRecordId} from "@/lib/utils.ts";
+import {useSecurity} from "@/hooks/useSecurity.ts";
 
 const PRINTER_SETTING_KEYS = {
   temp_print_printers: "temp_print_printers",
@@ -70,6 +71,7 @@ export const Printersettings = () => {
   const [page] = useAtom(appPage);
   const [loading, setLoading] = useState(true);
   const userId = page?.user?.id != null ? toIdString(page.user.id) : null;
+  const {protectFormSubmit} = useSecurity();
 
   const { data: printersData } = useApi<SettingsData<Printer>>(
     Tables.printers,
@@ -110,8 +112,6 @@ export const Printersettings = () => {
               return p ? { label: p.name, value: p.id } : { label: id, value: id };
             })
             .filter((o) => o.value);
-
-          console.log(options)
 
           loaded[key as keyof PrinterSettingsForm] = options;
         }
@@ -161,6 +161,7 @@ export const Printersettings = () => {
           });
         }
       }
+
       toast.success("Printer settings saved");
     } catch (e) {
       console.error("Error saving printer settings:", e);
@@ -183,7 +184,10 @@ export const Printersettings = () => {
       {loading ? (
         <div className="text-center py-6 text-neutral-500">Loading printer settings…</div>
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 max-w-xl">
+        <form onSubmit={protectFormSubmit((handleSubmit(onSubmit)), {
+          description: 'Save printers',
+          module: 'Printers'
+        })} className="flex flex-col gap-4 max-w-xl">
 
           <div>
             <label className="block text-sm font-medium mb-1">Printers for temp print</label>

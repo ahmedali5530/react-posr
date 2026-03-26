@@ -13,6 +13,7 @@ import {toast} from "sonner";
 import {getOrderFilteredItems} from "@/lib/order.ts";
 import {dispatchPrint} from "@/lib/print.service.ts";
 import {Kitchen} from "@/api/model/kitchen.ts";
+import ScrollContainer from "react-indiana-drag-scroll";
 
 interface OrderCancelModalProps {
   order: OrderModel
@@ -33,16 +34,16 @@ export const OrderCancelModal = ({
   const db = useDB();
   const [page] = useAtom(appPage);
 
-const reasonOptions = useMemo<ReasonOption[]>(() => {
-  return Object.values(OrderVoidReason).map((reason) => ({
-    label: reason,
-    value: reason as OrderVoidReason,
-  }));
-}, []);
+  const reasonOptions = useMemo<ReasonOption[]>(() => {
+    return Object.values(OrderVoidReason).map((reason) => ({
+      label: reason,
+      value: reason as OrderVoidReason,
+    }));
+  }, []);
 
   const filteredItems = useMemo(() => getOrderFilteredItems(order), [order]);
 
-const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(reasonOptions[0]?.value ?? null);
+  const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(reasonOptions[0]?.value ?? null);
   const [comments, setComments] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Record<string, number>>({});
@@ -79,7 +80,7 @@ const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(rea
 
   const toggleItem = (itemId: string, maxQty: number) => {
     setSelectedItems((prev) => {
-      const next = { ...prev };
+      const next = {...prev};
       if (next[itemId]) {
         delete next[itemId];
       } else {
@@ -92,7 +93,7 @@ const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(rea
   const setItemQty = (itemId: string, qty: number, maxQty: number) => {
     const clamped = Math.max(0, Math.min(qty, maxQty));
     setSelectedItems((prev) => {
-      const next = { ...prev };
+      const next = {...prev};
       if (clamped === 0) {
         delete next[itemId];
       } else {
@@ -144,9 +145,9 @@ const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(rea
         const itemId = new StringRecordId(key);
 
         if (qty >= item.quantity) {
-          await db.merge(itemId, { deleted_at: now });
+          await db.merge(itemId, {deleted_at: now});
         } else {
-          await db.merge(itemId, { quantity: item.quantity - qty });
+          await db.merge(itemId, {quantity: item.quantity - qty});
         }
 
         await db.create(Tables.order_voids, {
@@ -164,7 +165,8 @@ const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(rea
 
       // Dispatch deletion prints grouped by kitchen
       try {
-        const [kitchens]: any = await db.query(`SELECT * FROM ${Tables.kitchens} FETCH printers, items`);
+        const [kitchens]: any = await db.query(`SELECT *
+                                                FROM ${Tables.kitchens} FETCH printers, items`);
         const kitchenItemsMap: Record<string, { kitchen: Kitchen; items: any[] }> = {};
 
         for (const item of filteredItems) {
@@ -178,14 +180,14 @@ const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(rea
             if (itemDishId && kitchenDishIds.includes(itemDishId)) {
               const kId = k.id.toString();
               if (!kitchenItemsMap[kId]) {
-                kitchenItemsMap[kId] = { kitchen: k, items: [] };
+                kitchenItemsMap[kId] = {kitchen: k, items: []};
               }
-              kitchenItemsMap[kId].items.push({ ...item, quantity: qty });
+              kitchenItemsMap[kId].items.push({...item, quantity: qty});
             }
           }
         }
 
-        for (const { kitchen, items } of Object.values(kitchenItemsMap)) {
+        for (const {kitchen, items} of Object.values(kitchenItemsMap)) {
           await dispatchPrint(db, 'deletion', {
             items,
             order,
@@ -224,14 +226,14 @@ const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(rea
       <div className="flex flex-col gap-4">
         <div>
           <label className="block text-sm font-semibold mb-2">Reason</label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             {reasonOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
-                className={`rounded-xl border-2 px-3 py-4 text-left text-base font-semibold transition ${
+                className={`rounded-xl border-2 px-3 py-4 text-base font-semibold transition text-center ${
                   selectedReason === option.value
-                    ? 'border-danger-500 bg-danger-50 text-danger-600'
+                    ? 'border-danger-500 bg-danger-100/30 text-danger-600'
                     : 'border-neutral-200 bg-white hover:border-neutral-400'
                 }`}
                 onClick={() => setSelectedReason(option.value)}
@@ -253,60 +255,63 @@ const [selectedReason, setSelectedReason] = useState<OrderVoidReason | null>(rea
               {allSelected ? 'Deselect all' : 'Select all'}
             </button>
           </div>
-          <div className="border border-neutral-200 rounded-xl divide-y divide-neutral-100 max-h-60 overflow-y-auto">
-            {filteredItems.map((item) => {
-              const key = item.id.toString();
-              const isSelected = !!selectedItems[key];
-              const currentQty = selectedItems[key] ?? 0;
-              return (
-                <div
-                  key={key}
-                  role="button"
-                  onClick={() => toggleItem(key, item.quantity)}
-                  className={`flex items-center gap-3 px-3 py-2.5 transition cursor-pointer select-none ${
-                    isSelected ? 'bg-danger-200' : 'bg-white hover:bg-neutral-50'
-                  }`}
-                >
-                  <div className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition ${
-                    isSelected ? 'border-danger-500 bg-danger-500' : 'border-neutral-300'
-                  }`}>
-                    {isSelected && (
-                      <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
-                        <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    )}
-                  </div>
-                  <span className="flex-1 font-medium truncate">
+          <ScrollContainer className="border border-neutral-200 rounded-xl divide-y divide-neutral-100 max-h-[400px] overflow-y-auto">
+            <>
+              {filteredItems.map((item) => {
+                const key = item.id.toString();
+                const isSelected = !!selectedItems[key];
+                const currentQty = selectedItems[key] ?? 0;
+                return (
+                  <div
+                    key={key}
+                    role="button"
+                    onClick={() => toggleItem(key, item.quantity)}
+                    className={`flex items-center gap-3 px-3 py-2.5 transition cursor-pointer select-none ${
+                      isSelected ? 'bg-danger-200' : 'bg-white hover:bg-neutral-50'
+                    }`}
+                  >
+                    <div className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition ${
+                      isSelected ? 'border-danger-500 bg-danger-500' : 'border-neutral-300'
+                    }`}>
+                      {isSelected && (
+                        <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+                          <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </div>
+                    <span className="flex-1 font-medium truncate">
                     {item.item?.name ?? 'Unknown item'}
                   </span>
-                  <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      disabled={!isSelected || currentQty <= 1}
-                      className="btn btn-secondary btn-flat btn-square btn-lg"
-                      onClick={() => setItemQty(key, currentQty - 1, item.quantity)}
-                    >
-                      −
-                    </button>
-                    <span className="w-8 text-center font-semibold tabular-nums">
+                    <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        disabled={!isSelected || currentQty <= 1}
+                        className="btn btn-secondary btn-flat btn-square btn-lg"
+                        onClick={() => setItemQty(key, currentQty - 1, item.quantity)}
+                      >
+                        −
+                      </button>
+                      <span className="w-8 text-center font-semibold tabular-nums">
                       {isSelected ? currentQty : 0}
                     </span>
-                    <button
-                      type="button"
-                      disabled={!isSelected || currentQty >= item.quantity}
-                      className="btn btn-secondary btn-flat btn-square btn-lg"
-                      onClick={() => setItemQty(key, currentQty + 1, item.quantity)}
-                    >
-                      +
-                    </button>
-                    <span className="text-neutral-400 w-8 text-right">
+                      <button
+                        type="button"
+                        disabled={!isSelected || currentQty >= item.quantity}
+                        className="btn btn-secondary btn-flat btn-square btn-lg"
+                        onClick={() => setItemQty(key, currentQty + 1, item.quantity)}
+                      >
+                        +
+                      </button>
+                      <span className="text-neutral-400 w-8 text-right">
                       / {item.quantity}
                     </span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </>
+          </ScrollContainer>
         </div>
 
         <div>

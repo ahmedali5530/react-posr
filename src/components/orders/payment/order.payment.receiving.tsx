@@ -23,6 +23,7 @@ import {PRINT_TYPE} from "@/lib/print.registry.tsx";
 import {StringRecordId} from "surrealdb";
 import {createPaymentIntent, GatewayType, verifyPayment} from "@/lib/payment.service.ts";
 import {calculateChangeDue, calculateOrderGrandTotal} from "@/lib/cart.ts";
+import {useSecurity} from "@/hooks/useSecurity.ts";
 
 interface Props {
   order: Order
@@ -77,6 +78,8 @@ export const OrderPaymentReceiving = ({
   payments, setPayments, itemsTotal, serviceChargeAmount, serviceCharge, serviceChargeType, notes, coupon, couponAmount
 }: Props) => {
   const db = useDB();
+  const {protectAction} = useSecurity();
+
   const [alert, setAlert] = useAtom(appAlert);
 
   const {
@@ -658,7 +661,13 @@ export const OrderPaymentReceiving = ({
                 icon={faPrint}
                 size="lg"
                 onClick={() => {
-                  void dispatchPrint(db, PRINT_TYPE.presale_bill, { order, taxes: allTaxes?.data }, { userId: page?.user?.id });
+                  protectAction(() => {
+                    dispatchPrint(db, PRINT_TYPE.presale_bill, { order, taxes: allTaxes?.data }, { userId: page?.user?.id });
+                  }, {
+                    module: 'Print temp bill',
+                    description: 'Print temp bill'
+                  });
+
                 }}
               >Temp bill</Button>
               <Button
@@ -666,7 +675,12 @@ export const OrderPaymentReceiving = ({
                 className="flex-1"
                 filled
                 size="lg"
-                onClick={closeOrder}
+                onClick={async () => {
+                  await protectAction(async () => await closeOrder(), {
+                    module: 'Complete order',
+                    description: 'Complete order'
+                  });
+                }}
                 disabled={changeDue < 0 || closing || remoteProcessing}
                 flat
               >Complete</Button>

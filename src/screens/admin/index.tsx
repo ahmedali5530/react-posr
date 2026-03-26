@@ -19,9 +19,11 @@ import {AdminMenus} from "@/components/settings/menu";
 import {AdminPrints} from "@/components/settings/prints";
 import { AdminExtras } from "@/components/settings/extras";
 import { AdminCoupons } from "@/components/settings/coupons";
+import {useSecurity} from "@/hooks/useSecurity.ts";
 
 export const Admin = () => {
   const [selected, setSelected] = useState('dishes');
+  const {protectAction} = useSecurity();
 
   const pages = {
     'dishes': { component: <AdminDishes/>, title: 'Dishes' },
@@ -47,12 +49,18 @@ export const Admin = () => {
       <Tabs
         className="w-full flex flex-col"
         selectedKey={selected}
-        onSelectionChange={(key: string) => setSelected(key)}
+        onSelectionChange={(key: string) => protectAction(() => setSelected(key), {
+          module: pages[key].title,
+          description: `Access ${pages[key].title}`,
+        })}
       >
         <ScrollContainer mouseScroll hideScrollbars={false} className="flex-grow-0 flex-shrink bg-white">
           <TabList aria-label="Tabs" className="flex flex-row gap-3 px-1 py-3 flex-nowrap">
             {Object.keys(pages).map(key => (
-              <Tab id={key} key={key}>{pages[key].title}</Tab>
+              <Tab
+                id={key}
+                key={key}
+              >{pages[key].title}</Tab>
             ))}
           </TabList>
         </ScrollContainer>

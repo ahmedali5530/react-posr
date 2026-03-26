@@ -29,7 +29,14 @@ const validationSchema = yup.object({
   }).required("This is required"),
   first_name: yup.string().required("This is required"),
   last_name: yup.string().required("This is required"),
-  login: yup.string().required("This is required"),
+  login: yup
+    .string()
+    .required("This is required")
+    .when("login_method.value", {
+      is: "pin",
+      then: (schema) =>
+        schema.matches(/^\d{4}$/, "PIN must be exactly 4 digits only."),
+    }),
   password: yup.string().nullable(),
   user_role: yup.object({
     label: yup.string(),

@@ -27,6 +27,7 @@ import {getOrderFilteredItems} from "@/lib/order.ts";
 import useApi, {SettingsData} from "@/api/db/use.api.ts";
 import { Tables } from "@/api/db/tables";
 import {Tax} from "@/api/model/tax.ts";
+import {useSecurity} from "@/hooks/useSecurity.ts";
 
 interface Props {
   order: OrderModel
@@ -71,6 +72,8 @@ export const OrderBox = ({
   const printTempBill = () => {
     void dispatchPrint(db, PRINT_TYPE.presale_bill, { order, taxes: taxes?.data }, { userId: page?.user?.id });
   }
+
+  const {protectAction} = useSecurity();
 
   return (
     <>
@@ -159,36 +162,79 @@ export const OrderBox = ({
                 className="flex-1"
                 onAction={(key) => {
                   if (key === 'temp_bill') {
-                    printTempBill();
+                    protectAction(() => {
+                      printTempBill();
+                    }, {
+                      module: 'Print temp bill',
+                      description: 'Print temp bill'
+                    });
                   }
 
                   if (key === 'final_bill') {
-                    void dispatchPrint(db, PRINT_TYPE.final_bill, { order, duplicate: true }, { userId: page?.user?.id });
+                    protectAction(() => {
+                      dispatchPrint(db, PRINT_TYPE.final_bill, { order, duplicate: true }, { userId: page?.user?.id });
+                    }, {
+                      module: 'Print final copy',
+                      description: 'Print final copy'
+                    });
                   }
 
                   if(key === 'split_by_seats' && hasSeats) {
-                    setSplitBySeats(true);
+                    protectAction(() => {
+                      setSplitBySeats(true)
+                    }, {
+                      module: 'Split by seats',
+                      description: 'Split by seats',
+
+                    });
                   }
 
                   if(key === 'split_by_items') {
-                    setSplitByManually(true);
+                    protectAction(() => {
+                      setSplitByManually(true);
+                    }, {
+                      module: 'Split by items',
+                      description: 'Split by items'
+                    });
                   }
 
                   if(key === 'split_by_amount') {
-                    setSplitByAmount(true);
+                    protectAction(() => {
+                      setSplitByAmount(true);
+                    }, {
+                      module: 'Split by amount',
+                      description: 'Split by amount'
+                    });
                   }
 
                   if(key === 'cancel') {
-                    setCancelOrderOpen(true);
+                    protectAction(() => {
+                      setCancelOrderOpen(true);
+                    }, {
+                      module: 'Cancel order',
+                      description: 'Cancel order'
+                    });
+
                     return;
                   }
 
                   if(key === 'merge'){
-                    onMergeSelect(order, true);
+                    protectAction(() => {
+                      onMergeSelect(order, true);
+                    }, {
+                      module: 'Merge orders',
+                      description: 'Merge orders'
+                    });
                   }
 
                   if(key === 'refund') {
-                    setRefundOrderOpen(true);
+                    protectAction(() => {
+                      setRefundOrderOpen(true);
+                    }, {
+                      module: 'Refund order',
+                      description: 'Refund order'
+                    });
+
                     return;
                   }
                 }}

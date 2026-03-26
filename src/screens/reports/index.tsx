@@ -29,6 +29,7 @@ import {WasteFilter} from "@/components/reports/filters/waste.filter.tsx";
 import {ConsumptionFilter} from "@/components/reports/filters/consumption.filter.tsx";
 import {SaleVsConsumptionFilter} from "@/components/reports/filters/sale.vs.consumption.filter.tsx";
 import { TipsFilter } from "@/components/reports/filters/tips.filter.tsx";
+import {useSecurity} from "@/hooks/useSecurity.ts";
 
 export const Reports = () => {
   const reportCategories = useMemo(() => {
@@ -54,7 +55,7 @@ export const Reports = () => {
       },
       "Products": {
         "Product Mix Weekly": <ProductMixWeeklyReportFilter/>,
-        "Product Mix summary": <ProductMixSummaryFilter />,
+        "Product Mix Summary": <ProductMixSummaryFilter />,
         "Products Hourly": <ProductHourlyFilter />,
         // "Products list": <ProductListFilter />,
         "Products Summary": <ProductSummaryFilter />
@@ -76,6 +77,8 @@ export const Reports = () => {
   const [subCategory, setSubCategory] = useState({});
   const [selectedSubCategory, setSelectedSubCategory] = useState('');
   const [filter, setFilter] = useState<ReactNode>();
+
+  const {protectAction} = useSecurity();
 
   return (
     <Layout containerClassName="p-5">
@@ -113,8 +116,15 @@ export const Reports = () => {
                   <li
                     className="border-b py-2 px-5 flex justify-between cursor-pointer hover:bg-gray-100 items-center"
                     onClick={() => {
-                      setSelectedSubCategory(key);
-                      setFilter(subCategory[key]);
+                      protectAction(() => {
+                        setSelectedSubCategory(key);
+                        setFilter(subCategory[key]);
+                      }, {
+                        module: key,
+                        description: `Open ${key}`
+                      });
+
+
                     }}
                     key={key}
                   >

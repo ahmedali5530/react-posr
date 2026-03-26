@@ -1,6 +1,12 @@
 import { Button } from '@/components/common/input/button';
 import React, { useState } from 'react';
 import { SecurityAction } from '@/providers/security.provider';
+import {Input} from "@/components/common/input/input.tsx";
+import {useDB} from "@/api/db/db.ts";
+import {Tables} from "@/api/db/tables.ts";
+import {toRecordId} from "@/lib/utils.ts";
+import {useAtom} from "jotai";
+import {appPage, appState} from "@/store/jotai.ts";
 
 interface PasswordAuthProps {
   onSuccess: () => void;
@@ -13,35 +19,48 @@ export const PasswordAuth: React.FC<PasswordAuthProps> = ({
   onCancel,
   currentAction
 }) => {
+  const db = useDB();
+
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [{user}] = useAtom(appPage);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // TODO: Authenticate against database
-    // For now, just call onSuccess to allow authentication
-    onSuccess();
+    const [userWithModules] = await db.query(`SELECT * FROM ${Tables.users} where $module IN user_role.roles and login_method = 'form' and crypto::bcrypt::compare(password, $password) = true `, {
+      module: currentAction.module,
+      password
+    });
+
+    if(userWithModules.length > 0){
+      onSuccess();
+    }else{
+      setError(`Invalid password, or user not found with ${currentAction.module} permission`);
+    }
+
     setPassword('');
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Enter Password
         </label>
-        <input
+        <Input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Enter your password"
           autoFocus
+          autoComplete="off"
+          enableKeyboard
+          inputSize="lg"
         />
         {error && (
-          <p className="mt-1 text-sm text-red-600">{error}</p>
+          <p className="mt-1 text-sm text-danger-600">{error}</p>
         )}
       </div>
 

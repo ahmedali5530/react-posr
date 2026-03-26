@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import React, { useEffect, useState } from "react";
+import { Resolver, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { useDB } from "@/api/db/db.ts";
 import { Tables } from "@/api/db/tables.ts";
 import { UserRole } from "@/api/model/user_role.ts";
 import { ACCESS_RULE_MODULES, AccessRuleModule } from "@/lib/access.rules.ts";
+import {Checkbox} from "@/components/common/input/checkbox.tsx";
 
 interface Props {
   open: boolean
@@ -54,19 +55,15 @@ const ModuleCheckbox: React.FC<ModuleCheckboxProps> = ({
   }
 
   const handleModuleChange = (checked: boolean) => {
-    let newModules = [...selectedModules];
-    
     if (checked) {
-      newModules.push(module);
+      const next = new Set(selectedModules);
+      next.add(module);
+      moduleConfig.children.forEach((c) => next.add(c));
+      onChange([...next]);
     } else {
-      newModules = newModules.filter(m => m !== module);
-      // Remove all children when parent is unchecked
-      moduleConfig.children.forEach(child => {
-        newModules = newModules.filter(m => m !== child);
-      });
+      const remove = new Set([module, ...moduleConfig.children]);
+      onChange(selectedModules.filter((m) => !remove.has(m)));
     }
-    
-    onChange(newModules);
   };
 
   const handleChildChange = (child: string, checked: boolean) => {
@@ -88,38 +85,28 @@ const ModuleCheckbox: React.FC<ModuleCheckboxProps> = ({
   return (
     <div className={`${level === 0 ? '' : 'ml-6'}`}>
       <div className="flex items-center space-x-2 mb-2">
-        <input
+        <Checkbox
           type="checkbox"
           id={module}
           checked={isChecked}
-          onChange={(e) => handleModuleChange(e.target.checked)}
+          onChange={(e) => handleModuleChange(e.currentTarget.checked)}
           className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+          label={moduleConfig.label}
         />
-        <label 
-          htmlFor={module}
-          className="text-sm font-medium text-gray-700 cursor-pointer"
-        >
-          {moduleConfig.label}
-        </label>
       </div>
       
       {hasChildren && (
         <div className="mt-2 space-y-2">
           {(searchTerm ? filteredChildren : moduleConfig.children).map((child) => (
             <div key={child} className="flex items-center space-x-2 ml-4">
-              <input
+              <Checkbox
                 type="checkbox"
                 id={child}
                 checked={selectedModules.includes(child)}
-                onChange={(e) => handleChildChange(child, e.target.checked)}
+                onChange={(e) => handleChildChange(child, e.currentTarget.checked)}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                label={child}
               />
-              <label 
-                htmlFor={child}
-                className="text-sm text-gray-600 cursor-pointer"
-              >
-                {child}
-              </label>
             </div>
           ))}
         </div>
@@ -133,45 +120,62 @@ const validationSchema = yup.object({
   roles: yup.array().of(yup.string()).default([]).min(1, "This is required"),
 });
 
+type RoleFormValues = {
+  name: string;
+  roles: string[];
+};
+
 export const UserRoleForm = ({ open, onClose, data }: Props) => {
   const db = useDB();
-  const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const { register, control, handleSubmit, formState: { errors }, reset } = useForm({
-    resolver: yupResolver(validationSchema),
+  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<RoleFormValues>({
+    resolver: yupResolver(validationSchema) as Resolver<RoleFormValues>,
+    defaultValues: {
+      name: "",
+      roles: [],
+    },
   });
+
+  const selectedModules = watch("roles") ?? [];
+
+  const setRoles = (modules: string[]) => {
+    setValue("roles", modules, { shouldValidate: true, shouldDirty: true });
+  };
 
   const closeModal = () => {
     onClose();
     reset({
-      name: null,
+      name: "",
       roles: [],
     });
-    setSelectedModules([]);
     setSearchTerm("");
   };
 
   useEffect(() => {
     if (data) {
       reset({
-        ...data,
-        name: data.name,
-        roles: (data.roles || []),
+        name: data.name ?? "",
+        roles: data.roles ?? [],
       });
-      setSelectedModules(data.roles || []);
+    } else {
+      reset({
+        name: "",
+        roles: [],
+      });
     }
   }, [data, reset]);
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: RoleFormValues) => {
     const payload = {
-      ...values,
-      roles: selectedModules,
+      name: values.name,
+      roles: values.roles,
+      ...(data?.id != null ? { id: data.id } : {}),
     };
 
     try {
-      if (payload.id) {
-        await db.update(payload.id, payload);
+      if (data?.id != null) {
+        await db.update(data.id, payload);
       } else {
         await db.create(Tables.user_roles, payload);
       }
@@ -198,6 +202,11 @@ export const UserRoleForm = ({ open, onClose, data }: Props) => {
         
         <div className="flex-1">
           <label>Modules</label>
+          {errors?.roles?.message != null && (
+            <p className="mt-1 text-sm text-red-600" role="alert">
+              {String(errors.roles.message)}
+            </p>
+          )}
           
           {/* Search Box */}
           <div className="mt-2 mb-4">
@@ -219,7 +228,7 @@ export const UserRoleForm = ({ open, onClose, data }: Props) => {
                 moduleConfig={moduleConfig}
                 level={0}
                 selectedModules={selectedModules}
-                onChange={setSelectedModules}
+                onChange={setRoles}
                 searchTerm={searchTerm}
               />
             ))}

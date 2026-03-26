@@ -7,10 +7,12 @@ import {Setting} from "@/api/model/setting.ts";
 import {Input} from "@/components/common/input/input.tsx";
 import {DiscountType} from "@/api/model/discount.ts";
 import {toast} from "sonner";
+import {useSecurity} from "@/hooks/useSecurity.ts";
 
 export const ServiceChargesSettings = () => {
   const db = useDB();
   const [settings, setSettings] = useState<Setting>();
+  const {protectFormSubmit} = useSecurity();
 
 
   const {control, handleSubmit, reset} = useForm();
@@ -81,7 +83,10 @@ export const ServiceChargesSettings = () => {
   return (
     <div className="shadow p-5 rounded bg-white">
       <h2 className="text-xl font-semibold mb-1">Service charges</h2>
-      <form onSubmit={handleSubmit(saveSettings)}>
+      <form onSubmit={protectFormSubmit((handleSubmit(saveSettings)), {
+        module: 'Service charges',
+        description: 'Save service charges'
+      })}>
         <div className="grid grid-cols-2 gap-5 mb-5">
           <Controller
             render={({field}) => (

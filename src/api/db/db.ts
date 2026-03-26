@@ -24,7 +24,6 @@ export const useDB = () => {
         console.info(sql.trim());
         console.info(parameters);
         console.info(result);
-        // console.trace('trace');
         console.groupEnd()
       }
 
@@ -38,6 +37,13 @@ export const useDB = () => {
 
   const select = async <T>(thing: Tables): Promise<ActionResult<Record<string, T>>[]> => {
     try{
+      // log sql in dev mode
+      if(import.meta.env.DEV) {
+        console.group('DB Select')
+        console.info(thing);
+        console.groupEnd()
+      }
+
       return client.select(thing);
     }catch(e){
       console.log('ERROR while select', e);
@@ -48,6 +54,13 @@ export const useDB = () => {
 
   const del = async (thing: Tables|string) => {
     try{
+      // log sql in dev mode
+      if(import.meta.env.DEV) {
+        console.group('DB Delete')
+        console.info(thing);
+        console.groupEnd()
+      }
+
       return client.delete(thing);
     }catch(e){
       console.error('ERROR while delete', e);
@@ -58,6 +71,14 @@ export const useDB = () => {
 
   async function insert(thing: Tables|string, data: any){
     try{
+      // log sql in dev mode
+      if(import.meta.env.DEV) {
+        console.group('DB Insert')
+        console.info(thing);
+        console.info(data);
+        console.groupEnd()
+      }
+
       return client.insert(thing, data);
     }catch(e){
       console.error('ERROR while insert', e);
@@ -69,6 +90,14 @@ export const useDB = () => {
 
   const update = async (thing: Tables|string|any, data: any) => {
     try{
+      // log sql in dev mode
+      if(import.meta.env.DEV) {
+        console.group('DB Update')
+        console.info(thing);
+        console.info(data);
+        console.groupEnd()
+      }
+
       return client.update(thing, data);
     }catch(e){
       console.error('ERROR while updating', e);
@@ -79,6 +108,14 @@ export const useDB = () => {
 
   const patch = async (thing: Tables|string|any, data: any) => {
     try{
+      // log sql in dev mode
+      if(import.meta.env.DEV) {
+        console.group('DB Patch')
+        console.info(thing);
+        console.info(data);
+        console.groupEnd()
+      }
+
       return client.patch(thing, data);
     }catch(e){
       console.error('ERROR while patching', e);
@@ -89,6 +126,14 @@ export const useDB = () => {
 
   const merge = async (thing: Tables|string|any, data: any) => {
     try{
+      // log sql in dev mode
+      if(import.meta.env.DEV) {
+        console.group('DB Merge')
+        console.info(thing);
+        console.info(data);
+        console.groupEnd()
+      }
+
       return client.merge(thing, data);
     }catch(e){
       console.error('ERROR while merging', e);
@@ -99,6 +144,14 @@ export const useDB = () => {
 
   const upsert = async (thing: Tables|string|any, data: any) => {
     try{
+      // log sql in dev mode
+      if(import.meta.env.DEV) {
+        console.group('DB Upsert')
+        console.info(thing);
+        console.info(data);
+        console.groupEnd()
+      }
+
       return client.upsert(thing, data);
     }catch(e){
       console.error('ERROR while upserting', e);

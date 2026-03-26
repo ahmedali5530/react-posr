@@ -13,7 +13,7 @@ export const OrderItemName = ({
 }) => {
   return (
     <div className="hover:bg-neutral-200">
-      <div className="pl-x flex text-lg gap-2" style={{
+      <div className="pl-x flex text-lg gap-1" style={{
         '--padding': (item.level * 0.875) + 'rem'
       } as any}>
         <span className="flex-1">{item.item.name}</span>
@@ -38,7 +38,7 @@ export const OrderItemModifiers = ({
   modifier, showGroups
 }: { modifier: OrderItemModifier, showGroups?: boolean }) => {
   return (
-    <div key={modifier.id} className="flex flex-col mb-1 kitchen-order-modifier-group">
+    <div key={modifier.id} className="flex flex-col kitchen-order-modifier-group">
       {showGroups && <strong>{modifier.out.name}</strong>}
       {modifier.selectedModifiers.map(selectedModifier => (
         <div key={selectedModifier.id} className="pl-3">

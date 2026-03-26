@@ -52,7 +52,7 @@ export const MenuCart = () => {
               }}>Seat ?</Button>
             </div>
           )}
-          <ScrollContainer className="gap-1 flex flex-col">
+          <ScrollContainer className="gap-[2px] flex flex-col">
             {newItems.map((item, index) => (
               <CartItem item={item} key={index} index={index}/>
             ))}

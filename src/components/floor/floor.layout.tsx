@@ -2,7 +2,7 @@ import { useAtom } from "jotai";
 import {appAlert, appPage, appSettings, appState} from "@/store/jotai.ts";
 import { CSSProperties, useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/common/input/button.tsx";
-import { cn } from "@/lib/utils.ts";
+import {cn, toRecordId} from "@/lib/utils.ts";
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Floor } from "@/api/model/floor.ts";
 import { Tables } from "@/api/db/tables.ts";
@@ -22,7 +22,7 @@ import { StringRecordId } from "surrealdb";
 
 export const FloorLayout = () => {
   const [state, setState] = useAtom(appState);
-  const [settings, setSettings] = useAtom(appSettings);
+  const [, setSettings] = useAtom(appSettings);
   const db = useDB();
   const [liveQuery, setLiveQuery] = useState(null);
   const [tablesLiveQuery, setTablesLiveQuery] = useState(null);
@@ -123,7 +123,7 @@ export const FloorLayout = () => {
       if(order && state.switchTable){
         // update new table in order
         await db.merge(order.id, {
-          table: new StringRecordId(item?.id.toString()),
+          table: toRecordId(item?.id),
         });
         cart = [];
       }
@@ -209,7 +209,7 @@ export const FloorLayout = () => {
               size="lg"
               className={
                 cn(
-                  "flex-1 relative z-10 outline-none",
+                  "flex-1 relative outline-none pressable",
                   state?.floor && item.id.toString() === state?.floor?.id?.toString() && 'bg-gradient'
                 )
               }

@@ -289,14 +289,15 @@ export const Login = () => {
           shouldCloseOnEsc={false}
         >
           <div className="flex flex-col gap-4 items-center">
-            <p className="text-lg">
+            <div className="text-lg alert alert-danger">
               You need to clock in before accessing the system.
-            </p>
+            </div>
             <div className="flex gap-2">
               <Button
                 variant="primary"
                 onClick={handleClockIn}
                 icon={faClock}
+                size="xl"
               >
                 Clock In
               </Button>

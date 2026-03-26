@@ -901,7 +901,7 @@ table th {
           linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px);
 }
 .tag{
-  @apply bg-primary-100/30 p-1 rounded-lg px-2 shadow shadow-primary-200/50;
+  @apply bg-primary-100/30 p-1 rounded-lg px-2 shadow shadow-primary-200/50 text-xs font-bold hover:bg-primary-300 hover:text-white hover:scale-125;
 }
 .kitchen-order-modifier-group{
   &:before{

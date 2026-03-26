@@ -21,6 +21,7 @@ import {TimeEntry} from "@/api/model/time_entry.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
 import {toast} from "sonner";
 import ScrollContainer from "react-indiana-drag-scroll";
+import {useSecurity} from "@/hooks/useSecurity.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -67,6 +68,7 @@ const formatDuration = (ms: number): string => {
 export const Summary = () => {
   const db = useDB();
   const [page] = useAtom(appPage);
+  const {protectAction} = useSecurity();
 
   const [date, setDate] = useState<DateValue>(today(getLocalTimeZone()));
   const [orders, setOrders] = useState<OrderModel[]>([]);
@@ -336,14 +338,22 @@ export const Summary = () => {
               <Button
                 icon={faPrint}
                 variant="lg"
-                onClick={handlePrintSummary}
+                onClick={() => {
+                  protectAction(handlePrintSummary, {
+                    description: 'Print summary',
+                    module: 'Print summary',
+                  });
+                }}
               >Print summary</Button>
               <Button
                 icon={faPrint}
                 variant="lg"
                 isLoading={isPrintingMix}
                 onClick={() => {
-                  void handlePrintProductMix();
+                  protectAction(handlePrintProductMix, {
+                    description: 'Product mix report',
+                    module: 'Product mix report',
+                  });
                 }}
               >
                 Product Mix Report
@@ -353,7 +363,10 @@ export const Summary = () => {
                 variant="lg"
                 isLoading={isPrintingServerSales}
                 onClick={() => {
-                  void handlePrintServerSales();
+                  protectAction(handlePrintServerSales, {
+                    description: 'Server sales',
+                    module: 'Server sales',
+                  });
                 }}
               >
                 Server Sales

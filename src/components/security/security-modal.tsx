@@ -1,21 +1,20 @@
-import React, { useState } from 'react';
-import { useSecurityContext, AuthType } from '@/providers/security.provider';
-import { PinAuth } from './auth/pin-auth';
-import { PasswordAuth } from './auth/password-auth';
-import { BiometricAuth } from './auth/biometric-auth';
-import { AdminCodeAuth } from './auth/admin-code-auth';
-import { Modal } from '../common/react-aria/modal';
-import { Button } from '../common/input/button';
+import React, {useState} from 'react';
+import {AuthType, useSecurityContext} from '@/providers/security.provider';
+import {PinAuth} from './auth/pin-auth';
+import {PasswordAuth} from './auth/password-auth';
+import {QrCodeAuth} from './auth/qrcode-auth.tsx';
+import {Modal} from '../common/react-aria/modal';
+import {Button} from '../common/input/button';
 
 export const SecurityModal = () => {
-  const { 
-    isModalOpen, 
-    currentAction, 
-    confirmAction, 
-    cancelAction, 
+  const {
+    isModalOpen,
+    currentAction,
+    confirmAction,
+    cancelAction,
     availableAuthTypes
   } = useSecurityContext();
-  
+
   const [selectedAuthType, setSelectedAuthType] = useState<AuthType>('pin');
 
   if (!isModalOpen || !currentAction) {
@@ -34,40 +33,32 @@ export const SecurityModal = () => {
     switch (selectedAuthType) {
       case 'pin':
         return (
-          <PinAuth 
-            onSuccess={handleAuthSuccess} 
+          <PinAuth
+            onSuccess={handleAuthSuccess}
             onCancel={handleAuthCancel}
             currentAction={currentAction}
           />
         );
       case 'password':
         return (
-          <PasswordAuth 
-            onSuccess={handleAuthSuccess} 
+          <PasswordAuth
+            onSuccess={handleAuthSuccess}
             onCancel={handleAuthCancel}
             currentAction={currentAction}
           />
         );
-      case 'biometric':
+      case 'qrcode':
         return (
-          <BiometricAuth 
-            onSuccess={handleAuthSuccess} 
-            onCancel={handleAuthCancel}
-            currentAction={currentAction}
-          />
-        );
-      case 'admin-code':
-        return (
-          <AdminCodeAuth 
-            onSuccess={handleAuthSuccess} 
+          <QrCodeAuth
+            onSuccess={handleAuthSuccess}
             onCancel={handleAuthCancel}
             currentAction={currentAction}
           />
         );
       default:
         return (
-          <PinAuth 
-            onSuccess={handleAuthSuccess} 
+          <PinAuth
+            onSuccess={handleAuthSuccess}
             onCancel={handleAuthCancel}
             currentAction={currentAction}
           />
@@ -77,11 +68,14 @@ export const SecurityModal = () => {
 
   const getAuthTypeLabel = (type: AuthType) => {
     switch (type) {
-      case 'pin': return 'PIN';
-      case 'password': return 'Password';
-      case 'biometric': return 'Biometric';
-      case 'admin-code': return 'Admin Code';
-      default: return type;
+      case 'pin':
+        return 'PIN';
+      case 'password':
+        return 'Password';
+      case 'qrcode':
+        return 'QR Code';
+      default:
+        return type;
     }
   };
 
@@ -103,7 +97,7 @@ export const SecurityModal = () => {
                   variant={selectedAuthType === authType ? 'primary' : 'secondary'}
                   size="lg"
                   active={selectedAuthType === authType}
-                  className="min-w-[120px]"
+                  className="min-w-[120px] flex-1"
                 >
                   {getAuthTypeLabel(authType)}
                 </Button>

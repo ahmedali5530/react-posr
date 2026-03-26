@@ -68,13 +68,13 @@ export const CartItem = ({ item, index }: Props) => {
     <>
       <div
         className={cn(
-          "px-3 py-2 flex rounded-2xl gap-3 cursor-pointer items-start select-none",
+          "flex rounded gap-3 cursor-pointer items-start select-none",
           item.isSelected ? 'bg-neutral-300' : (
             item.isHold ? 'bg-warning-100' : 'bg-neutral-100'
           ),
         )}
         onClick={() => {
-          if(item.deleted_at === undefined) {
+          if(item.deleted_at === undefined && item.newOrOld === 'new') {
             setState(prev => ({
               ...prev,
               cart: prev.cart.map(ci => {
@@ -107,6 +107,7 @@ export const CartItem = ({ item, index }: Props) => {
                       })
                     }))
                   }}
+                  className="!rounded-none"
                 ><FontAwesomeIcon icon={faPlus}/></Button>
                 <Input
                   type="number"
@@ -123,7 +124,7 @@ export const CartItem = ({ item, index }: Props) => {
                       })
                     }))
                   }}
-                  className="!w-[60px] !border-0 !bg-white"
+                  className="!w-[60px] !border-0 !bg-white !rounded-none"
                 />
                 {item.quantity <= 1 ? (
                   <Button
@@ -140,6 +141,7 @@ export const CartItem = ({ item, index }: Props) => {
                         })
                       }))
                     }}
+                    className="!rounded-none"
                   ><FontAwesomeIcon icon={faTrash}/></Button>
                 ) : (
                   <Button
@@ -168,7 +170,7 @@ export const CartItem = ({ item, index }: Props) => {
 
             {item.newOrOld === MenuItemType.old && (
               <>
-                <span className="input justify-center items-center flat !bg-white">{item.quantity}</span>
+                <span className="p-2 px-3 justify-center items-center flat !bg-white">{item.quantity}</span>
                 {/*{item.deleted_at === undefined && (*/}
                 {/*  <Button*/}
                 {/*    flat*/}
@@ -183,36 +185,39 @@ export const CartItem = ({ item, index }: Props) => {
               </>
             )}
           </div>
-          <div>
-            {item.newOrOld === MenuItemType.new && item?.selectedGroups?.length > 0 && (
-              <>
-                <Button
-                  flat
-                  variant="primary"
-                  iconButton
-                  onClick={() => {
-                    setModifiersOpen(true)
-                  }}
-                  className="mr-2"
-                ><FontAwesomeIcon icon={faPencil}/></Button>
-              </>
-            )}
-            {item.newOrOld === MenuItemType.new && (
-              <>
-                <Button
-                  flat
-                  variant="primary"
-                  iconButton
-                  onClick={() => {
-                    setCommentText(item.comments || "");
-                    setCommentKeyboardOpen(true);
-                  }}
-                >
-                  <FontAwesomeIcon icon={faComment}/>
-                </Button>
-              </>
-            )}
-          </div>
+          {((item.newOrOld === MenuItemType.new && item?.selectedGroups?.length > 0) || (item.newOrOld === MenuItemType.new )) && (
+            <div>
+              {item.newOrOld === MenuItemType.new && item?.selectedGroups?.length > 0 && (
+                <>
+                  <Button
+                    flat
+                    variant="primary"
+                    iconButton
+                    onClick={() => {
+                      setModifiersOpen(true)
+                    }}
+                    className="mr-2 !rounded-none"
+                  ><FontAwesomeIcon icon={faPencil}/></Button>
+                </>
+              )}
+              {item.newOrOld === MenuItemType.new && (
+                <>
+                  <Button
+                    flat
+                    variant="primary"
+                    iconButton
+                    onClick={() => {
+                      setCommentText(item.comments || "");
+                      setCommentKeyboardOpen(true);
+                    }}
+                    className="!rounded-none"
+                  >
+                    <FontAwesomeIcon icon={faComment}/>
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
         </div>
         <div className={
           cn(

@@ -23,7 +23,11 @@ export const AdminModifierGroups = () => {
     }),
     columnHelper.accessor("modifiers", {
       header: 'Modifiers',
-      cell: info => info.getValue().map((item, index) => <span className="tag mr-2" key={index}>{item.modifier.name}</span>),
+      cell: info => <div className="flex gap-2 flex-wrap">
+        {info.getValue()?.map((item, index) => (
+          <span className="tag" key={`${item.id}-${index}`}>{item.modifier.name}</span>
+        ))}
+      </div>,
       enableSorting: false
     }),
     columnHelper.accessor("priority", {
