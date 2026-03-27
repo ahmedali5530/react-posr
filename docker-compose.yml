@@ -22,6 +22,7 @@ services:
       - surrealdb
       - printer
       - payment
+      - sync
 
   surrealdb:
     image: surrealdb/surrealdb:v2.6.2
@@ -69,7 +70,85 @@ services:
     ports:
       - "3134:3134"
 
+  sync:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./sync-service:/app
+      - sync-node_modules:/app/node_modules
+    environment:
+      - SYNC_SERVICE_PORT=3136
+      - SYNC_SERVICE_HOST=0.0.0.0
+      - SYNC_RECONNECT_MS=5000
+      - SYNC_LOG_LEVEL=info
+      - SYNC_CLIENT_ID=${SYNC_CLIENT_ID:-client-001}
+      - SYNC_SOURCE_URL=${SYNC_SOURCE_URL:-ws://surrealdb:8001/rpc}
+      - SYNC_SOURCE_NS=${SYNC_SOURCE_NS:-posr}
+      - SYNC_SOURCE_DB=${SYNC_SOURCE_DB:-posr}
+      - SYNC_SOURCE_USER=${SYNC_SOURCE_USER:-root}
+      - SYNC_SOURCE_PASS=${SYNC_SOURCE_PASS:-root}
+      - SYNC_MASTER_URL=${SYNC_MASTER_URL:-wss://posr.ahmedali5530.xyz:8443/rpc}
+      - SYNC_MASTER_NS=${SYNC_MASTER_NS:-posr}
+      - SYNC_MASTER_DB=${SYNC_MASTER_DB:-posr}
+      - SYNC_MASTER_USER=${SYNC_MASTER_USER:-root}
+      - SYNC_MASTER_PASS=${SYNC_MASTER_PASS:-root}
+      - SYNC_EXCLUDE_TABLES=${SYNC_EXCLUDE_TABLES:-}
+    command: sh -c "npm install && node server.js"
+    ports:
+      - "3136:3136"
+    depends_on:
+      - surrealdb
+    restart: unless-stopped
+
+  backup:
+    image: docker:27-cli
+    working_dir: /backup
+    volumes:
+      - ./backups/surrealdb:/backups
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Timezone for cron schedule (change if you need local time)
+      - TZ=UTC
+      # SurrealDB auth + target namespace/database for export
+      - SURREAL_USER=root
+      - SURREAL_PASS=root
+      - SURREAL_NAMESPACE=posr
+      - SURREAL_DATABASE=posr
+      # Endpoint used from inside the surrealdb container
+      - SURREAL_ENDPOINT=http://127.0.0.1:8001
+      # Keep only the latest N backup files
+      - BACKUP_RETENTION_COUNT=7
+    depends_on:
+      - surrealdb
+    command: >
+      sh -c '
+        set -eu;
+        mkdir -p /backups;
+        printf "%s\n" \
+          "#!/bin/sh" \
+          "set -eu" \
+          "mkdir -p /backups" \
+          "retention=\$${BACKUP_RETENTION_COUNT:-7}" \
+          "ts=\$$(date -u +%Y%m%dT%H%M%SZ)" \
+          "file=/backups/surrealdb-\$${ts}.surql" \
+          "project=\$${COMPOSE_PROJECT_NAME:-posr-react}" \
+          "db_container=\$${SURREAL_CONTAINER_NAME:-}" \
+          "if [ -z \"\$$db_container\" ]; then db_container=\$$(docker ps --filter \"label=com.docker.compose.project=\$$project\" --filter \"label=com.docker.compose.service=surrealdb\" --format \"{{.Names}}\" | awk \"NR==1{print; exit}\"); fi" \
+          "if [ -z \"\$$db_container\" ]; then echo \"No surrealdb container found\" >&2; exit 1; fi" \
+          "if docker exec \"\$$db_container\" /surreal --log none export --endpoint \"\$${SURREAL_ENDPOINT:-http://127.0.0.1:8001}\" --username \"\$${SURREAL_USER:-root}\" --password \"\$${SURREAL_PASS:-root}\" --namespace \"\$${SURREAL_NAMESPACE:-posr}\" --database \"\$${SURREAL_DATABASE:-posr}\" - > \"\$$file\"; then echo \"Created backup: \$$file\"; else rm -f \"\$$file\"; echo \"Backup export failed\" >&2; exit 1; fi" \
+          "ls -1t /backups/surrealdb-*.surql 2>/dev/null | sed -n \"\$$((retention+1)),\\\$$p\" | xargs -r rm -f" \
+          > /usr/local/bin/run-backup.sh;
+        chmod +x /usr/local/bin/run-backup.sh;
+        {
+          echo "0 0 * * * /usr/local/bin/run-backup.sh";
+          echo "0 12 * * * /usr/local/bin/run-backup.sh";
+        } > /etc/crontabs/root;
+        crond -f -l 8 -L /dev/stdout
+      '
+    restart: unless-stopped
+
 volumes:
   printer-node_modules:
   payment-node_modules:
+  sync-node_modules:
 

@@ -1,0 +1,15 @@
+{
+  "name": "posr-sync-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Live sync from local SurrealDB to master reporting SurrealDB",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "surrealdb": "^1.3.2"
+  }
+}
