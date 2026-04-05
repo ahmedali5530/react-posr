@@ -73,6 +73,7 @@ export const ORDER_FETCHES = [
   'item.item.modifiers',
   'table',
   'user',
+  'cashier',
   'order_type',
   'customer',
   'discount',

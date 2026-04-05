@@ -13,6 +13,8 @@ export const TIP_DISTRIBUTION = '/tip-distribution';
 
 export const REPORTS = '/reports';
 export const REPORTS_PRODUCT_MIX_WEEKLY = REPORTS + '/product-mix-weekly';
+export const REPORTS_SALES_DASHBOARD = REPORTS + '/sales-dashboard';
+export const REPORTS_INVENTORY_DASHBOARD = REPORTS + '/inventory-dashboard';
 export const REPORTS_AUDIT = REPORTS + '/audit';
 export const REPORTS_CASH_CLOSING = REPORTS + '/cash-closing';
 export const REPORTS_DISCOUNTS = REPORTS + '/discounts';

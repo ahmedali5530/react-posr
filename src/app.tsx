@@ -61,7 +61,7 @@ import {
   REPORTS_SALE_VS_CONSUMPTION,
   SETTINGS,
   SUMMARY,
-  TIP_DISTRIBUTION
+  TIP_DISTRIBUTION, REPORTS_SALES_DASHBOARD, REPORTS_INVENTORY_DASHBOARD
 } from "@/routes/posr.ts";
 import {Settings} from "@/screens/settings.tsx";
 import {Clock} from "@/screens/clock.tsx";
@@ -94,6 +94,8 @@ import {ConsumptionReport} from "@/screens/reports/consumption.report.tsx";
 import {SaleVsConsumptionReport} from "@/screens/reports/sale.vs.consumption.report.tsx";
 import { TipDistributionScreen } from "@/screens/tip.distribution.tsx";
 import { TipsReport } from "@/screens/reports/tips.report.tsx";
+import {SalesDashboardReport} from "@/screens/reports/sales.dashboard.report.tsx";
+import {InventoryDashboardReport} from "@/screens/reports/inventory.dashboard.report.tsx";
 
 
 // react query client wrapper
@@ -148,6 +150,8 @@ function App() {
                   <Route path={TIP_DISTRIBUTION} element={<TipDistributionScreen/>}/>
 
                   <Route path={REPORTS} element={<Reports/>}/>
+                  <Route path={REPORTS_SALES_DASHBOARD} element={<SalesDashboardReport/>}/>
+                  <Route path={REPORTS_INVENTORY_DASHBOARD} element={<InventoryDashboardReport/>}/>
                   <Route path={REPORTS_AUDIT} element={<AuditReport/>}/>
                   <Route path={REPORTS_CASH_CLOSING} element={<CashClosingReport/>}/>
                   <Route path={REPORTS_DISCOUNTS} element={<DiscountsReport/>}/>

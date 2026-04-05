@@ -73,8 +73,7 @@ export interface AppSettingsInterface {
     floors: LabelValue[]
     statuses: LabelValue[]
     orderTypes: LabelValue[],
-  },
-
+  }
 }
 
 export const appSettings = atomWithStorage<AppSettingsInterface>(

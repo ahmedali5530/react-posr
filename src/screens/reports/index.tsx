@@ -30,6 +30,8 @@ import {ConsumptionFilter} from "@/components/reports/filters/consumption.filter
 import {SaleVsConsumptionFilter} from "@/components/reports/filters/sale.vs.consumption.filter.tsx";
 import { TipsFilter } from "@/components/reports/filters/tips.filter.tsx";
 import {useSecurity} from "@/hooks/useSecurity.ts";
+import {SalesDashboardFilter} from "@/components/reports/filters/sales.dashboard.filter.tsx";
+import {InventoryDashboardFilter} from "@/components/reports/filters/inventory.dashboard.filter.tsx";
 
 export const Reports = () => {
   const reportCategories = useMemo(() => {
@@ -37,9 +39,13 @@ export const Reports = () => {
       // "Audit": {
       //   "Audit": <AuditFilter />
       // },
-      // "Cash closing": {
-      //   "Cash closing": <CashClosingFilter />
-      // },
+      "Cash closing": {
+        "Cash closing": <CashClosingFilter />
+      },
+      "Dashboard": {
+        "Sales dashboard": <SalesDashboardFilter />,
+        "Inventory dashboard": <InventoryDashboardFilter />
+      },
       "Sales": {
         "Sales Hourly Labour": <SalesHourlyLabourFilter />,
         "Sales Hourly Labour Weekly": <SalesHourlyLabourWeeklyFilter />,
@@ -121,7 +127,7 @@ export const Reports = () => {
                         setFilter(subCategory[key]);
                       }, {
                         module: key,
-                        description: `Open ${key}`
+                        description: `Open ${key} report`
                       });
 
 

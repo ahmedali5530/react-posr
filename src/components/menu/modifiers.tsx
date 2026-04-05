@@ -91,7 +91,8 @@ export const MenuDishModifiers = (props: Props) => {
     }
   }, [props.dish, group, state.seat, props.level, props.editing]);
 
-  const onModifierClick = (d: MenuItem, selectedGroups?: CartModifierGroup[]) => {
+  const onModifierClick = (d: MenuItem, selectedGroups?: CartModifierGroup[], price?: number) => {
+    console.log(price)
     const newGroups = [...groups];
     newGroups.map(grp => {
       if(grp.out.id === group.out.id){
@@ -101,7 +102,7 @@ export const MenuDishModifiers = (props: Props) => {
         ) {
           const newGroup = {...group};
           // delete newGroup.selectedModifiers;
-          grp.selectedModifiers.push(buildModifiersObj(d.dish, selectedGroups, d.price));
+          grp.selectedModifiers.push(buildModifiersObj(d.dish, selectedGroups, price ?? d.price));
         }
       }
     });
@@ -249,7 +250,7 @@ export const MenuDishModifiers = (props: Props) => {
                         {m.dish.name}
                       </span>
                       <span>
-                         {m.dish.price}
+                         {m.price}
                       </span>
                     </div>
                   ))}

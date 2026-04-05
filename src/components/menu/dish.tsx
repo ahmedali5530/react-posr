@@ -13,7 +13,7 @@ import { useDB } from "@/api/db/db.ts";
 import { DishModifierGroup } from "@/api/model/dish_modifier_group.ts";
 
 interface Props {
-  onClick: (item: MenuItem, groups?: CartModifierGroup[]) => void
+  onClick: (item: MenuItem, groups?: CartModifierGroup[], price?: number) => void
   item: Dish
   level: number
   isModifier?: boolean
@@ -90,7 +90,7 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
               newOrOld: MenuItemType.new,
               category: state.category ? state.category?.name : (item.categories.length === 1 ? item.categories[0].name : ''),
               price: price
-            })
+            }, undefined, price)
           }
         }}
       >
@@ -148,7 +148,7 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
                 newOrOld: MenuItemType.new,
                 category: state.category ? state.category?.name : (item.categories.length === 1 ? item.categories[0].name : ''),
                 price: price
-              }, payload);
+              }, payload, price);
             }
             setModifiersModal(false);
           }}

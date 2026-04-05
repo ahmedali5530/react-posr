@@ -31,7 +31,7 @@ export const MenuPersons = () => {
     }));
 
     // if we have order set in the order directly
-    if(state.order){
+    if(state.order.id !== 'new'){
       await db.merge(state.order.id, {
         covers: parseInt(state?.persons)
       });
