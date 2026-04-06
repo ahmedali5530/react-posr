@@ -1,4 +1,4 @@
-# [POSR Demo](https://ahmedali5530.xyz)
+# [POSR Demo](https://ahmedali5530.xyz/posr.html)
 ### login pins 1234, 0000
 This is a point of sale system designed for restaurants. It works well with touch screen systems.
 

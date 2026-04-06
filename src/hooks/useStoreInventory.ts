@@ -125,7 +125,7 @@ export const useStoreInventory = (initialItemId?: IdentifierValue, initialStoreI
             { item: toRecordId(itemId), store: toRecordId(storeId) }
           ),
           queryRef.current(
-            `SELECT Math::sum(quantity) AS total FROM ${Tables.inventory_purchase_return_items} WHERE item = $item AND purchase_item.store = $store GROUP ALL`,
+            `SELECT Math::sum(quantity) AS total FROM ${Tables.inventory_purchase_return_items} WHERE item = $item AND store = $store GROUP ALL`,
             { item: toRecordId(itemId), store: toRecordId(storeId) }
           ),
           queryRef.current(
@@ -158,7 +158,7 @@ export const useStoreInventory = (initialItemId?: IdentifierValue, initialStoreI
             { item: toRecordId(itemId), store: toRecordId(storeId) }
           ),
           queryRef.current(
-            `SELECT *, waste.created_at as created_at, waste.invoice_number as invoice_number FROM ${Tables.inventory_waste_items} WHERE item = $item AND purchase_item != null AND purchase_item.store = $store order by waste.created_at DESC FETCH item`,
+            `SELECT *, waste.created_at as created_at, waste.invoice_number as invoice_number FROM ${Tables.inventory_waste_items} WHERE item = $item AND ((purchase_item != none AND purchase_item.store = $store) or (issue_item != none and issue_item.store = $store)) order by waste.created_at DESC FETCH item`,
             { item: toRecordId(itemId), store: toRecordId(storeId) }
           )
         ]);
