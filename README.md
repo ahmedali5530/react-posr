@@ -190,6 +190,8 @@ docker compose up -d
 - Multi-branch synchronization improvements
 - Payroll system integration
 - Account module integration
+- Self ordering
+- Tap-to-pay payments on mobile apps
 
 ---
 
