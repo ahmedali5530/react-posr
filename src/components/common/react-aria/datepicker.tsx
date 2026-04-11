@@ -28,7 +28,7 @@ export function DatePicker<T extends DateValue>({
 }: Props<T>) {
   return (
     <>
-      <BaseDatePicker className="group flex flex-col gap-1" {...props}>
+      <BaseDatePicker className="group flex flex-col" {...props}>
         {label && <Label>{label}</Label>}
         <Group className="flex rounded-lg text-neutral-500 border-2 border-neutral-900 h-[40px] gap-3">
           <DateInput className="flex flex-1 py-2 px-3">

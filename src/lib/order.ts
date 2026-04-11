@@ -6,7 +6,7 @@ export const getInvoiceNumber = (order: OrderModel) => {
 
 export const getOrderFilteredItems = (order: OrderModel) => {
   return order.items
-    .filter(item => item.deleted_at === undefined)
-    .filter(item => item.is_refunded !== true)
-    .filter(item => item.is_suspended !== true);
+    .filter(item => item?.deleted_at === undefined)
+    .filter(item => item?.is_refunded !== true)
+    .filter(item => item?.is_suspended !== true);
 }
