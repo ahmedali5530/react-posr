@@ -129,7 +129,7 @@ export const PrinterForm = ({
                     render={({field}) => (
                       <Input
                         label="Path"
-                        value={transformValue.input(field.value)}
+                        value={field.value}
                         onChange={field.onChange}
                         error={errors?.ip_address?.message}/>
                     )}
