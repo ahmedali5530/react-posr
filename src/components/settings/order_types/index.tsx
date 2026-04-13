@@ -58,15 +58,17 @@ export const AdminOrderTypes = () => {
         ]}
       />
 
-      <OrderTypeForm
-        open={formModal}
-        data={data}
-        onClose={() => {
-          setFormModal(false);
-          setData(undefined);
-          loadHook.fetchData();
-        }}
-      />
+      {formModal && (
+        <OrderTypeForm
+          open={formModal}
+          data={data}
+          onClose={() => {
+            setFormModal(false);
+            setData(undefined);
+            loadHook.fetchData();
+          }}
+        />
+      )}
     </>
   )
 }

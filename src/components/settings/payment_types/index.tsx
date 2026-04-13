@@ -81,15 +81,17 @@ export const AdminPaymentTypes = () => {
         ]}
       />
 
-      <PaymentTypeForm
-        open={formModal}
-        data={data}
-        onClose={() => {
-          setFormModal(false);
-          setData(undefined);
-          loadHook.fetchData();
-        }}
-      />
+      {formModal && (
+        <PaymentTypeForm
+          open={formModal}
+          data={data}
+          onClose={() => {
+            setFormModal(false);
+            setData(undefined);
+            loadHook.fetchData();
+          }}
+        />
+      )}
     </>
   )
 }

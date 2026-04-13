@@ -45,9 +45,12 @@ export const transformValue = {
   }
 }
 
+export const truthy = (value: any) => {
+  return value === 'yes' || value === 1 || value === '1' || value === true || value === 'true';
+}
+
 export const toRecordId = (id: any) => {
   if(id === undefined){
-    console.trace(id);
     return id;
   }
 

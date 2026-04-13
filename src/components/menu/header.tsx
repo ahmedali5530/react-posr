@@ -90,24 +90,22 @@ export const MenuHeader = () => {
         ...prev,
         order: {
           order,
-          id: order.id,
+          id: order?.id ?? MenuItemType.new,
         },
-        cart: [
-          ...order.items.map(item => ({
-            dish: item.item,
-            level: item.level,
-            quantity: item.quantity,
-            seat: item.seat,
-            id: item.id,
-            selectedGroups: item.modifiers || [] as any,
-            newOrOld: MenuItemType.old,
-            price: item.price,
-            updated_at: item.updated_at,
-            deleted_at: item.deleted_at,
-            category: item.category,
-            comments: item.comments,
-          }))
-        ],
+        cart: order?.items?.map(item => ({
+          dish: item.item,
+          level: item.level,
+          quantity: item.quantity,
+          seat: item.seat,
+          id: item.id,
+          selectedGroups: item.modifiers || [] as any,
+          newOrOld: MenuItemType.old,
+          price: item.price,
+          updated_at: item.updated_at,
+          deleted_at: item.deleted_at,
+          category: item.category,
+          comments: item.comments,
+        })) ?? [],
         seats: seatsArray,
         seat: noSeat ? undefined : (seatsArray.length > 0 ? seatsArray[0] : undefined)
       }));

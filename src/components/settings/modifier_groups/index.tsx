@@ -67,15 +67,17 @@ export const AdminModifierGroups = () => {
         ]}
       />
 
-      <ModifierGroupForm
-        open={formModal}
-        data={data}
-        onClose={() => {
-          setFormModal(false);
-          setData(undefined);
-          loadHook.fetchData();
-        }}
-      />
+      {formModal && (
+        <ModifierGroupForm
+          open={formModal}
+          data={data}
+          onClose={() => {
+            setFormModal(false);
+            setData(undefined);
+            loadHook.fetchData();
+          }}
+        />
+      )}
     </>
   )
 }

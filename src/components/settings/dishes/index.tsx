@@ -3,14 +3,19 @@ import {Dish} from "@/api/model/dish.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {Button} from "@/components/common/input/button.tsx";
 import {DishForm} from "@/components/settings/dishes/dish.form.tsx";
-import {faImage, faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
+import {faImage, faPencil, faPlus, faUpload} from "@fortawesome/free-solid-svg-icons";
 import {createColumnHelper} from "@tanstack/react-table";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import useApi, {SettingsData} from "@/api/db/use.api.ts";
 import {TableComponent} from "@/components/common/table/table.tsx";
 import {detectMimeType} from "@/utils/files.ts";
+import {CsvUploadModal} from "@/components/common/table/csv.uploader.tsx";
+import {useDB} from "@/api/db/db.ts";
+import {toRecordId} from "@/lib/utils.ts";
 
 export const AdminDishes = () => {
+  const db = useDB();
+
   const loadHook = useApi<SettingsData<Dish & { modifiers: [] }>>(
     Tables.dishes, [], [], 0, 10, ['categories', 'items', 'items.item'], {}, [
       '*',
@@ -21,6 +26,7 @@ export const AdminDishes = () => {
 
   const [data, setData] = useState<Dish>();
   const [formModal, setFormModal] = useState(false);
+  const [dishImportModal, setImportModal] = useState(false);
 
   const columnHelper = createColumnHelper<Dish & {
     modifiers: [{ out: { name: string } }],
@@ -117,20 +123,79 @@ export const AdminDishes = () => {
         loaderLineItems={columns.length}
         buttons={[
           <Button variant="primary" onClick={() => {
+            setImportModal(true);
+          }} icon={faUpload}> Import Dishes</Button>,
+          <Button variant="primary" onClick={() => {
             setFormModal(true);
           }} icon={faPlus}> Dish</Button>
         ]}
       />
 
-      <DishForm
-        open={formModal}
-        data={data}
-        onClose={() => {
-          setFormModal(false);
-          setData(undefined);
-          loadHook.fetchData();
-        }}
-      />
+      {dishImportModal && (
+        <CsvUploadModal
+          isOpen={true}
+          onClose={() => setImportModal(false)}
+          fields={[{
+            name: 'name',
+            label: 'Name'
+          },{
+            name: 'number',
+            label: 'Number'
+          },{
+            name: 'priority',
+            label: 'Priority'
+          },{
+            name: 'sale_price',
+            label: 'Sale price'
+          },{
+            name: 'cost_price',
+            label: 'Cost price'
+          },{
+            name: 'categories',
+            label: 'Categories'
+          }]}
+          onCreateRow={async (rowData) => {
+            try{
+              const [categories] = await db.query(`SELECT id from ${Tables.categories} where name IN $names`, {
+                names: rowData.categories.split('|')
+              });
+
+              if(categories.length !== rowData?.categories?.split('|')?.filter(item => item !== '')?.length){
+                throw new Error('Categories are invalid');
+              }
+
+              const dishData: any = {
+                name: rowData.name,
+                number: rowData.number,
+                // position: data.position,
+                priority: Number(rowData.priority),
+                price: Number(rowData.sale_price),
+                cost: Number(rowData.cost_price),
+                categories: categories.map(item => toRecordId(item.id))
+              };
+
+              await db.insert(Tables.dishes, dishData);
+
+            }catch(e){
+              throw new Error(e)
+            }
+          }}
+          onDone={() => loadHook.fetchData()}
+        />
+      )}
+
+      {formModal && (
+        <DishForm
+          open={formModal}
+          data={data}
+          onClose={() => {
+            setFormModal(false);
+            setData(undefined);
+            loadHook.fetchData();
+          }}
+        />
+      )}
+
     </>
   )
 }

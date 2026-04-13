@@ -71,15 +71,18 @@ export const AdminDiscounts = () => {
         ]}
       />
 
-      <DiscountForm
-        open={formModal}
-        data={data}
-        onClose={() => {
-          setFormModal(false);
-          setData(undefined);
-          loadHook.fetchData();
-        }}
-      />
+      {formModal && (
+        <DiscountForm
+          open={formModal}
+          data={data}
+          onClose={() => {
+            setFormModal(false);
+            setData(undefined);
+            loadHook.fetchData();
+          }}
+        />
+      )}
+
     </>
   )
 }

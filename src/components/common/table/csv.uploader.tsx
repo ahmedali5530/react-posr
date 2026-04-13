@@ -1,7 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, {useMemo, useState} from "react";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {cn} from "@/lib/utils.ts";
+import * as XLSX from "xlsx";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faDownload, faExclamationCircle, faUpload} from "@fortawesome/free-solid-svg-icons";
+import {Tooltip} from "@/components/common/react-aria/tooltip.tsx";
+import {Focusable, TooltipTrigger} from "react-aria-components";
 
 // Very small CSV parser (not perfect, but good for simple CSVs).
 // Replace with PapaParse if you want more robust parsing.
@@ -12,7 +17,7 @@ function parseCsv(text: string): { headers: string[]; rows: string[][] } {
     .filter((l) => l.length > 0);
 
   if (lines.length === 0) {
-    return { headers: [], rows: [] };
+    return {headers: [], rows: []};
   }
 
   const splitLine = (line: string) => line.split(",").map((v) => v.trim());
@@ -20,7 +25,7 @@ function parseCsv(text: string): { headers: string[]; rows: string[][] } {
   const headers = splitLine(lines[0]);
   const rows = lines.slice(1).map(splitLine);
 
-  return { headers, rows };
+  return {headers, rows};
 }
 
 export type CsvFieldConfig = {
@@ -50,7 +55,7 @@ type CsvUploadModalProps = {
   /** Optional: limit rows shown in preview table */
   previewRowLimit?: number;
 
-  onDone?: (data: {total: number, success: number}) => void;
+  onDone?: (data: { total: number, success: number }) => void;
 };
 
 export const CsvUploadModal: React.FC<CsvUploadModalProps> = ({
@@ -83,7 +88,7 @@ export const CsvUploadModal: React.FC<CsvUploadModalProps> = ({
 
     try {
       const text = await file.text();
-      const { headers: h, rows: r } = parseCsv(text);
+      const {headers: h, rows: r} = parseCsv(text);
 
       if (h.length === 0) {
         setError("No headers found in CSV.");
@@ -112,7 +117,7 @@ export const CsvUploadModal: React.FC<CsvUploadModalProps> = ({
   };
 
   const handleChangeMapping = (fieldName: string, csvHeader: string) => {
-    setMapping((prev) => ({ ...prev, [fieldName]: csvHeader }));
+    setMapping((prev) => ({...prev, [fieldName]: csvHeader}));
   };
 
   const allRequiredMapped = useMemo(
@@ -168,17 +173,18 @@ export const CsvUploadModal: React.FC<CsvUploadModalProps> = ({
           console.error("Row create failed", err, payload);
           failureCount++;
           rowErrors[rowIndex] =
-            (err && err.message) || "Failed to create this row.";
+            (err && err.message) || String(err) || "Failed to create this row.";
         }
       }
 
       setErrors(rowErrors);
 
       setResultMessage(
-        `Processed ${rows.length} rows. Success: ${successCount}, Failed: ${failureCount}.`
+        `Processed ${rows.length} rows. Success: ${successCount}.`
       );
+      setError(`Failed: ${failureCount}`);
 
-      if(onDone !== undefined){
+      if (onDone !== undefined) {
         onDone({
           total: rows.length,
           success: successCount
@@ -188,6 +194,18 @@ export const CsvUploadModal: React.FC<CsvUploadModalProps> = ({
       setIsProcessing(false);
     }
   };
+
+  const downloadTemplate = async () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      fields.map(item => item.label)
+    ]);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template");
+
+    // Download file
+    XLSX.writeFile(wb, "template.csv");
+  }
 
   const handleClose = () => {
     if (isProcessing) return;
@@ -212,22 +230,31 @@ export const CsvUploadModal: React.FC<CsvUploadModalProps> = ({
       <div className="space-y-4 px-6 py-4">
         {/* File input */}
         <div className="flex items-center gap-4 mb-5">
-          <label htmlFor="file" className="flex-1 p-5 text-center border-4 border-gray-400 border-dashed bg-white active:border-primary-400">
+          <Button
+            className="btn btn-secondary"
+            type="button"
+            onClick={downloadTemplate}
+            variant="secondary"
+            icon={faDownload}
+          >Download template</Button>
+          <label htmlFor="file" className="btn btn-primary gap-3">
             <input
               type="file"
-              accept=".csv,text/csv"
-              className="appearance-none h-0 w-0"
+              accept="csv,text/csv"
+              className="appearance-none hidden"
               onChange={handleFileChange}
               disabled={isProcessing}
               id="file"
-            />
-            Select CSV file
+            /><FontAwesomeIcon icon={faUpload}/> Upload CSV file
           </label>
           {fileName && (
-            <div className="text-xs text-gray-900 bg-gray-300 p-5">
+            <div className="text-xs text-gray-900 bg-gray-300 p-3">
               Current file: <span className="font-medium">{fileName}</span>
             </div>
           )}
+        </div>
+        <div className="text-primary-500">Use pipe operator "|" for multiple values. For example "store 1|store 2"
+          etc...
         </div>
 
         {/* Mapping */}
@@ -240,9 +267,9 @@ export const CsvUploadModal: React.FC<CsvUploadModalProps> = ({
             <div className="grid gap-3 md:grid-cols-5">
               {fields.map((field) => (
                 <div key={field.name} className="flex flex-col">
-                    <span className="text-xs font-medium text-gray-700">
-                      {field.label}
-                    </span>
+                  <span className="text-xs font-medium text-gray-700">
+                    {field.label}
+                  </span>
                   <select
                     className="input"
                     value={mapping[field.name] ?? ""}
@@ -263,7 +290,7 @@ export const CsvUploadModal: React.FC<CsvUploadModalProps> = ({
             </div>
 
             {!allRequiredMapped && (
-              <p className="mt-2 text-xs text-danger-600">
+              <p className="mt-2 text-danger-600">
                 Map all fields before creating records.
               </p>
             )}
@@ -276,6 +303,9 @@ export const CsvUploadModal: React.FC<CsvUploadModalProps> = ({
             <table className="table table-hover">
               <thead className="bg-gray-100">
               <tr>
+                {Object.keys(errors).length > 0 && (
+                  <td style={{width: '20px'}}></td>
+                )}
                 {headers.map((h) => (
                   <th key={h} className="px-3 py-2 font-semibold">
                     {h}
@@ -287,32 +317,33 @@ export const CsvUploadModal: React.FC<CsvUploadModalProps> = ({
               {rows
                 // .slice(0, previewRowLimit)
                 .map((row, rowIndex) => (
-                <tr
-                  key={rowIndex}
-                  className={cn(
-                    rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50",
-                    errors[rowIndex] && 'bg-danger-200'
-                  )}
-                  title={errors[rowIndex] && errors[rowIndex]}
-                >
-                  {headers.map((_, colIndex) => (
-                    <td key={colIndex} className="px-3 py-2">
-                      {row[colIndex]}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-              {/*{rows.length > previewRowLimit && (*/}
-              {/*  <tr>*/}
-              {/*    <td*/}
-              {/*      colSpan={headers.length}*/}
-              {/*      className="px-3 py-2 text-center text-gray-500"*/}
-              {/*    >*/}
-              {/*      Showing first {previewRowLimit} rows of{" "}*/}
-              {/*      {rows.length}.*/}
-              {/*    </td>*/}
-              {/*  </tr>*/}
-              {/*)}*/}
+                  <tr
+                    key={rowIndex}
+                    className={cn(
+                      rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50",
+                      errors[rowIndex] && 'bg-danger-200'
+                    )}
+                    title={errors[rowIndex] && errors[rowIndex]}
+                  >
+                    {errors[rowIndex] && (
+                      <td>
+                        <TooltipTrigger delay={0} closeDelay={0}>
+                          <Focusable>
+                            <FontAwesomeIcon role="button" icon={faExclamationCircle} className="text-danger-500"/>
+                          </Focusable>
+                          <Tooltip>
+                            {errors[rowIndex]}
+                          </Tooltip>
+                        </TooltipTrigger>
+                      </td>
+                    )}
+                    {headers.map((_, colIndex) => (
+                      <td key={colIndex} className="px-3 py-2">
+                        {row[colIndex]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

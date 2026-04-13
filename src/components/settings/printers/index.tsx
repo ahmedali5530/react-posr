@@ -67,15 +67,17 @@ export const AdminPrinters = () => {
         ]}
       />
 
-      <PrinterForm
-        open={formModal}
-        data={data}
-        onClose={() => {
-          setFormModal(false);
-          setData(undefined);
-          loadHook.fetchData();
-        }}
-      />
+      {formModal && (
+        <PrinterForm
+          open={formModal}
+          data={data}
+          onClose={() => {
+            setFormModal(false);
+            setData(undefined);
+            loadHook.fetchData();
+          }}
+        />
+      )}
     </>
   )
 }

@@ -5,11 +5,13 @@ import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Button } from "@/components/common/input/button.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {faCheck, faPencil, faPlus, faTimes} from "@fortawesome/free-solid-svg-icons";
+import {faCheck, faPencil, faPlus, faTimes, faUpload} from "@fortawesome/free-solid-svg-icons";
 import { TableComponent } from "@/components/common/table/table.tsx";
 import { CategoryForm } from "@/components/settings/categories/category.form.tsx";
 import {DeleteConfirm} from "@/components/common/table/delete.confirm.tsx";
 import {useDB} from "@/api/db/db.ts";
+import {toRecordId, truthy} from "@/lib/utils.ts";
+import {CsvUploadModal} from "@/components/common/table/csv.uploader.tsx";
 
 export const AdminCategories = () => {
   const loadHook = useApi<SettingsData<Category>>(Tables.categories);
@@ -63,6 +65,8 @@ export const AdminCategories = () => {
     }),
   ];
 
+  const [importModal, setImportModal] = useState(false);
+
   return (
     <>
       <TableComponent
@@ -71,20 +75,57 @@ export const AdminCategories = () => {
         loaderLineItems={columns.length}
         buttons={[
           <Button variant="primary" onClick={() => {
+            setImportModal(true);
+          }} icon={faUpload}> Import Categories</Button>,
+          <Button variant="primary" onClick={() => {
             setFormModal(true);
           }} icon={faPlus}> Category</Button>
         ]}
       />
 
-      <CategoryForm
-        open={formModal}
-        data={data}
-        onClose={() => {
-          setFormModal(false);
-          setData(undefined);
-          loadHook.fetchData();
-        }}
-      />
+      {importModal && (
+        <CsvUploadModal
+          isOpen={true}
+          onClose={() => setImportModal(false)}
+          fields={[{
+            name: 'name',
+            label: 'Name'
+          },{
+            name: 'show_in_menu',
+            label: 'Show in menu'
+          },{
+            name: 'priority',
+            label: 'Priority'
+          }]}
+          onCreateRow={async (rowData) => {
+            try{
+              const dishData: any = {
+                name: rowData.name,
+                show_in_menu: truthy(rowData.show_in_menu),
+                priority: Number(rowData.priority),
+              };
+
+              await db.insert(Tables.categories, dishData);
+
+            }catch(e){
+              throw new Error(e)
+            }
+          }}
+          onDone={() => loadHook.fetchData()}
+        />
+      )}
+
+      {formModal && (
+        <CategoryForm
+          open={formModal}
+          data={data}
+          onClose={() => {
+            setFormModal(false);
+            setData(undefined);
+            loadHook.fetchData();
+          }}
+        />
+      )}
     </>
   )
 }

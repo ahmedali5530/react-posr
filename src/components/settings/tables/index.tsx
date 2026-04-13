@@ -5,10 +5,12 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { Table } from "@/api/model/table.ts";
 import { Button } from "@/components/common/input/button.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {faCheck, faLock, faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
+import {faCheck, faLock, faPencil, faPlus, faUpload} from "@fortawesome/free-solid-svg-icons";
 import { TableComponent } from "@/components/common/table/table.tsx";
 import { TableForm } from "@/components/settings/tables/table.form.tsx";
 import { useDB } from "@/api/db/db.ts";
+import {toRecordId, truthy} from "@/lib/utils.ts";
+import {CsvUploadModal} from "@/components/common/table/csv.uploader.tsx";
 
 export const AdminTables = () => {
   const loadHook = useApi<SettingsData<Table>>(Tables.tables, [], [], 0, 10, ['floor', 'categories', 'payment_types', 'order_types']);
@@ -16,6 +18,7 @@ export const AdminTables = () => {
 
   const [data, setData] = useState<Table>();
   const [formModal, setFormModal] = useState(false);
+  const [importModal, setImportModal] = useState(false);
 
   const columnHelper = createColumnHelper<Table>();
   const columns: any = [
@@ -100,10 +103,104 @@ export const AdminTables = () => {
         loaderLineItems={columns.length}
         buttons={[
           <Button variant="primary" onClick={() => {
+            setImportModal(true);
+          }} icon={faUpload}> Import tables</Button>,
+          <Button variant="primary" onClick={() => {
             setFormModal(true);
           }} icon={faPlus}> Table</Button>
         ]}
       />
+
+      {importModal && (
+        <CsvUploadModal
+          isOpen={true}
+          onClose={() => setImportModal(false)}
+          fields={[{
+            name: 'name',
+            label: 'Name'
+          },{
+            name: 'number',
+            label: 'Number'
+          },{
+            name: 'ask_for_covers',
+            label: 'Ask for number of covers'
+          },{
+            name: 'background',
+            label: 'Background color'
+          },{
+            name: 'color',
+            label: 'Font color'
+          },{
+            name: 'floor',
+            label: 'Floor'
+          },{
+            name: 'priority',
+            label: 'Priority'
+          },{
+            name: 'categories',
+            label: 'Categories'
+          },{
+            name: 'order_types',
+            label: 'Order types'
+          },{
+            name: 'payment_types',
+            label: 'Payment types'
+          }]}
+          onCreateRow={async (rowData) => {
+            try{
+              const [floor] = await db.query(`SELECT id from ${Tables.floors} where name = $name`, {
+                name: rowData.floor
+              });
+              if(floor.length === 0){
+                throw new Error('Floor not found');
+              }
+
+              const [categories] = await db.query(`SELECT id from ${Tables.categories} where name IN $names`, {
+                names: rowData.categories.split('|')
+              });
+
+              if(categories.length !== rowData?.categories?.split('|')?.filter(item => item !== '')?.length){
+                throw new Error('Categories are invalid');
+              }
+
+              const [order_types] = await db.query(`SELECT id from ${Tables.order_types} where name IN $names`, {
+                names: rowData.order_types.split('|')
+              });
+
+              if(order_types.length !== rowData?.order_types?.split('|')?.filter(item => item !== '')?.length){
+                throw new Error('Order types are invalid');
+              }
+
+              const [payment_types] = await db.query(`SELECT id from ${Tables.payment_types} where name IN $names`, {
+                names: rowData.payment_types.split('|')
+              });
+
+              if(payment_types.length !== rowData?.payment_types?.split('|')?.filter(item => item !== '')?.length){
+                throw new Error('Payment types are invalid');
+              }
+
+              const dishData: any = {
+                name: rowData.name,
+                number: rowData.number,
+                ask_for_covers: truthy(rowData.ask_for_covers),
+                background: rowData.background,
+                color: rowData.color,
+                priority: Number(rowData.priority),
+                floor: floor[0].id,
+                categories: categories.map(item => toRecordId(item.id)),
+                order_types: order_types.map(item => toRecordId(item.id)),
+                payment_types: payment_types.map(item => toRecordId(item.id)),
+              };
+
+              await db.insert(Tables.tables, dishData);
+
+            }catch(e){
+              throw new Error(e)
+            }
+          }}
+          onDone={() => loadHook.fetchData()}
+        />
+      )}
 
       {formModal && (
         <TableForm

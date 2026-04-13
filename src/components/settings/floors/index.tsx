@@ -71,24 +71,35 @@ export const AdminFloors = () => {
         ]}
       />
 
-      <FloorForm
-        open={formModal}
-        data={data}
-        onClose={() => {
-          setFormModal(false);
-          setData(undefined);
-          loadHook.fetchData();
-        }}
-      />
+      {formModal && (
+        <FloorForm
+          open={formModal}
+          data={data}
+          onClose={() => {
+            setFormModal(false);
+            setData(undefined);
+            loadHook.fetchData();
+          }}
+        />
+      )}
 
-      <Modal size="full" open={layoutModal} onClose={() => {
-        setData(undefined);
-        setLayoutModal(false);
-      }} title={`Layout of ${data?.name} floor`} shouldCloseOnOverlayClick={false}>
-        {data && (
-          <AdminFloorLayout floor={data} />
-        )}
-      </Modal>
+      {layoutModal && (
+        <Modal
+          size="full"
+          open={layoutModal}
+          onClose={() => {
+            setData(undefined);
+            setLayoutModal(false);
+          }}
+          title={`Layout of ${data?.name} floor`}
+          shouldCloseOnOverlayClick={false}
+        >
+          {data && (
+            <AdminFloorLayout floor={data} />
+          )}
+        </Modal>
+      )}
+
     </>
   )
 }

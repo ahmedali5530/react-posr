@@ -105,15 +105,17 @@ export const AdminMenus = () => {
         ]}
       />
 
-      <MenuForm
-        open={formModal}
-        data={data}
-        onClose={() => {
-          setFormModal(false);
-          setData(undefined);
-          loadHook.fetchData();
-        }}
-      />
+      {formModal && (
+        <MenuForm
+          open={formModal}
+          data={data}
+          onClose={() => {
+            setFormModal(false);
+            setData(undefined);
+            loadHook.fetchData();
+          }}
+        />
+      )}
 
       {itemsModal && (
         <MenuItems
