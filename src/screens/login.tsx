@@ -50,8 +50,8 @@ export const Login = () => {
   const checkLogin = async (login: string, pass: string, method: 'pin'|'form') => {
     if ((method === 'pin' && login.trim().length === 4) || (method === 'form' && login.trim() && pass.trim())) {
       const query = method === 'pin'
-        ? `SELECT * from user where login = $login and (login_method = 'pin' OR login_method = NONE) and crypto::bcrypt::compare(password, $password) = true fetch user_role`
-        : `SELECT * from user where login = $login and login_method = 'form' and crypto::bcrypt::compare(password, $password) = true fetch user_role`;
+        ? `SELECT * from user where login = $login and (login_method = 'pin' OR login_method = NONE) and crypto::bcrypt::compare(password, $password) = true fetch user_role, user_shift`
+        : `SELECT * from user where login = $login and login_method = 'form' and crypto::bcrypt::compare(password, $password) = true fetch user_role, user_shift`;
 
       const record: any = await db.query(query, {
         login: login,

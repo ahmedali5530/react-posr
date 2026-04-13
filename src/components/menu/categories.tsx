@@ -9,8 +9,6 @@ export const MenuCategories = () => {
   const [settings] = useAtom(appSettings);
   const [state, setState] = useAtom(appState);
 
-  console.log(settings.categories)
-
   const categories = settings.categories;
 
   useEffect(() => {

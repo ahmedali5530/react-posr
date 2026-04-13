@@ -11,13 +11,21 @@ import { useNavigate } from "react-router";
 import { LOGIN } from "@/routes/posr.ts";
 import { Countdown } from "@/components/floor/countdown.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faClock } from "@fortawesome/free-solid-svg-icons";
+import { faBriefcase, faClock, faUser } from "@fortawesome/free-solid-svg-icons";
 import { TimeEntry } from "@/api/model/time_entry.ts";
 import { StringRecordId } from "surrealdb";
 import { Order, OrderStatus } from "@/api/model/order.ts";
 import { calculateOrderItemPrice } from "@/lib/cart.ts";
 import { getOrderFilteredItems } from "@/lib/order.ts";
-import { withCurrency } from "@/lib/utils.ts";
+import { toRecordId, withCurrency } from "@/lib/utils.ts";
+import type { UserShift } from "@/api/model/user.ts";
+
+const formatShiftClock = (time: string) => {
+  const trimmed = time.trim();
+  const iso = trimmed.includes('T') ? trimmed : `1970-01-01T${trimmed}`;
+  const dt = DateTime.fromISO(iso);
+  return dt.isValid ? dt.toFormat('h:mm a') : trimmed;
+};
 
 export const Clock = () => {
   const [page, setPage] = useAtom(appPage);
@@ -27,6 +35,7 @@ export const Clock = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [resolvedShift, setResolvedShift] = useState<UserShift | null>(null);
 
   const loadTimeEntry = async () => {
     if (!page.user) {
@@ -56,6 +65,52 @@ export const Clock = () => {
   useEffect(() => {
     loadTimeEntry();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadShift = async () => {
+      const u = page.user;
+      if (!u) {
+        setResolvedShift(null);
+        return;
+      }
+
+      const raw = u.user_shift;
+      if (raw && typeof raw === 'object' && 'name' in raw && typeof (raw as UserShift).name === 'string') {
+        if (!cancelled) setResolvedShift(raw as UserShift);
+        return;
+      }
+
+      const shiftId =
+        typeof raw === 'string'
+          ? raw
+          : raw && typeof raw === 'object' && 'id' in raw
+            ? String((raw as { id: unknown }).id)
+            : undefined;
+
+      if (!shiftId) {
+        if (!cancelled) setResolvedShift(null);
+        return;
+      }
+
+      try {
+        const result = await db.query(`SELECT * FROM ${Tables.shifts} WHERE id = $shiftId LIMIT 1`, {
+          shiftId: toRecordId(shiftId),
+        });
+        const rows = result[0] as UserShift[] | undefined;
+        const row = Array.isArray(rows) ? rows[0] : undefined;
+        if (!cancelled) setResolvedShift(row ?? null);
+      } catch {
+        if (!cancelled) setResolvedShift(null);
+      }
+    };
+
+    void loadShift();
+    return () => {
+      cancelled = true;
+    };
+  }, [page.user, db]);
 
   const loadOrders = async () => {
     if (!timeEntry || !page.user) return;
@@ -254,6 +309,10 @@ export const Clock = () => {
   const formattedClockInTime = DateTime.fromJSDate(clockInDate).toFormat('hh:mm a');
   const formattedClockInDate = DateTime.fromJSDate(clockInDate).toFormat('MMMM dd, yyyy');
 
+  const user = page.user;
+  const userDisplayName = user
+    ? [user.first_name, user.last_name].map(s => s?.trim()).filter(Boolean).join(' ') || user.login
+    : '';
 
   return (
     <Layout containerClassName="p-5">
@@ -318,14 +377,47 @@ export const Clock = () => {
       </div>
 
       <div className="bg-white shadow p-5 rounded-lg mt-5">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-4 rounded-full bg-primary-100">
-            <FontAwesomeIcon icon={faClock} size="2x" className="text-primary-600" />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-4 rounded-full bg-primary-100">
+              <FontAwesomeIcon icon={faClock} size="2x" className="text-primary-600" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">Time Clock</h1>
+              <p className="text-sm text-neutral-500">Track your work hours</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold">Time Clock</h1>
-            <p className="text-sm text-neutral-500">Track your work hours</p>
-          </div>
+          {user && (
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:max-w-2xl sm:flex-row">
+              <div className="flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-neutral-600">
+                  <FontAwesomeIcon icon={faUser} className="text-lg" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">Signed in as</p>
+                  <p className="truncate text-lg font-semibold text-neutral-800">{userDisplayName}</p>
+                  {user.user_role?.name && (
+                    <p className="mt-0.5 text-xs text-neutral-500">{user.user_role.name}</p>
+                  )}
+                </div>
+              </div>
+              {resolvedShift && (
+                <div className="flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700">
+                    <FontAwesomeIcon icon={faBriefcase} className="text-lg" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">Shift</p>
+                    <p className="truncate text-lg font-semibold text-neutral-800">{resolvedShift.name}</p>
+                    <p className="mt-0.5 text-sm text-neutral-600">
+                      {formatShiftClock(resolvedShift.start_time)} – {formatShiftClock(resolvedShift.end_time)}
+                      {resolvedShift.ends_next_day ? ' · ends next day' : ''}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -345,11 +437,11 @@ export const Clock = () => {
             <p className="text-sm text-neutral-500">Since clock in</p>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-center gap-3 pt-4">
             <Button
               variant="danger"
               onClick={handleClockOut}
-              size="lg"
+              size="xl"
               icon={faClock}
             >
               Clock Out

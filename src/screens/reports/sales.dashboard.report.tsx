@@ -1127,7 +1127,7 @@ const LatestOrdersTable = ({orders}: {orders: Order[]}) => {
                     </span>
                 </td>
                 <td className="py-3 px-3 text-sm text-neutral-600">
-                  {order.table?.name || '-'}
+                  {order?.table?.name || '-'}{order?.table?.number}
                 </td>
                 <td className="py-3 px-3 text-sm text-neutral-600">
                   {order.items?.length || 0}

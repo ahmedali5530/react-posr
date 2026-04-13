@@ -13,7 +13,7 @@ import { OrderType } from "@/api/model/order_type.ts";
 import { PaymentType } from "@/api/model/payment_type.ts";
 import { useDB } from "@/api/db/db.ts";
 import { DateTime } from "luxon";
-import { Order, OrderStatus } from "@/api/model/order.ts";
+import {Order, ORDER_FETCHES, OrderStatus} from "@/api/model/order.ts";
 import { toast } from "sonner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChair, faTable } from "@fortawesome/free-solid-svg-icons";
@@ -54,7 +54,7 @@ export const FloorLayout = () => {
   const {
     data: orders,
     fetchData: fetchOrders
-  } = useApi<SettingsData<Order>>(Tables.orders, [`status = "${OrderStatus["In Progress"]}"`], ['created_at asc'], 0, 99999, ['items', 'items.item', 'item.item.modifiers', 'table', 'user', 'order_type', 'customer', 'discount', 'tax', 'categories']);
+  } = useApi<SettingsData<Order>>(Tables.orders, [`status = "${OrderStatus["In Progress"]}"`], ['created_at asc'], undefined, undefined, ORDER_FETCHES);
 
   const runLiveQuery = async () => {
     const result = await db.live(Tables.orders, function () {
@@ -97,15 +97,15 @@ export const FloorLayout = () => {
     }
   }, [state.floor]);
 
-  const tableOrders = useCallback((tableId: string) => {
+  const tableOrders = (tableId: string) => {
     return orders?.data?.filter(item => item?.table?.id?.toString() === tableId.toString())
-  }, [orders]);
+  }
 
-  const tableOrder = useCallback((tableId: string) => {
+  const tableOrder = (tableId: string) => {
     return orders?.data?.find(item =>
       item?.table?.id?.toString() === tableId.toString()
     )
-  }, [orders]);
+  }
 
   const onClick = async (item: Table) => {
     if( item.is_locked ) {
@@ -120,13 +120,17 @@ export const FloorLayout = () => {
     if( !item.is_block && !item.is_locked ) {
       const order = tableOrder(item.id);
       let cart = state.cart;
-      if(order && state.switchTable){
-        // update new table in order
-        await db.merge(order.id, {
-          table: toRecordId(item?.id),
-        });
+
+      if(state.switchTable){
+        if(state.order.id !== 'new') {
+          // update new table in order
+          await db.merge(toRecordId(state.order.id), {
+            table: toRecordId(item.id),
+          });
+        }
         cart = [];
       }
+
       if(order){
         cart = [];
       }

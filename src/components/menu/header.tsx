@@ -3,7 +3,7 @@ import {appSettings, appState} from "@/store/jotai.ts";
 import {Button} from "@/components/common/input/button.tsx";
 import {faArrowLeft, faUser, faUsers} from "@fortawesome/free-solid-svg-icons";
 import {cn} from "@/lib/utils.ts";
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.tsx";
 import {useDB} from "@/api/db/db.ts";
@@ -30,13 +30,16 @@ export const MenuHeader = () => {
   }, [setting?.order_types, state.orderType]);
 
   useEffect(() => {
+    // load old items into cart
     if (state?.order?.id !== 'new' && state.orders.length > 0) {
       onOrderClick(state?.order?.id);
     }
   }, [state.orders, state?.order?.id]);
 
   const reset = async () => {
-    if (state.order.id === 'new' && state.cart.length > 0) {
+    // check if cart has any new items
+
+    if (state.cart.filter(item => item.newOrOld === MenuItemType.new).length > 0) {
       setConfirmCartAction(true);
       return false;
     }
@@ -51,7 +54,12 @@ export const MenuHeader = () => {
       ...prev,
       orderType: undefined,
       showFloor: true,
-      persons: '1'
+      persons: '1',
+      cart: [],
+      order: undefined,
+      orders: [],
+      customer: undefined,
+      table: undefined
     }));
   }
 
@@ -95,7 +103,9 @@ export const MenuHeader = () => {
             newOrOld: MenuItemType.old,
             price: item.price,
             updated_at: item.updated_at,
-            deleted_at: item.deleted_at
+            deleted_at: item.deleted_at,
+            category: item.category,
+            comments: item.comments,
           }))
         ],
         seats: seatsArray,
@@ -125,6 +135,8 @@ export const MenuHeader = () => {
       showPersons: true,
     }));
   }
+
+  const newCartItems = state.cart.filter(item => item.newOrOld === MenuItemType.new).length;
 
   return (
     <>
@@ -217,7 +229,7 @@ export const MenuHeader = () => {
           size="sm"
         >
           <div className="alert alert-danger">
-            There {state.cart.length > 1 ? 'are' : 'is'} {state.cart.length} item{state.cart.length > 1 ? 's' : ''} in
+            There {newCartItems > 1 ? 'are' : 'is'} {newCartItems} item{newCartItems > 1 ? 's' : ''} in
             cart, choose an action
           </div>
           <Payment/>

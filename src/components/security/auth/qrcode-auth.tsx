@@ -1,7 +1,13 @@
-import { Button } from '@/components/common/input/button';
-import React, { useState, useEffect } from 'react';
-import { SecurityAction } from '@/providers/security.provider';
+import React, {useEffect, useState} from 'react';
+import {SecurityAction} from '@/providers/security.provider';
 import QRCode from "react-qr-code";
+import {useDB} from "@/api/db/db.ts";
+import {Tables} from "@/api/db/tables.ts";
+import {useAtom} from "jotai";
+import {appPage} from "@/store/jotai.ts";
+import {toRecordId} from "@/lib/utils.ts";
+import {AuthPermission, AuthState} from "@/api/model/auth_permission.ts";
+import {nanoid} from "nanoid";
 
 interface QrCodeAuthProps {
   onSuccess: () => void;
@@ -15,15 +21,53 @@ export const QrCodeAuth: React.FC<QrCodeAuthProps> = ({
   currentAction
 }) => {
   const [error, setError] = useState('');
+  const [token, setToken] = useState<string>();
+  const [{user}] = useAtom(appPage);
+
+  const db = useDB();
 
   useEffect(() => {
-    // Simulate biometric scan
+    (async () => {
+      const code = nanoid(128);
+      setToken(code);
 
-  }, [onSuccess]);
+      await db.insert(Tables.auth_permission, {
+        token: code,
+        created_by: toRecordId(user.id),
+        title: currentAction.description,
+        state: AuthState.pending,
+        payload: {
+          module: currentAction.module,
+          description: currentAction.description,
+          ...currentAction.payload
+        }
+      });
+    })()
+  }, []);
 
-  const handleCancel = () => {
-    onCancel();
-  };
+  const [liveQuery, setLiveQuery] = useState(null);
+  const runLiveQuery = async () => {
+    const result = await db.live(Tables.auth_permission, function (action, result: AuthPermission) {
+      // delete or adding new orders will result in new data
+      if (action === 'UPDATE') {
+        if(result.state === AuthState.approved){
+          onSuccess();
+        }else if(result.state === AuthState.rejected){
+          setError(`Permission to ${currentAction.description} has been rejected`);
+        }
+      }
+    });
+
+    setLiveQuery(result);
+  }
+
+  useEffect(() => {
+    runLiveQuery().then();
+
+    return () => {
+      db.db.kill(liveQuery).then(() => console.log('live query killed'));
+    }
+  },[onCancel, onSuccess]);
 
   return (
     <div className="space-y-4">
@@ -36,11 +80,13 @@ export const QrCodeAuth: React.FC<QrCodeAuthProps> = ({
         </p>
 
         {error && (
-          <p className="text-sm text-red-600 mb-4">{error}</p>
+          <p className="alert alert-danger mb-4">{error}</p>
         )}
 
         <div className="mx-auto flex items-center justify-center mb-4">
-          <QRCode value={`posr-auth://${JSON.stringify(currentAction.payload)}`}/>
+          {token && (
+            <QRCode value={`posr-auth://${token}`}/>
+          )}
         </div>
       </div>
     </div>

@@ -61,5 +61,7 @@ export enum Tables {
   inventory_wastes = 'inventory_item_waste',
   inventory_waste_items = 'inventory_item_waste_item',
 
-  settings = 'setting'
+  settings = 'setting',
+
+  auth_permission = 'auth_permission'
 }
