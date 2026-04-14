@@ -38,6 +38,7 @@ export const FloorTable = ({
   const db = useDB();
 
   const minHeightWidth = 50;
+  const maxHeightWidth = 500;
 
   const [settings, setSettings] = useState({
     x: table.x || 0,
@@ -185,11 +186,11 @@ export const FloorTable = ({
                 <Slider value={settings.height} label="Height" onChange={(value) => setSettings(prev => ({
                   ...prev,
                   height: value
-                }))} step={5} maxValue={500} minValue={minHeightWidth}/>
+                }))} step={10} maxValue={maxHeightWidth} minValue={minHeightWidth}/>
                 <Slider value={settings.width} label="Width" onChange={(value) => setSettings(prev => ({
                   ...prev,
                   width: value
-                }))} step={5} maxValue={500} minValue={minHeightWidth}/>
+                }))} step={10} maxValue={maxHeightWidth} minValue={minHeightWidth}/>
                 <div className="mb-3">
                   <div className="flex gap-3">
                     <Button variant="primary" flat active={settings.rounded === 'rounded-none'} onClick={() => {
