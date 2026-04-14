@@ -15,7 +15,7 @@ export const MenuDishes = () => {
   const isTablet = useMediaQuery({ maxWidth: 1024 });
 
   const ITEMS_PER_SLIDE = useMemo(() => {
-    return isTablet ? 15 : 24;
+    return isTablet ? 15 : 20;
   }, [isTablet]);
 
   const [state, setState] = useAtom(appState);
@@ -67,7 +67,7 @@ export const MenuDishes = () => {
           <SwiperSlide
             key={rowId}
             className={cn(
-              "!grid grid-cols-3 lg:grid-cols-4 grid-rows-5 lg:grid-rows-6"
+              "!grid sm:grid-cols-3 md:grid-cols-4 md:grid-rows-5 sm:grid-rows-4"
             )}
           >
             {dishes.slice(rowId * ITEMS_PER_SLIDE, ((rowId * ITEMS_PER_SLIDE) + ITEMS_PER_SLIDE)).map((item, index) => (

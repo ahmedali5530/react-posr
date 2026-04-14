@@ -325,16 +325,20 @@ export const CsvUploadModal: React.FC<CsvUploadModalProps> = ({
                     )}
                     title={errors[rowIndex] && errors[rowIndex]}
                   >
-                    {errors[rowIndex] && (
+                    {Object.keys(errors).length > 0 && (
+
+
                       <td>
-                        <TooltipTrigger delay={0} closeDelay={0}>
-                          <Focusable>
-                            <FontAwesomeIcon role="button" icon={faExclamationCircle} className="text-danger-500"/>
-                          </Focusable>
-                          <Tooltip>
-                            {errors[rowIndex]}
-                          </Tooltip>
-                        </TooltipTrigger>
+                        {errors[rowIndex] && (
+                          <TooltipTrigger delay={0} closeDelay={0}>
+                            <Focusable>
+                              <FontAwesomeIcon role="button" icon={faExclamationCircle} className="text-danger-500"/>
+                            </Focusable>
+                            <Tooltip>
+                              {errors[rowIndex]}
+                            </Tooltip>
+                          </TooltipTrigger>
+                        )}
                       </td>
                     )}
                     {headers.map((_, colIndex) => (

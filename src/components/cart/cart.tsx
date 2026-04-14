@@ -33,12 +33,14 @@ export const MenuCart = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-3 p-3">
-        {isSelected ? (
-          <CartActions/>
-        ) : (
-          <Seats/>
-        )}
+      <div className="flex flex-col gap-3">
+        <div className="p-3">
+          {isSelected ? (
+            <CartActions/>
+          ) : (
+            <Seats/>
+          )}
+        </div>
         <div className="flex flex-col gap-1 h-[calc(100vh_-_216px_-_50px)] overflow-auto">
           {state.seat && cartItems.length === 0 && state.seats.length > 0 && (
             <div className="items-center flex justify-center h-[100px]">
@@ -54,12 +56,12 @@ export const MenuCart = () => {
               }}>Seat ?</Button>
             </div>
           )}
-          <ScrollContainer className="gap-[2px] flex flex-col">
+          <ScrollContainer className="gap-[4px] flex flex-col select-none">
             {newItems.map((item, index) => (
               <CartItem item={item} key={index} index={index}/>
             ))}
             {newItems.length > 0 && oldItems.length > 0 && (
-              <div className="h-1 bg-neutral-500 my-3 rounded-full"></div>
+              <div className="h-[3px] bg-neutral-900 my-2 rounded-full"></div>
             )}
             {oldItems.map((item, index) => (
               <CartItem item={item} key={index} index={index}/>

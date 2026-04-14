@@ -25,8 +25,8 @@ export const Menu = () => {
     }
 
     return (
-      <div className="grid grid-cols-11 gap-3 pl-3">
-        <div className="col-span-7">
+      <div className="grid grid-cols-[1fr_500px] gap-3 pl-3">
+        <div>
           <div className="h-[70px] flex items-center gap-3 mb-3">
             <MenuHeader/>
           </div>
@@ -40,7 +40,7 @@ export const Menu = () => {
             <MenuActions/>
           </div>
         </div>
-        <div className="col-span-4 bg-white rounded-xl">
+        <div className="bg-white rounded-xl">
           <MenuCart/>
         </div>
       </div>

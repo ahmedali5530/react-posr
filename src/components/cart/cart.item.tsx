@@ -68,7 +68,7 @@ export const CartItem = ({ item, index }: Props) => {
     <>
       <div
         className={cn(
-          "flex rounded gap-3 cursor-pointer items-start select-none",
+          "flex rounded gap-3 cursor-pointer items-start select-none pr-2",
           item.isSelected ? 'bg-neutral-300' : (
             item.isHold ? 'bg-warning-100' : 'bg-neutral-100'
           ),

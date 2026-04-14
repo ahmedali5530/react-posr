@@ -7,10 +7,10 @@ import { appState } from "@/store/jotai.ts";
 import { MenuDishModifiers } from "@/components/menu/modifiers.tsx";
 import { CartModifierGroup, MenuItem, MenuItemType } from "@/api/model/cart_item.ts";
 import { nanoid } from "nanoid";
-import { images } from "@/components/menu/image.ts";
 import { Tables } from "@/api/db/tables.ts";
 import { useDB } from "@/api/db/db.ts";
 import { DishModifierGroup } from "@/api/model/dish_modifier_group.ts";
+import defaultImage from "@/assets/images/default-image.png";
 
 interface Props {
   onClick: (item: MenuItem, groups?: CartModifierGroup[], price?: number) => void
@@ -69,7 +69,7 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
       console.log("Failed to prepare dish image", e);
     }
 
-    return images[Math.floor(Math.random() * images.length)];
+    return defaultImage;
   }, [item]);
 
   return (
