@@ -2,7 +2,7 @@ import {useAtom} from "jotai";
 import {appSettings, appState} from "@/store/jotai.ts";
 import {Button} from "@/components/common/input/button.tsx";
 import {faArrowLeft, faUser, faUsers} from "@fortawesome/free-solid-svg-icons";
-import {cn} from "@/lib/utils.ts";
+import {cn, toRecordId} from "@/lib/utils.ts";
 import React, {useEffect, useState} from "react";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.tsx";
@@ -35,6 +35,19 @@ export const MenuHeader = () => {
       onOrderClick(state?.order?.id);
     }
   }, [state.orders, state?.order?.id]);
+
+  useEffect(() => {
+    // heartbeat of table
+    const heartBeat = async () => {
+      await db.merge(toRecordId(state.table.id), {
+        locked_at: new Date()
+      })
+    }
+
+    const timer = setInterval(heartBeat, 10000);
+
+    return () => clearInterval(timer);
+  }, [])
 
   const reset = async () => {
     // check if cart has any new items
