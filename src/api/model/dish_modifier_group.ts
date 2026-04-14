@@ -9,4 +9,5 @@ export interface DishModifierGroup extends ID{
   should_auto_open?: boolean
   has_required_modifiers?: boolean
   should_auto_select?: boolean
+  priority?: number
 }

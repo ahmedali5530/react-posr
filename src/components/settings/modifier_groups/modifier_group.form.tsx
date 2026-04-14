@@ -16,6 +16,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { DishForm } from "@/components/settings/dishes/dish.form.tsx";
 import { StringRecordId } from "surrealdb";
+import {toRecordId} from "@/lib/utils.ts";
 
 interface Props {
   open: boolean
@@ -40,25 +41,19 @@ export const ModifierGroupForm = ({
 }: Props) => {
   const closeModal = () => {
     onClose();
-    reset({
-      name: null,
-      priority: null,
-      modifiers: []
-    });
   }
 
   useEffect(() => {
     if( data ) {
       reset({
-        ...data,
         name: data.name,
         priority: data.priority,
         modifiers: data.modifiers.map(item => ({
           modifier: {
-            label: item.modifier.name,
-            value: item.modifier.id
+            label: `${item.modifier.number}-${item.modifier.name}`,
+            value: toRecordId(item.modifier.id).toString()
           },
-          id: item.id,
+          id: item.id.toString(),
           price: item.price
         }))
       });
@@ -95,25 +90,24 @@ export const ModifierGroupForm = ({
   const onSubmit = async (values: any) => {
     const vals = { ...values };
 
-    vals.priority = parseInt(vals.priority);
+    vals.priority = Number(vals.priority);
     const modifiers = [];
     if(vals.modifiers){
       for(const m of vals.modifiers){
-        if(m.id){
-          await db.merge(m.id, {
-            modifier: new StringRecordId(m.modifier.value),
-            price: m.price
+        if(m?.id){
+          await db.merge(toRecordId(m.id), {
+            modifier: toRecordId(m.modifier.value),
+            price: Number(m.price)
           });
 
-          modifiers.push(m.id);
-
+          modifiers.push(toRecordId(m.id));
         }else{
-          const record = await db.create(Tables.modifiers, {
-            modifier: new StringRecordId(m.modifier.value),
+          const [record] = await db.create(Tables.modifiers, {
+            modifier: toRecordId(m.modifier.value),
             price: m.price
           });
 
-          modifiers.push(record[0].id);
+          modifiers.push(record.id);
         }
       }
 
@@ -121,8 +115,8 @@ export const ModifierGroupForm = ({
     }
 
     try {
-      if( vals.id ) {
-        await db.update(vals.id, {
+      if( data?.id ) {
+        await db.merge(toRecordId(data.id), {
           ...vals
         })
       } else {
@@ -200,8 +194,8 @@ export const ModifierGroupForm = ({
                           value={field.value}
                           onChange={field.onChange}
                           options={dishes?.data?.map(item => ({
-                            label: item.name,
-                            value: item.id
+                            label: `${item.number}-${item.name}`,
+                            value: item.id.toString()
                           }))}
                           isLoading={loadingDishes}
                         />

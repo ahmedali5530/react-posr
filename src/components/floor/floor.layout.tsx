@@ -6,7 +6,7 @@ import {cn, toRecordId} from "@/lib/utils.ts";
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Floor } from "@/api/model/floor.ts";
 import { Tables } from "@/api/db/tables.ts";
-import { Table } from "@/api/model/table.ts";
+import {Table, TABLE_FETCHES} from "@/api/model/table.ts";
 import { FloorTable } from "@/components/settings/floors/layout/table.tsx";
 import { Category } from "@/api/model/category.ts";
 import { OrderType } from "@/api/model/order_type.ts";
@@ -37,7 +37,7 @@ export const FloorLayout = () => {
     data: tables,
     handleFilterChange: onTablesFilterChange,
     fetchData: fetchTables
-  } = useApi<SettingsData<Table>>(Tables.tables, [], ['priority asc'], 0, 99999, ['floor', 'categories', 'payment_types', 'order_types']);
+  } = useApi<SettingsData<Table>>(Tables.tables, [], ['priority asc'], 0, 99999, TABLE_FETCHES);
 
   const {
     data: categories

@@ -67,7 +67,7 @@ export const AdminModifierGroups = () => {
         ]}
       />
 
-      {formModal && (
+      {/*{formModal && (*/}
         <ModifierGroupForm
           open={formModal}
           data={data}
@@ -77,7 +77,7 @@ export const AdminModifierGroups = () => {
             loadHook.fetchData();
           }}
         />
-      )}
+      {/*)}*/}
     </>
   )
 }
