@@ -1,18 +1,21 @@
-import { Dish } from "@/api/model/dish.ts";
-import { Modal } from "@/components/common/react-aria/modal.tsx";
-import { useEffect, useMemo, useState } from "react";
-import { cn } from "@/lib/utils.ts";
-import { MenuDish } from "@/components/menu/dish.tsx";
-import { Swiper, SwiperSlide } from "swiper/react";
+import {Dish} from "@/api/model/dish.ts";
+import {Modal} from "@/components/common/react-aria/modal.tsx";
+import React, {useEffect, useMemo, useState} from "react";
+import {cn, toRecordId} from "@/lib/utils.ts";
+import {MenuDish} from "@/components/menu/dish.tsx";
+import {Swiper, SwiperSlide} from "swiper/react";
 import _ from "lodash";
-import { CartModifierGroup, MenuItem, MenuItemType } from "@/api/model/cart_item.ts";
-import { useAtom } from "jotai";
-import { appState } from "@/store/jotai.ts";
-import { nanoid } from "nanoid";
+import {CartModifierGroup, MenuItem, MenuItemType} from "@/api/model/cart_item.ts";
+import {useAtom} from "jotai";
+import {appState} from "@/store/jotai.ts";
+import {nanoid} from "nanoid";
 import ScrollContainer from "react-indiana-drag-scroll";
-import { Button } from "@/components/common/input/button.tsx";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import {Button} from "@/components/common/input/button.tsx";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faPencil, faTimes} from "@fortawesome/free-solid-svg-icons";
+import {Tables} from "@/api/db/tables.ts";
+import {useDB} from "@/api/db/db.ts";
+import {DishModifierGroup} from "@/api/model/dish_modifier_group.ts";
 
 interface Props {
   dish?: Dish
@@ -29,8 +32,10 @@ export const MenuDishModifiers = (props: Props) => {
   const [group, setGroup] = useState<CartModifierGroup>();
   const ITEMS_PER_SLIDE = 18;
 
+  const db = useDB();
+
   const slides = useMemo(() => {
-    if( !group ) {
+    if (!group) {
       return 1;
     }
 
@@ -50,19 +55,19 @@ export const MenuDishModifiers = (props: Props) => {
   }, [groups]);
 
   const isDismissible = useMemo(() => {
-    if( !groups || groups.length === 0 ) {
+    if (!groups || groups.length === 0) {
       return true;
     }
 
-    if(!props.editing && selected === 0){
+    if (!props.editing && selected === 0) {
       return true;
     }
 
     // all required should be selected
-    if(required > 0){
+    if (required > 0) {
       let shouldClose = true;
-      for(const grp of groups){
-        if(grp.has_required_modifiers && grp.required_modifiers !== grp.selectedModifiers.length){
+      for (const grp of groups) {
+        if (grp.has_required_modifiers && grp.required_modifiers !== grp.selectedModifiers.length) {
           shouldClose = false;
         }
       }
@@ -74,60 +79,64 @@ export const MenuDishModifiers = (props: Props) => {
   }, [groups, selected, required, group, props.editing]);
 
   useEffect(() => {
-    if( props.dish && !group && groups.length > 0 ) {
+    if (props.dish && !group && groups.length > 0) {
       setGroup(groups[0]);
+
+      return;
     }
 
     // auto select modifiers if they are same as required
-    if(
+    if (
       group &&
       group.modifiers.length === group.required_modifiers &&
       props.editing !== true &&
       group.should_auto_select
     ) {
-      group.modifiers.forEach(dish => {
-        onModifierClick(buildModifiersObj(dish.dish, dish.selectedGroups, dish.price));
-      });
+      for(const dish of group.modifiers){
+        db.query(`SELECT * from ${Tables.dish_modifier_groups} where in = $item order by priority fetch out, out.modifiers, out.modifiers.modifier`, {
+          item: toRecordId(dish.id)
+        }).then((result: DishModifierGroup[][]) => {
+          onModifierClick(buildModifiersObj(dish.dish, result[0], dish.price), result[0], dish.price);
+        });
+      }
     }
   }, [props.dish, group, state.seat, props.level, props.editing]);
 
   const onModifierClick = (d: MenuItem, selectedGroups?: CartModifierGroup[], price?: number) => {
-    console.log(price)
-    const newGroups = [...groups];
-    newGroups.map(grp => {
-      if(grp.out.id === group.out.id){
-        if(
-          (grp.has_required_modifiers && grp.selectedModifiers.length !== grp.required_modifiers) ||
-          (!grp.has_required_modifiers)
-        ) {
-          const newGroup = {...group};
-          // delete newGroup.selectedModifiers;
-          grp.selectedModifiers.push(buildModifiersObj(d.dish, selectedGroups, price ?? d.price));
+    setGroups(newGroups =>  newGroups.map(grp => {
+        if (grp.out.id.toString() === group.out.id.toString()) {
+          if (
+            (grp.has_required_modifiers && grp.selectedModifiers.length !== grp.required_modifiers) ||
+            (!grp.has_required_modifiers)
+          ) {
+            grp.selectedModifiers.push(buildModifiersObj(d.dish, selectedGroups, price ?? d.price));
+          }
         }
-      }
-    });
 
-    setGroups(newGroups);
+        return grp;
+      })
+    );
   }
 
   const buildModifiersObj = (dish: Dish, groups?: CartModifierGroup[], price?: number): MenuItem => {
     return {
+      quantity: 1,
       dish: dish,
       seat: state.seat,
       id: nanoid(),
-      quantity: 1,
       level: props.level,
       selectedGroups: groups,
-      isModifier: true,
       newOrOld: MenuItemType.new,
+      category: state.category ? state.category?.name : (dish.categories.length === 1 ? dish.categories[0].name : ''),
+      isModifier: true,
       price: price
     }
   }
 
   const requireClass = (grp: CartModifierGroup) => {
-    if( grp.has_required_modifiers && grp.selectedModifiers.length < grp.required_modifiers ) {
+    if (grp.has_required_modifiers && grp.selectedModifiers.length < grp.required_modifiers) {
       return 'bg-danger-200';
-    } else if( grp.has_required_modifiers && grp.selectedModifiers.length === grp.required_modifiers) {
+    } else if (grp.has_required_modifiers && grp.selectedModifiers.length === grp.required_modifiers) {
       return 'bg-white'; //'bg-success-200';
     }
 
@@ -135,14 +144,16 @@ export const MenuDishModifiers = (props: Props) => {
   }
 
   useEffect(() => {
-    if( group ) {
-      if(
+    if (group) {
+      if (
         (group.has_required_modifiers && group.selectedModifiers.length === group.required_modifiers)
-        || !group.has_required_modifiers
+        || group.should_auto_open
       ) {
+
         // move to next group if exists
-        const nextGroup = groups.find(item => item.has_required_modifiers && item.selectedModifiers.length !== item.required_modifiers);
-        if(nextGroup){
+        const nextGroup = groups.find(item => (item.has_required_modifiers && item.selectedModifiers.length !== item.required_modifiers) || (item.should_auto_open && !item.has_required_modifiers));
+
+        if (nextGroup) {
           setGroup(nextGroup);
         }
       }
@@ -151,7 +162,7 @@ export const MenuDishModifiers = (props: Props) => {
 
   // close modifiers box automatically when all required groups are selected and optional modifiers are 0
   useEffect(() => {
-    if(selected === required && optional === 0 && props.editing !== true){
+    if (selected === required && optional === 0 && props.editing !== true) {
       props.onClose(selected > 0 ? groups : []);
     }
   }, [selected, required, groups, optional, props]);
@@ -159,13 +170,15 @@ export const MenuDishModifiers = (props: Props) => {
   const removeItem = (group: CartModifierGroup, itemIndex: number) => {
     const newGroups = [...groups];
     newGroups.map(grp => {
-      if(grp.out.id === group.out.id){
+      if (grp.out.id.toString() === group.out.id.toString()) {
         grp.selectedModifiers.splice(itemIndex, 1);
       }
     });
 
     setGroups(newGroups);
   }
+
+  const [editModifiers, setEditModifiers] = useState(false);
 
   return (
     <Modal
@@ -242,16 +255,50 @@ export const MenuDishModifiers = (props: Props) => {
                 <div key={index}>
                   <span className="font-bold">{g.out.name}</span>
                   {g.selectedModifiers.map((m, mIndex) => (
-                    <div key={mIndex} className="flex justify-between">
-                      <span>
-                        <Button variant="danger" flat iconButton onClick={() => removeItem(g, mIndex)}>
-                          <FontAwesomeIcon icon={faTimes} />
-                        </Button>{' '}
-                        {m.dish.name}
-                      </span>
-                      <span>
-                         {m.price}
-                      </span>
+                    <div key={mIndex} className="flex items-center gap-3">
+                      <Button size="lg" variant="danger" flat iconButton onClick={() => removeItem(g, mIndex)}>
+                        <FontAwesomeIcon icon={faTimes}/>
+                      </Button>
+                      {' '}
+                      {m?.selectedGroups?.length > 0 ? (
+                        <>
+                          <Button
+                            icon={faPencil}
+                            onClick={() => setEditModifiers(true)}
+                            className="flex !justify-between w-full"
+                            flat
+                            variant="custom"
+                          >
+                            <span>
+                              {m.dish.name}
+                            </span>
+                            <span>
+                             {m.price}
+                            </span>
+                          </Button>
+                          {editModifiers && (
+                            <MenuDishModifiers
+                              isOpen={editModifiers}
+                              dish={m.dish}
+                              groups={m.selectedGroups}
+                              level={m.level + 1}
+                              editing={true}
+                              onClose={() => {
+                                setEditModifiers(false);
+                              }}
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <div className="flex justify-between w-full">
+                          <span>
+                            {m.dish.name}
+                          </span>
+                          <span>
+                           {m.price}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -13,8 +13,6 @@ import {MenuItemType} from "@/api/model/cart_item.ts";
 export const MenuCart = () => {
   const [state, setState] = useAtom(appState);
 
-  console.log(state)
-
   const cartItems = useMemo(() => {
     return state.cart.filter(item => item.seat === state.seat);
   }, [state.cart, state.seat]);

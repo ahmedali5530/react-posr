@@ -28,9 +28,11 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
 
   const [modifierGroups, setModifierGroups] = useState<DishModifierGroup[]>([]);
   const loadModifierGroups = async () => {
-    const record: any = await db.query(`SELECT * from ${Tables.dish_modifier_groups} where in = ${item.id} fetch out, out.modifiers, out.modifiers.modifier`);
+    const [record]: any = await db.query(`SELECT * from ${Tables.dish_modifier_groups} where in = $item order by priority fetch out, out.modifiers, out.modifiers.modifier`, {
+      item: item.id
+    });
 
-    setModifierGroups(record[0]);
+    setModifierGroups(record);
   }
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
   }, [item.id]);
 
   const hasAutoOpen = useMemo(() => {
-    return modifierGroups.filter(m => m.has_required_modifiers).length > 0;
+    return modifierGroups.filter(m => m.has_required_modifiers || m.should_auto_open).length > 0;
   }, [modifierGroups]);
 
 
@@ -76,6 +78,7 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
     <>
       <div
         className="flex justify-center p-1 relative select-none"
+        role="button"
         onClick={() => {
           if( modifierGroups.length > 0 && hasAutoOpen ) {
             setModifiersModal(true)
@@ -100,9 +103,9 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
             '--padding': '0',
           } as any}
         >
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex justify-start">
             <img src={image} alt="card-image"
-                 className="rounded-xl rounded-r-none pointer-events-none h-full w-[60px] xl:w-[90px] object-cover"/>
+                 className="rounded-xl rounded-r-none pointer-events-none h-full w-[60px] xl:w-[90px] object-contain"/>
           </div>
           <div className="flex flex-col px-3 py-2">
             <span className="flex flex-row gap-2 mb-1">

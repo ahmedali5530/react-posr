@@ -56,6 +56,7 @@ const validationSchema = yup.object({
     }),
     should_auto_open: yup.boolean(),
     should_auto_select: yup.boolean(),
+    priority: yup.string().required('This is required'),
   })),
   recipes: yup.array(yup.object({
     item: yup.object({
@@ -114,7 +115,8 @@ export const DishForm = ({
           quantity: item.quantity,
           cost: item.cost,
           is_price_locked: item.is_price_locked
-        }))
+        })),
+        modifier_groups: []
       });
 
       setPhotoFile(null);
@@ -168,24 +170,22 @@ export const DishForm = ({
   }, [open]);
 
   const getModifierGroups = async (id) => {
-    const record: any = await db.query(`SELECT *
+    const [record]: any = await db.query(`SELECT *
                                         from ${Tables.dish_modifier_groups}
                                         where in = ${id} fetch out, out.modifiers, out.modifiers.modifier`);
-    let i = 0;
-    for ( const rec of record[0] ) {
-      append({
-        modifier_group: {
-          label: rec.out.name,
-          value: rec.out.id
-        },
-        has_required_modifiers: rec.has_required_modifiers,
-        required_modifiers: rec.required_modifiers,
-        should_auto_select: rec.should_auto_select
-        // should_auto_open: rec.should_auto_open,
-      });
 
-      i++;
-    }
+
+    replace(record.map(item => ({
+      modifier_group: {
+        label: item.out.name,
+        value: item.out.id
+      },
+      has_required_modifiers: item.has_required_modifiers,
+      required_modifiers: item.required_modifiers,
+      should_auto_select: item.should_auto_select,
+      should_auto_open: item.should_auto_open,
+      priority: item.priority
+    })));
   }
 
   const getRecipes = async (id) => {
@@ -222,7 +222,7 @@ export const DishForm = ({
 
   const {
     fields: modifierGroupFields,
-    append, remove
+    append, remove, replace
   } = useFieldArray({
     name: 'modifier_groups',
     control: control
@@ -276,7 +276,13 @@ export const DishForm = ({
         await db.query(`DELETE ${menuId}->${Tables.dish_modifier_groups} where in = ${menuId}`);
 
         for ( const modifierGroup of formData.modifier_groups ) {
-          await db.query(`RELATE ${menuId}->${Tables.dish_modifier_groups}->${modifierGroup.modifier_group.value} set has_required_modifiers = ${modifierGroup.has_required_modifiers}, should_auto_open = ${modifierGroup.should_auto_open}, required_modifiers = ${modifierGroup.required_modifiers}, should_auto_select = ${modifierGroup.should_auto_select}`);
+          await db.query(`RELATE ${menuId}->${Tables.dish_modifier_groups}->${modifierGroup.modifier_group.value} set has_required_modifiers = $has_required_modifiers, should_auto_open = $should_auto_open, required_modifiers = $required_modifiers, should_auto_select = $should_auto_select, priority = $priority`, {
+            has_required_modifiers: modifierGroup.has_required_modifiers,
+            should_auto_open: modifierGroup.should_auto_open,
+            required_modifiers: modifierGroup.required_modifiers,
+            should_auto_select: modifierGroup.should_auto_select,
+            priority: Number(modifierGroup.priority ?? 0)
+          });
         }
       }
 
@@ -382,7 +388,7 @@ export const DishForm = ({
         title={data ? `Update ${data?.name}` : 'Create new dish'}
         open={open}
         onClose={closeModal}
-        size="lg"
+        size="full"
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex gap-3 mb-3">
@@ -558,22 +564,33 @@ export const DishForm = ({
                   </div>
                   <div className="flex-1 self-end">
                     <Controller
-                      name={`modifier_groups.${index}.has_required_modifiers`}
+                      name={`modifier_groups.${index}.should_auto_select`}
                       control={control}
                       render={({ field }) => (
                         <Switch checked={field.value} onChange={field.onChange}>
-                          Has required modifiers
+                          Auto select modifiers?
                         </Switch>
                       )}
                     />
                   </div>
                   <div className="flex-1 self-end">
                     <Controller
-                      name={`modifier_groups.${index}.should_auto_select`}
+                      name={`modifier_groups.${index}.should_auto_open`}
                       control={control}
                       render={({ field }) => (
                         <Switch checked={field.value} onChange={field.onChange}>
-                          Auto select modifiers?
+                          Auto open modifiers?
+                        </Switch>
+                      )}
+                    />
+                  </div>
+                  <div className="flex-1 self-end">
+                    <Controller
+                      name={`modifier_groups.${index}.has_required_modifiers`}
+                      control={control}
+                      render={({ field }) => (
+                        <Switch checked={field.value} onChange={field.onChange}>
+                          Has required modifiers
                         </Switch>
                       )}
                     />
@@ -588,6 +605,19 @@ export const DishForm = ({
                           label="Required modifiers"
                           disabled={!toggleRequiredField(index)}
                           error={_.get(errors, ['modifier_groups', index, 'required_modifiers', 'message'])}
+                        />
+                      )}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Controller
+                      name={`modifier_groups.${index}.priority`}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          type="number" value={field.value} onChange={field.onChange}
+                          label="Priority"
+                          error={_.get(errors, ['modifier_groups', index, 'priority', 'message'])}
                         />
                       )}
                     />
