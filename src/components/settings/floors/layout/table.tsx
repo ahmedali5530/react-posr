@@ -37,7 +37,7 @@ export const FloorTable = ({
 }: Props) => {
   const db = useDB();
 
-  const minHeightWidth = 150;
+  const minHeightWidth = 50;
 
   const [settings, setSettings] = useState({
     x: table.x || 0,
