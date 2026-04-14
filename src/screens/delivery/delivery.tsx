@@ -1,56 +1,200 @@
-import { Layout } from "@/screens/partials/layout.tsx";
-import { MapContainer, Marker, Popup, Rectangle, TileLayer, FeatureGroup, GeoJSON } from "react-leaflet";
-import { LatLngTuple } from "leaflet";
-import {useEffect, useMemo, useRef, useState} from "react";
-import { useDB } from "@/api/db/db.ts";
-import { Tables } from "@/api/db/tables.ts";
-import type { FeatureGroup as LeafletFeatureGroup } from "leaflet";
-import L from "leaflet";
-import { getInvoiceNumber } from "@/lib/order.ts";
-import { DateTime } from "luxon";
+import {useEffect, useMemo, useState} from "react";
+import {useDB} from "@/api/db/db.ts";
+import {Tables} from "@/api/db/tables.ts";
 import {useDeliveryOrders} from "@/hooks/useDeliveryOrders.ts";
-import { DeliveryOrderItem } from "@/components/delivery/delivery-order-item.tsx";
+import {DeliveryOrderItem} from "@/components/delivery/delivery-order-item.tsx";
 import {OrderStatus} from "@/api/model/order.ts";
 import ScrollContainer from "react-indiana-drag-scroll";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faExclamationCircle} from "@fortawesome/free-solid-svg-icons";
+import {APIProvider, Map, useMap} from "@vis.gl/react-google-maps";
 
 interface MapArea {
   type: string;
   geometry: {
     type: string;
-    coordinates: any;
+    coordinates: unknown;
   };
 }
 
+type GeoPolygonCoordinates = number[][][];
+type GeoMultiPolygonCoordinates = number[][][][];
+
+interface NormalizedGeometry {
+  type: "Polygon" | "MultiPolygon";
+  coordinates: GeoPolygonCoordinates | GeoMultiPolygonCoordinates;
+}
+
+interface DeliveryMapOverlaysProps {
+  mapAreas: MapArea[];
+  deliveryOrders: any[];
+  openOrderPopup: (order: any) => void;
+}
+
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value);
+
+const toNumber = (value: unknown): number | null => {
+  if (isFiniteNumber(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const toRingPath = (ring: unknown): google.maps.LatLngLiteral[] | null => {
+  if (!Array.isArray(ring)) return null;
+  const path: google.maps.LatLngLiteral[] = [];
+
+  for (const point of ring) {
+    if (!Array.isArray(point) || point.length < 2) return null;
+    const lng = toNumber(point[0]);
+    const lat = toNumber(point[1]);
+    if (lat === null || lng === null) return null;
+    path.push({lat, lng});
+  }
+
+  return path.length > 2 ? path : null;
+};
+
+const normalizeAreaGeometry = (area: MapArea): NormalizedGeometry | null => {
+  const candidate = area.type === "Feature" && (area as any).geometry ? (area as any).geometry : area.geometry ?? area;
+
+  if (!candidate || typeof candidate !== "object") return null;
+  const geometryType = (candidate as any).type;
+  const coordinates = (candidate as any).coordinates;
+
+  if ((geometryType === "Polygon" || geometryType === "MultiPolygon") && Array.isArray(coordinates)) {
+    return {type: geometryType, coordinates};
+  }
+
+  if (area.type === "Polygon" && Array.isArray((area as any).coordinates)) {
+    return {type: "Polygon", coordinates: (area as any).coordinates};
+  }
+
+  if (area.type === "MultiPolygon" && Array.isArray((area as any).coordinates)) {
+    return {type: "MultiPolygon", coordinates: (area as any).coordinates};
+  }
+
+  return null;
+};
+
+const getOrderCoordinates = (order: any): {lat: number; lng: number} | null => {
+  const customer = order?.customer;
+  const delivery = order?.delivery ?? {};
+
+  const lat = toNumber(delivery.lat ?? customer?.lat);
+  const lng = toNumber(delivery.lng ?? customer?.lng);
+
+  if (lat === null || lng === null) return null;
+  return {lat, lng};
+};
+
+const DeliveryMapOverlays = ({mapAreas, deliveryOrders, openOrderPopup}: DeliveryMapOverlaysProps) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !globalThis.google?.maps) return;
+
+    const polygons: google.maps.Polygon[] = [];
+
+    for (const area of mapAreas) {
+      const normalized = normalizeAreaGeometry(area);
+      if (!normalized) continue;
+
+      if (normalized.type === "Polygon") {
+        const paths = (normalized.coordinates as GeoPolygonCoordinates)
+          .map(toRingPath)
+          .filter((path): path is google.maps.LatLngLiteral[] => path !== null);
+
+        if (!paths.length) continue;
+
+        const polygon = new google.maps.Polygon({
+          map,
+          paths,
+          strokeColor: "#3388ff",
+          strokeOpacity: 0.9,
+          strokeWeight: 2,
+          fillColor: "#3388ff",
+          fillOpacity: 0.2
+        });
+        polygons.push(polygon);
+        continue;
+      }
+
+      for (const polygonCoordinates of normalized.coordinates as GeoMultiPolygonCoordinates) {
+        const paths = polygonCoordinates
+          .map(toRingPath)
+          .filter((path): path is google.maps.LatLngLiteral[] => path !== null);
+        if (!paths.length) continue;
+
+        const polygon = new google.maps.Polygon({
+          map,
+          paths,
+          strokeColor: "#3388ff",
+          strokeOpacity: 0.9,
+          strokeWeight: 2,
+          fillColor: "#3388ff",
+          fillOpacity: 0.2
+        });
+        polygons.push(polygon);
+      }
+    }
+
+    return () => {
+      polygons.forEach((polygon) => polygon.setMap(null));
+    };
+  }, [map, mapAreas]);
+
+  useEffect(() => {
+    if (!map || !globalThis.google?.maps) return;
+
+    const markers: google.maps.Marker[] = [];
+    const listeners: google.maps.MapsEventListener[] = [];
+
+    for (const order of deliveryOrders) {
+      const coordinates = getOrderCoordinates(order);
+      if (!coordinates) continue;
+
+      const isPending = order.status === OrderStatus.Pending;
+      const marker = new google.maps.Marker({
+        map,
+        position: coordinates,
+        title: order?.customer?.name ?? "Delivery Order",
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: isPending ? "#ef4444" : "#22c55e",
+          fillOpacity: 1,
+          strokeColor: "#ffffff",
+          strokeWeight: 2
+        }
+      });
+
+      markers.push(marker);
+      listeners.push(
+        marker.addListener("click", () => {
+          openOrderPopup(order);
+        })
+      );
+    }
+
+    return () => {
+      listeners.forEach((listener) => listener.remove());
+      markers.forEach((marker) => marker.setMap(null));
+    };
+  }, [map, deliveryOrders, openOrderPopup]);
+
+  return null;
+};
+
 export const Delivery = () => {
   const db = useDB();
-  const { selectedOrder, openOrderPopup, deliveryOrders } = useDeliveryOrders();
+  const {selectedOrder, openOrderPopup, deliveryOrders} = useDeliveryOrders();
   const [mapAreas, setMapAreas] = useState<MapArea[]>([]);
   const [loading, setLoading] = useState(true);
-  const featureGroupRef = useRef<LeafletFeatureGroup>(null);
   const [center, setCenter] = useState({lat: 0, lng: 0});
-
-  // Create custom icon for delivery markers
-  const deliveryIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-  });
-
-  const acceptedDeliveryIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-  });
-
-  const colorSettings = { color: 'black' }
 
   // Load existing map areas from database
   useEffect(() => {
@@ -61,7 +205,7 @@ export const Delivery = () => {
           `SELECT * FROM ${Tables.settings} WHERE key = 'map_center' LIMIT 1`
         );
 
-        if(r.length > 0){
+        if (r.length > 0) {
           setCenter({
             lat: r[0].values.lat,
             lng: r[0].values.lng
@@ -88,135 +232,38 @@ export const Delivery = () => {
     loadMapAreas();
   }, []);
 
-  // Draw existing areas on the map (readonly)
-  useEffect(() => {
-    if (!featureGroupRef.current || loading) return;
+  const selectedOrderCenter = useMemo(() => {
+    if (!selectedOrder) return null;
+    return getOrderCoordinates(selectedOrder);
+  }, [selectedOrder]);
 
-    const featureGroup = featureGroupRef.current;
-    
-    // Clear existing layers
-    featureGroup.clearLayers();
-
-    // Add existing areas to the map
-    mapAreas.forEach((area) => {
-      try {
-        let geoJsonFeature: any;
-
-        // Handle different data formats
-        if (area.type === 'Feature') {
-          // Already a Feature object - check if it has geometry
-          if ((area as any).geometry) {
-            geoJsonFeature = area;
-          } else if ((area as any).coordinates) {
-            // Feature without geometry but has coordinates directly (invalid but we'll fix it)
-            geoJsonFeature = {
-              type: "Feature",
-              geometry: {
-                type: 'Polygon', // default, might need to detect from coordinates
-                coordinates: (area as any).coordinates
-              },
-              properties: {}
-            };
-          } else {
-            console.warn("Feature object missing geometry and coordinates:", area);
-            return;
-          }
-        } else if (area.geometry) {
-          // New format with geometry object
-          geoJsonFeature = {
-            type: "Feature",
-            geometry: area.geometry,
-            properties: {}
-          };
-        } else if ((area as any).coordinates) {
-          // Old format - try to reconstruct
-          const geometryType = area.type || 'Polygon';
-          geoJsonFeature = {
-            type: "Feature",
-            geometry: {
-              type: geometryType,
-              coordinates: (area as any).coordinates
-            },
-            properties: {}
-          };
-        } else {
-          console.warn("Unknown area format:", area);
-          return;
-        }
-
-        // Validate the GeoJSON structure
-        if (!geoJsonFeature.geometry || !geoJsonFeature.geometry.type || !geoJsonFeature.geometry.coordinates) {
-          console.error("Invalid GeoJSON structure:", geoJsonFeature);
-          return;
-        }
-
-        // Use Leaflet's geoJSON method to add the feature
-        L.geoJSON(geoJsonFeature, {
-          style: {
-            color: '#3388ff',
-            weight: 4,
-            opacity: 0.5,
-            fillOpacity: 0.2
-          }
-        }).eachLayer((layer: any) => {
-          featureGroup.addLayer(layer);
-        });
-      } catch (error) {
-        console.error("Error adding area to map:", error, area);
-      }
-    });
-  }, [mapAreas, loading]);
-
-  if(loading){
-    return;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh_-_70px_-_25px)]">
+        <span className="text-neutral-600 text-lg">Loading delivery map...</span>
+      </div>
+    );
   }
 
   return (
     <div className="grid grid-cols-5 gap-5">
       <div className="col-span-4">
-        <MapContainer
-          center={center}
-          zoom={11}
-          scrollWheelZoom={true}
-          className="h-[calc(100vh_-_70px_-_25px)] relative z-0"
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {/* Delivery areas from settings (readonly) */}
-          <FeatureGroup ref={featureGroupRef} />
-          {/* Delivery order markers */}
-          {deliveryOrders
-            // .filter(item => item.delivery?.onTheWay !== true)
-            .map((order) => {
-              const customer = order.customer;
-              const delivery = order.delivery as any;
-
-              // Check for location in delivery object first, then customer
-              const lat = delivery?.lat || customer?.lat;
-              const lng = delivery?.lng || customer?.lng;
-              const address = delivery?.address || customer?.address;
-              const name = customer?.name || "Unknown Customer";
-
-              if (lat && lng) {
-                return (
-                  <Marker
-                    key={order.id.toString()}
-                    position={[lat, lng] as LatLngTuple}
-                    icon={order.status === OrderStatus.Pending ? deliveryIcon : acceptedDeliveryIcon}
-                    eventHandlers={{
-                      click: () => {
-                        openOrderPopup(order);
-                      }
-                    }}
-                  >
-                  </Marker>
-                );
-              }
-              return null;
-            })}
-        </MapContainer>
+        <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+          <Map
+            className="h-[calc(100vh_-_70px_-_25px)]"
+            defaultCenter={center}
+            center={selectedOrderCenter ?? undefined}
+            defaultZoom={11}
+            gestureHandling="greedy"
+            disableDefaultUI
+          >
+            <DeliveryMapOverlays
+              mapAreas={mapAreas}
+              deliveryOrders={deliveryOrders}
+              openOrderPopup={openOrderPopup}
+            />
+          </Map>
+        </APIProvider>
       </div>
       <div className="col-span-1 select-none">
         <ScrollContainer className="h-[calc(100vh_-_70px_-_25px)]">

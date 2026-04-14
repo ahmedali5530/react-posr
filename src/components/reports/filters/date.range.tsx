@@ -14,7 +14,6 @@ export function DateRange<T extends DateValue>({
 }: DateRangePickerProps<T>) {
   const today = DateTime.now().toFormat(import.meta.env.VITE_DATE_FORMAT);
   const dates = {
-    "All time": "to",
     "Today": `${today}to${today}`,
     "Yesterday": `${DateTime.now().minus({'day': 1}).toFormat(import.meta.env.VITE_DATE_FORMAT)}to${DateTime.now().minus({'day': 1}).toFormat(import.meta.env.VITE_DATE_FORMAT)}`,
     "This week": `${DateTime.now().startOf('week').toFormat(import.meta.env.VITE_DATE_FORMAT)}to${DateTime.now().endOf('week').toFormat(import.meta.env.VITE_DATE_FORMAT)}`,
@@ -23,11 +22,12 @@ export function DateRange<T extends DateValue>({
     "Last month": `${DateTime.now().minus({month: 1}).startOf('month').toFormat(import.meta.env.VITE_DATE_FORMAT)}to${DateTime.now().minus({month: 1}).endOf('month').toFormat(import.meta.env.VITE_DATE_FORMAT)}`,
     "This year": `${DateTime.now().startOf('year').toFormat(import.meta.env.VITE_DATE_FORMAT)}to${DateTime.now().endOf('year').toFormat(import.meta.env.VITE_DATE_FORMAT)}`,
     "Last year": `${DateTime.now().minus({year: 1}).startOf('year').toFormat(import.meta.env.VITE_DATE_FORMAT)}to${DateTime.now().minus({year: 1}).endOf('week').toFormat(import.meta.env.VITE_DATE_FORMAT)}`,
+    "All time": "to",
     "Custom": "CUS"
   }
 
   const [isCustom, setCustom] = useState(false);
-  const [preset, setPreset] = useState(['', '']);
+  const [preset, setPreset] = useState([today, today]);
 
   return (
     <div className="flex flex-col w-full">

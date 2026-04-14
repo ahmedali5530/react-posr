@@ -34,8 +34,8 @@ export const SalesHourlyLabourReport = () => {
 
   const params = useMemo(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const startDate = urlParams.get('start_date');
-    const endDate = urlParams.get('end_date');
+    const startDate = urlParams.get('start');
+    const endDate = urlParams.get('end');
     const hoursParam = urlParams.getAll('hours[]').filter(h => h && h.trim() !== '');
     return {startDate, endDate, hours: hoursParam};
   }, []);
@@ -51,8 +51,8 @@ export const SalesHourlyLabourReport = () => {
         const orderParams: Record<string, string> = {};
 
         if (params.startDate && params.endDate) {
-          orderConditions.push("time::format(created_at, \"%Y-%m-%d\") >= $startDate");
-          orderConditions.push("time::format(created_at, \"%Y-%m-%d\") <= $endDate");
+          orderConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
+          orderConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           orderParams.startDate = params.startDate;
           orderParams.endDate = params.endDate;
         }
@@ -72,8 +72,8 @@ export const SalesHourlyLabourReport = () => {
         const timeEntryParams: Record<string, string> = {};
 
         if (params.startDate && params.endDate) {
-          timeEntryConditions.push("time::format(clock_in, \"%Y-%m-%d\") >= $startDate");
-          timeEntryConditions.push("time::format(clock_in, \"%Y-%m-%d\") <= $endDate");
+          timeEntryConditions.push(`time::format(clock_in, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
+          timeEntryConditions.push(`time::format(clock_in, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           timeEntryParams.startDate = params.startDate;
           timeEntryParams.endDate = params.endDate;
         }

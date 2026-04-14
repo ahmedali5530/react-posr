@@ -18,17 +18,7 @@ import {
 } from "lucide-react";
 import {TabList, Tabs} from "react-aria-components";
 import {Tab, TabPanel} from "@/components/common/react-aria/tabs.tsx";
-import {MapContainer, Marker, Popup, TileLayer} from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 
-// Fix for default leaflet icon issue
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
 
 // ==================== Types ====================
 type SalesDataPoint = {
@@ -691,24 +681,6 @@ const DeliverySection = ({orders}: {orders: Order[]}) => {
   const [mapLoading, setMapLoading] = useState(true);
 
   // Create custom icon for delivery markers - same as delivery.tsx
-  const deliveryIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-  });
-
-  const completedIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-  });
-
   // Load map center from settings - same as delivery.tsx
   useEffect(() => {
     const loadMapCenter = async () => {
@@ -755,7 +727,7 @@ const DeliverySection = ({orders}: {orders: Order[]}) => {
         </div>
       ) : (
         <div className="h-[400px] w-full rounded-lg overflow-hidden">
-          <MapContainer
+          {/*<MapContainer
             center={[mapCenter.lat, mapCenter.lng]}
             zoom={11}
             scrollWheelZoom={true}
@@ -804,7 +776,7 @@ const DeliverySection = ({orders}: {orders: Order[]}) => {
                 </Marker>
               );
             })}
-          </MapContainer>
+          </MapContainer>*/}
         </div>
       )
     },

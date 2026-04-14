@@ -2,8 +2,6 @@ import {useEffect, useState} from "react";
 import {useDB} from "@/api/db/db.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {toast} from "sonner";
-import "leaflet-draw";
-import "@/lib/leaflet-draw-patch";
 import {Checkbox} from "@/components/common/input/checkbox.tsx";
 import {Input} from "@/components/common/input/input.tsx";
 import {Button} from "@/components/common/input/button.tsx";
