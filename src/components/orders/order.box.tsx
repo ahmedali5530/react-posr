@@ -56,6 +56,10 @@ export const OrderBox = ({
     return itemsTotal + extrasTotal + Number(order?.tax_amount ?? 0) - Number(order?.discount_amount ?? 0) + Number(order.service_charge_amount ?? 0) + Number(order?.tip_amount ?? 0);
   }, [itemsTotal, order]);
 
+  const changeDue = useMemo(() => {
+    return order?.payments?.reduce((prev, item) => Number(prev) + Number(item.payable ?? 0) - Number(item.amount ?? 0), 0)
+  }, [])
+
   const hasSeats = useMemo(() => {
     const items = getOrderFilteredItems(order).filter((item) => item.seat !== undefined);
     return items.length > 1
@@ -136,10 +140,19 @@ export const OrderBox = ({
             </div>
           ))}
           <div className="separator h-[2px]" style={{'--size': '10px', '--space': '5px'} as CSSProperties}></div>
-          <div className="flex font-bold">
+          <div className="flex font-bold text-2xl text-success-900">
             <div className="flex-1">Total</div>
             <div className="text-right">{withCurrency(total)}</div>
           </div>
+          {order?.payments?.length > 0 && changeDue !== 0 && (
+            <>
+              <div className="separator h-[2px]" style={{'--size': '10px', '--space': '5px'} as CSSProperties}></div>
+              <div className="flex">
+                <div className="flex-1">Change</div>
+                <div className="text-right">{withCurrency(changeDue)}</div>
+              </div>
+            </>
+          )}
         </div>
         <div className="flex gap-5">
           {merging && order.status === OrderStatus['In Progress'] ? (
