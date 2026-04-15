@@ -55,6 +55,7 @@ export const MenuDishModifiers = (props: Props) => {
   }, [groups]);
 
   const isDismissible = useMemo(() => {
+    console.log(required > 0 && required === selected)
     if (!groups || groups.length === 0) {
       return true;
     }
@@ -75,7 +76,7 @@ export const MenuDishModifiers = (props: Props) => {
       return shouldClose;
     }
 
-    return required === selected;
+    return required > 0 && required === selected;
   }, [groups, selected, required, group, props.editing]);
 
   useEffect(() => {
@@ -93,11 +94,7 @@ export const MenuDishModifiers = (props: Props) => {
       group.should_auto_select
     ) {
       for(const dish of group.modifiers){
-        db.query(`SELECT * from ${Tables.dish_modifier_groups} where in = $item order by priority fetch out, out.modifiers, out.modifiers.modifier`, {
-          item: toRecordId(dish.id)
-        }).then((result: DishModifierGroup[][]) => {
-          onModifierClick(buildModifiersObj(dish.dish, result[0], dish.price), result[0], dish.price);
-        });
+          onModifierClick(buildModifiersObj(dish.dish, dish.selectedGroups, dish.price));
       }
     }
   }, [props.dish, group, state.seat, props.level, props.editing]);
@@ -185,7 +182,8 @@ export const MenuDishModifiers = (props: Props) => {
       open={props.isOpen}
       title={`Modify ${props.dish.name}`}
       shouldCloseOnOverlayClick={isDismissible}
-      hideCloseButton={!isDismissible}
+      shouldCloseOnEsc={isDismissible}
+      hideCloseButton={isDismissible}
       onClose={() => {
         // pass groups when required selected modifiers are greater than 0 or optional groups are greater than 0
         props.onClose(selected > 0 || optional > 0 ? groups : []);
@@ -250,13 +248,24 @@ export const MenuDishModifiers = (props: Props) => {
             )}
           </div>
           <div className="col-span-2 bg-white p-3 rounded-3xl">
+            <Button
+              variant="danger"
+              onClick={() => {
+                props.onClose([]);
+              }}
+              className="mb-3 w-full lg"
+            >Cancel</Button>
             <ScrollContainer className="modifiers-swiper">
               {groups.map((g, index) => (
                 <div key={index}>
                   <span className="font-bold">{g.out.name}</span>
                   {g.selectedModifiers.map((m, mIndex) => (
                     <div key={mIndex} className="flex items-center gap-3">
-                      <Button size="lg" variant="danger" flat iconButton onClick={() => removeItem(g, mIndex)}>
+                      <Button
+                        className="grow shrink-0"
+                        size="lg"
+                        variant="danger"
+                        flat iconButton onClick={() => removeItem(g, mIndex)}>
                         <FontAwesomeIcon icon={faTimes}/>
                       </Button>
                       {' '}

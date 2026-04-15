@@ -25,7 +25,7 @@ export const Menu = () => {
     }
 
     return (
-      <div className="grid grid-cols-[1fr_500px] gap-3 pl-3">
+      <div className="grid grid-cols-[minmax(0,1fr)_440px] gap-3 pl-3">
         <div>
           <div className="h-[70px] flex items-center gap-3 mb-3">
             <MenuHeader/>
