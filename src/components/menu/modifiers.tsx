@@ -55,7 +55,6 @@ export const MenuDishModifiers = (props: Props) => {
   }, [groups]);
 
   const isDismissible = useMemo(() => {
-    console.log(required > 0 && required === selected)
     if (!groups || groups.length === 0) {
       return true;
     }
@@ -183,7 +182,7 @@ export const MenuDishModifiers = (props: Props) => {
       title={`Modify ${props.dish.name}`}
       shouldCloseOnOverlayClick={isDismissible}
       shouldCloseOnEsc={isDismissible}
-      hideCloseButton={isDismissible}
+      hideCloseButton={!isDismissible}
       onClose={() => {
         // pass groups when required selected modifiers are greater than 0 or optional groups are greater than 0
         props.onClose(selected > 0 || optional > 0 ? groups : []);
