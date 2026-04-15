@@ -32,10 +32,11 @@ interface Props {
   numberOfOrders?: number
   boundaryWidth?: number
   boundaryHeight?: number
+  isSelected?: boolean
 }
 
 export const FloorTable = ({
-  table, isEditing, onClick, onRemove, order, isLocked, numberOfOrders, boundaryWidth, boundaryHeight
+  table, isEditing, onClick, onRemove, order, isLocked, numberOfOrders, boundaryWidth, boundaryHeight, isSelected
 }: Props) => {
   const db = useDB();
 
@@ -160,12 +161,18 @@ export const FloorTable = ({
       } as CSSProperties}
       className={cn(
         "border absolute z-0 cursor-pointer flex flex-col justify-center items-center",
-        settings.rounded
+        settings.rounded,
+        isSelected && "ring-4 ring-primary-500 z-10"
       )}
       onClick={() => {
         onClick && onClick();
       }}
     >
+      {isSelected && (
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs bg-primary-500 text-white px-2 py-[2px] rounded-full">
+          Selected
+        </span>
+      )}
       {isLocked && (
         <span
           className="absolute -top-3 -right-3 rounded-full h-6 w-6 flex items-center justify-center shadow"
@@ -214,6 +221,7 @@ export const FloorTable = ({
           <DialogTrigger>
             <Button
               variant="custom"
+              onClick={(e) => e.stopPropagation()}
               style={{
                 '--background': 'black',
                 '--color': 'white',

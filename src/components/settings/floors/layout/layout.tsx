@@ -6,10 +6,13 @@ import { FloorTable } from "@/components/settings/floors/layout/table.tsx";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/common/input/button.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEquals, faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faCircle, faEquals, faMinus, faPlus, faSquare, faSquareFull } from "@fortawesome/free-solid-svg-icons";
 import { Input } from "@/components/common/input/input.tsx";
 import { useDB } from "@/api/db/db.ts";
 import { toast } from "sonner";
+import { DialogTrigger } from "react-aria-components";
+import { Popover } from "@/components/common/react-aria/popover.tsx";
+import { toRecordId } from "@/lib/utils";
 
 interface Props {
   floor: Floor;
@@ -28,6 +31,15 @@ export const AdminFloorLayout = ({
   const [layoutGap, setLayoutGap] = useState<number>(20);
   const [layoutGridWidth, setLayoutGridWidth] = useState<number | undefined>(undefined);
   const [layoutGridHeight, setLayoutGridHeight] = useState<number | undefined>(undefined);
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [selectedTableIds, setSelectedTableIds] = useState<string[]>([]);
+  const [bulkSettings, setBulkSettings] = useState({
+    width: 100,
+    height: 100,
+    color: "#ffffff",
+    background: "#000000",
+    rounded: "rounded-none",
+  });
 
   const canZoomIn = () => zoom !== 1;
   const canZoomOut = () => zoom > 0.1;
@@ -63,6 +75,8 @@ export const AdminFloorLayout = ({
   useEffect(() => {
     setLayoutGridWidth(undefined);
     setLayoutGridHeight(undefined);
+    setSelectedTableIds([]);
+    setIsMultiSelectMode(false);
   }, [floor.id]);
 
   useEffect(() => {
@@ -86,6 +100,30 @@ export const AdminFloorLayout = ({
     calculatedGrid.height || 600,
     0
   );
+
+  useEffect(() => {
+    const existingIds = new Set((tables?.data || []).map((item) => item.id?.toString()));
+    setSelectedTableIds((prev) => prev.filter((id) => existingIds.has(id)));
+  }, [tables?.data]);
+
+  useEffect(() => {
+    if (!selectedTableIds.length || !tables?.data?.length) {
+      return;
+    }
+
+    const firstSelected = tables.data.find((item) => item.id.toString() === selectedTableIds[0]);
+    if (!firstSelected) {
+      return;
+    }
+
+    setBulkSettings({
+      width: Math.max(10, Number(firstSelected.width) || 50),
+      height: Math.max(10, Number(firstSelected.height) || 50),
+      color: firstSelected.color || "#ffffff",
+      background: firstSelected.background || "#000000",
+      rounded: firstSelected.rounded || "rounded-none",
+    });
+  }, [selectedTableIds, tables?.data]);
 
   const arrangeTablesByGrid = useCallback(async () => {
     if (!tables?.data?.length) {
@@ -126,17 +164,47 @@ export const AdminFloorLayout = ({
     }
   }, [db, effectiveGridWidth, fetchTables, layoutGap, tables?.data]);
 
+  const toggleTableSelection = useCallback((tableId: string) => {
+    setSelectedTableIds((prev) => {
+      if (prev.includes(tableId)) {
+        return prev.filter((id) => id !== tableId);
+      }
+
+      return [...prev, tableId];
+    });
+  }, []);
+
+  const applyBulkSettings = useCallback(async () => {
+    if (!selectedTableIds.length) {
+      toast.info("Select at least one table");
+      return;
+    }
+
+    for (const tableId of selectedTableIds) {
+      await db.merge(toRecordId(tableId), {
+        width: safeNumber(bulkSettings.width, 50, 10),
+        height: safeNumber(bulkSettings.height, 50, 10),
+        color: bulkSettings.color,
+        background: bulkSettings.background,
+        rounded: bulkSettings.rounded,
+      });
+    }
+
+    await fetchTables();
+    toast.success(`Updated ${selectedTableIds.length} tables`);
+  }, [bulkSettings.background, bulkSettings.color, bulkSettings.height, bulkSettings.rounded, bulkSettings.width, db, fetchTables, selectedTableIds]);
+
   return (
     <div className="flex justify-center items-center">
       <div
         className="h-[calc(100vh_-_80px_-_100px)] bg-neutral-50 w-[calc(100vw_-_100px)] relative bg-grid overflow-hidden">
-        <div className="absolute top-3 left-3 z-10 bg-white/90 rounded-lg p-3 flex items-end gap-3">
+        <div className="bg-white/90 rounded-lg p-3 flex items-end gap-3">
           <div className="w-[100px]">
             <label className="text-sm block mb-1">Gap</label>
             <Input
               type="number"
               value={layoutGap}
-              onChange={(e) => setLayoutGap(safeNumber(Number(e.target.value), 20, 0))}
+              onChange={(e) => setLayoutGap(safeNumber(Number(e.target.value), 0, 0))}
             />
           </div>
           <div className="w-[130px]">
@@ -156,23 +224,109 @@ export const AdminFloorLayout = ({
             />
           </div>
           <Button onClick={arrangeTablesByGrid} variant="primary">Arrange</Button>
-        </div>
-        <div className="flex-col items-end flex absolute top-3 right-3 z-10">
+          <div className="bg-neutral-500 w-[2px] h-[36px] mx-1"></div>
           <Button onClick={() => {
             setZoom(prev => prev + 0.1);
-          }} aria-label="Zoom in" variant="primary" disabled={!canZoomIn()}><FontAwesomeIcon icon={faPlus}/></Button>
+          }} aria-label="Zoom in" variant="primary" disabled={!canZoomIn()} icon={faPlus}>Zoom in</Button>
           <Button onClick={() => {
             setZoom(prev => prev - 0.1);
-          }}  aria-label="Zoom out" variant="primary" disabled={!canZoomOut()}><FontAwesomeIcon icon={faMinus}/></Button>
+          }}  aria-label="Zoom out" variant="primary" disabled={!canZoomOut()} icon={faMinus}>Zoom out</Button>
           <Button onClick={() => {
             setZoom(1);
-          }}  aria-label="Zoom reset" variant="primary" disabled={zoom === 1}><FontAwesomeIcon icon={faEquals}/></Button>
+          }}  aria-label="Zoom reset" variant="primary" disabled={zoom === 1} icon={faEquals}>Reset zoom</Button>
+          <div className="bg-neutral-500 w-[2px] h-[36px] mx-1"></div>
+          <Button
+            variant="primary"
+            flat
+            active={isMultiSelectMode}
+            onClick={() => {
+              setIsMultiSelectMode((prev) => !prev);
+              setSelectedTableIds([]);
+            }}
+          >
+            {isMultiSelectMode ? "Cancel Select" : "Select Tables"}
+          </Button>
+          <DialogTrigger>
+            <Button variant="primary" disabled={selectedTableIds.length === 0}>Bulk Edit ({selectedTableIds.length})</Button>
+            <Popover>
+              <div className="w-[280px] p-3 flex flex-col gap-3">
+                <div className="text-sm font-medium">Update selected tables</div>
+                <div>
+                  <label className="text-sm block mb-1">Width</label>
+                  <Input
+                    type="number"
+                    value={bulkSettings.width}
+                    onChange={(e) => setBulkSettings((prev) => ({
+                      ...prev,
+                      width: safeNumber(Number(e.target.value), prev.width, 0)
+                    }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm block mb-1">Height</label>
+                  <Input
+                    type="number"
+                    value={bulkSettings.height}
+                    onChange={(e) => setBulkSettings((prev) => ({
+                      ...prev,
+                      height: safeNumber(Number(e.target.value), prev.height, 0)
+                    }))}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="text-sm block mb-1">Color</label>
+                    <Input
+                      type="color"
+                      value={bulkSettings.color}
+                      onChange={(e) => setBulkSettings((prev) => ({
+                        ...prev,
+                        color: e.target.value
+                      }))}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-sm block mb-1">Background</label>
+                    <Input
+                      type="color"
+                      value={bulkSettings.background}
+                      onChange={(e) => setBulkSettings((prev) => ({
+                        ...prev,
+                        background: e.target.value
+                      }))}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm block mb-2">Roundness</label>
+                  <div className="flex gap-2">
+                    <Button variant="primary" flat active={bulkSettings.rounded === "rounded-none"} onClick={() => {
+                      setBulkSettings((prev) => ({ ...prev, rounded: "rounded-none" }));
+                    }}>
+                      <FontAwesomeIcon icon={faSquareFull} />
+                    </Button>
+                    <Button variant="primary" flat active={bulkSettings.rounded === "rounded-xl"} onClick={() => {
+                      setBulkSettings((prev) => ({ ...prev, rounded: "rounded-xl" }));
+                    }}>
+                      <FontAwesomeIcon icon={faSquare} />
+                    </Button>
+                    <Button variant="primary" flat active={bulkSettings.rounded === "rounded-full"} onClick={() => {
+                      setBulkSettings((prev) => ({ ...prev, rounded: "rounded-full" }));
+                    }}>
+                      <FontAwesomeIcon icon={faCircle} />
+                    </Button>
+                  </div>
+                </div>
+                <Button onClick={applyBulkSettings} variant="primary">Apply to Selected</Button>
+              </div>
+            </Popover>
+          </DialogTrigger>
         </div>
         <div className="w-full h-full relative" style={{
           'transform': `scale(${zoom})`
         }}>
           <div
-            className="relative border border-dashed border-gray-500"
+            className="relative border-2 border-dashed border-gray-500"
             style={{
               width: effectiveGridWidth,
               height: effectiveGridHeight,
@@ -182,7 +336,9 @@ export const AdminFloorLayout = ({
               <FloorTable
                 key={table.id}
                 table={table}
-                isEditing
+                isEditing={!isMultiSelectMode}
+                isSelected={selectedTableIds.includes(table.id.toString())}
+                onClick={isMultiSelectMode ? () => toggleTableSelection(table.id.toString()) : undefined}
                 boundaryWidth={effectiveGridWidth}
                 boundaryHeight={effectiveGridHeight}
                 onRemove={() => fetchTables()}
