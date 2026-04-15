@@ -647,8 +647,8 @@ export const OrderPayment = ({
               )
             } onClick={() => {
               protectAction(() => setMode(PaymentOptions.Tip), {
-                module: 'Apply tip',
-                description: 'Apply tip'
+                module: 'Apply tips',
+                description: 'Apply tips'
               });
             }}>
               <div>Tip ({tip}{tipType === DiscountType.Percent && '%'}) <FontAwesomeIcon icon={faPencil}/></div>

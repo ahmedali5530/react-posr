@@ -38,7 +38,7 @@ export const Admin = () => {
     'printers': { component: <AdminPrinters/>, title: 'Printers' },
     'print_settings': { component: <AdminPrints/>, title: 'Print settings' },
     'order_types': { component: <AdminOrderTypes/>, title: 'Order Types' },
-    'payment_types': { component: <AdminPaymentTypes/>, title: 'Payment types' },
+    'payment_types': { component: <AdminPaymentTypes/>, title: 'Payment Types' },
     'extras': { component: <AdminExtras/>, title: 'Extras' },
     'taxes': { component: <AdminTaxes/>, title: 'Taxes' },
     'users': { component: <AdminUsers/>, title: 'Users' },
