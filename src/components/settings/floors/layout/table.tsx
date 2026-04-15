@@ -1,5 +1,5 @@
 import { Table } from "@/api/model/table.ts";
-import React, { CSSProperties, useEffect, useMemo, useState } from "react";
+import React, {CSSProperties, useCallback, useEffect, useMemo, useState} from "react";
 import { useMove } from 'react-aria';
 import { cn, withCurrency } from "@/lib/utils.ts";
 import { useDB } from "@/api/db/db.ts";
@@ -30,10 +30,12 @@ interface Props {
   onRemove?: () => void
   isLocked?: boolean
   numberOfOrders?: number
+  boundaryWidth?: number
+  boundaryHeight?: number
 }
 
 export const FloorTable = ({
-  table, isEditing, onClick, onRemove, order, isLocked, numberOfOrders
+  table, isEditing, onClick, onRemove, order, isLocked, numberOfOrders, boundaryWidth, boundaryHeight
 }: Props) => {
   const db = useDB();
 
@@ -50,15 +52,57 @@ export const FloorTable = ({
     rounded: table.rounded || ''
   });
 
-  const clamp = (pos) => pos;
+  useEffect(() => {
+    setSettings(prev => ({
+      ...prev,
+      x: table.x || 0,
+      y: table.y || 0,
+      height: table.height || minHeightWidth,
+      width: table.width || minHeightWidth,
+      color: table.color || '#ffffff',
+      background: table.background || '#000000',
+      rounded: table.rounded || ''
+    }));
+  }, [
+    table.x,
+    table.y,
+    table.height,
+    table.width,
+    table.color,
+    table.background,
+    table.rounded
+  ]);
+
+  const getMaxX = useCallback(() => {
+    if (!boundaryWidth) {
+      return Number.POSITIVE_INFINITY;
+    }
+
+    return Math.max(0, boundaryWidth - settings.width);
+  }, [boundaryWidth, settings.width]);
+
+  const getMaxY = useCallback(() => {
+    if (!boundaryHeight) {
+      return Number.POSITIVE_INFINITY;
+    }
+
+    return Math.max(0, boundaryHeight - settings.height);
+  }, [boundaryHeight, settings.height]);
+
+  const clampAxis = useCallback((pos: number, max: number) => {
+    return Math.max(0, Math.min(pos, max));
+  }, []);
+
   const { moveProps } = useMove({
     onMove(e) {
       if( isEditing ) {
+        const maxX = getMaxX();
+        const maxY = getMaxY();
         setSettings(prev => {
           return {
             ...prev,
-            x: prev.x + e.deltaX,
-            y: prev.y + e.deltaY
+            x: clampAxis(prev.x + e.deltaX, maxX),
+            y: clampAxis(prev.y + e.deltaY, maxY)
           }
         });
       }
@@ -109,8 +153,8 @@ export const FloorTable = ({
         color: settings.color,
         height: settings.height,
         width: settings.width,
-        left: clamp(settings.x),
-        top: clamp(settings.y),
+        left: clampAxis(settings.x, getMaxX()),
+        top: clampAxis(settings.y, getMaxY()),
         borderColor: settings.color,
         '--scale': 0.95,
       } as CSSProperties}
