@@ -1,0 +1,2 @@
+DEFINE FIELD OVERWRITE deleted_at ON TABLE menu_item TYPE none | datetime | null PERMISSIONS FOR create FULL FOR select FULL FOR update FULL
+DEFINE FIELD OVERWRITE created_at ON TABLE menu_item TYPE none | datetime | null DEFAULT time::now() PERMISSIONS FOR create FULL FOR select FULL FOR update FULL

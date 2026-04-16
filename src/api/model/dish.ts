@@ -17,6 +17,9 @@ export interface Dish extends ID, Name, Priority {
   allow_service_charges?: boolean
   discount?: number
   tax?: Tax
+
+  deleted_at?: Date
+  created_at?: Date
 }
 
 export interface MenuItemRecipe extends ID {

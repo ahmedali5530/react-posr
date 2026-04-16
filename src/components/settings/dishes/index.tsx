@@ -18,7 +18,7 @@ export const AdminDishes = () => {
   const db = useDB();
 
   const loadHook = useApi<SettingsData<Dish & { modifiers: [] }>>(
-    Tables.dishes, [], [], 0, 10, ['categories', 'items', 'items.item'], {}, [
+    Tables.dishes, [`deleted_at = none`], [], 0, 10, ['categories', 'items', 'items.item'], {}, [
       '*',
       '(SELECT out.name from menu_item_modifier_group where in = $parent.id) as modifiers',
       '(SELECT name from modifier_group where array::any(modifiers.modifier.id ?? [], $parent.id)) as modifier_items'
@@ -123,16 +123,42 @@ export const AdminDishes = () => {
     }),
   ];
 
-  const deleteItem = async (_id: string) => {
-    alert('abi testing chal rhi hai bhai');
-    // const items = await db.query(`select count() from ${Tables.dishes} where id ?= $category group all`, {
-    //   'category': toRecordId(id)
-    // });
-    //
-    // if(items[0].length === 0) {
-    //   await db.delete(id);
-    //   loadHook.fetchData();
-    // }
+  const deleteItem = async (id: string) => {
+    const dishId = toRecordId(id);
+
+    const [orderItems] = await db.query<[{ count?: number }[]]>(
+      `SELECT count() AS count FROM ${Tables.order_items} WHERE item = $dish GROUP ALL`,
+      { dish: dishId }
+    );
+    const [menuItems] = await db.query<[{ count?: number }[]]>(
+      `SELECT count() AS count FROM ${Tables.menu_menu_items} WHERE menu_item = $dish GROUP ALL`,
+      { dish: dishId }
+    );
+    const [modifierGroups] = await db.query<[{ count?: number }[]]>(
+      `SELECT count() AS count FROM ${Tables.modifier_groups} WHERE array::any(modifiers.modifier.id ?? [], $dish) GROUP ALL`,
+      { dish: dishId }
+    );
+    const [kitchens] = await db.query<[{ count?: number }[]]>(
+      `SELECT count() AS count FROM ${Tables.kitchens} WHERE items ?= $dish GROUP ALL`,
+      { dish: dishId }
+    );
+
+    const isInUse = (orderItems?.[0]?.count ?? 0) > 0
+      || (menuItems?.[0]?.count ?? 0) > 0
+      || (modifierGroups?.[0]?.count ?? 0) > 0
+      || (kitchens?.[0]?.count ?? 0) > 0;
+
+    if (isInUse) {
+      await db.merge(id, { deleted_at: new Date() });
+      loadHook.fetchData();
+      return;
+    }
+
+    await db.query(`DELETE ${Tables.dishes_recipes} WHERE menu_item = $dish`, { dish: dishId });
+    await db.query(`DELETE ${Tables.dish_modifier_groups} WHERE in = $dish`, { dish: dishId });
+    await db.query(`DELETE ${Tables.menu_menu_items} WHERE menu_item = $dish`, { dish: dishId });
+    await db.delete(id);
+    loadHook.fetchData();
   }
 
   return (
