@@ -41,6 +41,8 @@ export const Payment = () => {
   const createOrder = async () => {
 
     setLoading(true);
+    const date = DateTime.now().toJSDate();
+
     const isNewOrder = state?.order?.id === 'new';
 
     let invoiceNumber = 1;
@@ -81,12 +83,12 @@ export const Payment = () => {
       }
 
       if (item.id.toString().includes('order_item:')) {
-        itemData.updated_at = DateTime.now().toJSDate();
+        itemData.updated_at = date;
 
         await db.merge(item.id, itemData);
         items.push(new StringRecordId(item.id.toString()));
       } else {
-        itemData.created_at = DateTime.now().toJSDate();
+        itemData.created_at = date;
 
         const record = await db.create(Tables.order_items, itemData);
         items.push(record[0].id);
@@ -96,9 +98,10 @@ export const Payment = () => {
                                                from ${Tables.kitchens}
                                                where items ?= ${item.dish.id.toString()}`);
         if (kitchen.length > 0) {
+
           for (const k of kitchen) {
             await db.create(Tables.order_items_kitchen, {
-              created_at: DateTime.now().toJSDate(),
+              created_at: date,
               kitchen: new StringRecordId(k.id.toString()),
               order_item: new StringRecordId(record[0].id.toString())
             });
@@ -159,7 +162,7 @@ export const Payment = () => {
 
     try {
       if (isNewOrder) {
-        data.created_at = DateTime.now().toJSDate();
+        data.created_at = date;
         orderObj = await db.create(Tables.orders, data);
 
         // add order back in items
@@ -169,7 +172,7 @@ export const Payment = () => {
           });
         }
       } else {
-        data.updated_at = DateTime.now().toJSDate();
+        data.updated_at = date;
 
         orderObj = await db.merge(toRecordId(state?.order?.id), data);
 
