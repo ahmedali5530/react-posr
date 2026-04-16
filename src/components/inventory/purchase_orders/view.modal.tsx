@@ -27,7 +27,7 @@ export const InventoryPurchaseOrderViewModal = ({open, order, onClose}: Props) =
 
       setLoading(true);
       try {
-        const [result] = await db.query<InventoryPurchaseOrder>(
+        const [result] = await db.query<[InventoryPurchaseOrder]>(
           `SELECT * FROM only ${order.id} FETCH supplier, items, items.item, items.supplier, documents`
         );
         // @ts-ignore

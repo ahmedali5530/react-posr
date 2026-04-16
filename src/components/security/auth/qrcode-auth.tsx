@@ -8,6 +8,7 @@ import {appPage} from "@/store/jotai.ts";
 import {toRecordId} from "@/lib/utils.ts";
 import {AuthPermission, AuthState} from "@/api/model/auth_permission.ts";
 import {nanoid} from "nanoid";
+import {LiveSubscription} from "surrealdb";
 
 interface QrCodeAuthProps {
   onSuccess: () => void;
@@ -45,9 +46,9 @@ export const QrCodeAuth: React.FC<QrCodeAuthProps> = ({
     })()
   }, []);
 
-  const [liveQuery, setLiveQuery] = useState(null);
+  const [liveQuery, setLiveQuery] = useState<LiveSubscription | null>(null);
   const runLiveQuery = async () => {
-    const result = await db.live(Tables.auth_permission, function (action, result: AuthPermission) {
+    const result = await db.live<AuthPermission>(Tables.auth_permission, function (action, result) {
       // delete or adding new orders will result in new data
       if (action === 'UPDATE') {
         if(result.state === AuthState.approved){
@@ -65,7 +66,7 @@ export const QrCodeAuth: React.FC<QrCodeAuthProps> = ({
     runLiveQuery().then();
 
     return () => {
-      db.db.kill(liveQuery).then(() => console.log('live query killed'));
+      liveQuery?.kill().then(() => console.log('live query killed')).catch(() => undefined);
     }
   },[onCancel, onSuccess]);
 

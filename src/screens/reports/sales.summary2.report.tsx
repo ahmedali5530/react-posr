@@ -493,7 +493,6 @@ export const SalesSummary2Report = () => {
       const couponAmount = safeNumber(order.coupon?.discount);
       if (couponAmount > 0) {
         const couponName =
-          order.coupon?.coupon?.name ||
           order.coupon?.coupon?.code ||
           "Unnamed coupon";
         const existing = couponTypes.get(couponName) || {quantity: 0, total: 0};

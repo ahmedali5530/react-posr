@@ -1,7 +1,44 @@
-import {ActionResult, RecordIdRange, StringRecordId, Surreal, Table} from "surrealdb";
-import { Tables } from "@/api/db/tables.ts";
+import {
+  AnyRecordId,
+  LiveAction,
+  LiveResource,
+  LiveSubscription,
+  Patch,
+  RecordIdRange,
+  RecordResult,
+  StringRecordId,
+  Surreal,
+  Table,
+  Values
+} from "surrealdb";
 import { toast } from "sonner";
 import {useDatabase} from "@/hooks/useDatabase.ts";
+
+type QueryBindings = Record<string, unknown>;
+type DbThing = AnyRecordId | RecordIdRange | Table | string;
+type LiveCallback<T> = (action: LiveAction, value: T) => void;
+
+const getErrorMessage = (error: unknown) => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
+};
+
+const toTable = (value: string | Table) => (value instanceof Table ? value : new Table(value));
+
+const toThing = (value: DbThing): AnyRecordId | RecordIdRange | Table => {
+  if (typeof value === "string") {
+    if (value.includes(":")) {
+      return new StringRecordId(value);
+    }
+
+    return new Table(value);
+  }
+
+  return value;
+};
 
 export const useDB = () => {
   const databaseContext = useDatabase();
@@ -13,10 +50,10 @@ export const useDB = () => {
     throw new Error('Database is not connected. Please ensure DatabaseProvider is wrapping your app and connection is established.');
   }
 
-  const query = async <T = any>(sql: string, parameters?: any): Promise<ActionResult<Record<string, T>>[]> => {
+  const query = async <R extends unknown[] = any[]>(sql: string, parameters?: QueryBindings): Promise<R> => {
     try {
       // Perform a custom advanced query
-      const result: ActionResult<Record<string, T>>[] = await client.query(sql, parameters);
+      const result = await client.query<R>(sql, parameters).collect<R>();
 
       // log sql in dev mode
       if(import.meta.env.DEV) {
@@ -27,15 +64,17 @@ export const useDB = () => {
         console.groupEnd()
       }
 
-      return result;
+      return result as R;
     } catch ( e ) {
       console.error('ERROR while query', e, sql);
-      toast.error(e);
+      toast.error(getErrorMessage(e));
       throw e;
     }
   }
 
-  const select = async <T>(thing: Tables): Promise<ActionResult<Record<string, T>>[]> => {
+  const select = async <T = any>(
+    thing: DbThing
+  ): Promise<RecordResult<T> | RecordResult<T>[] | undefined> => {
     try{
       // log sql in dev mode
       if(import.meta.env.DEV) {
@@ -44,15 +83,24 @@ export const useDB = () => {
         console.groupEnd()
       }
 
-      return client.select(thing);
+      const normalizedThing = toThing(thing);
+      if (normalizedThing instanceof Table) {
+        return client.select<T>(normalizedThing);
+      }
+      if (normalizedThing instanceof RecordIdRange) {
+        return client.select<T>(normalizedThing);
+      }
+      return client.select<T>(normalizedThing as AnyRecordId);
     }catch(e){
       console.log('ERROR while select', e);
-      toast.error(e);
+      toast.error(getErrorMessage(e));
       throw e;
     }
   }
 
-  const del = async (thing: Tables|string) => {
+  const del = async <T = any>(
+    thing: DbThing
+  ): Promise<RecordResult<T> | RecordResult<T>[]> => {
     try{
       // log sql in dev mode
       if(import.meta.env.DEV) {
@@ -61,15 +109,22 @@ export const useDB = () => {
         console.groupEnd()
       }
 
-      return client.delete(thing);
+      const normalizedThing = toThing(thing);
+      if (normalizedThing instanceof Table) {
+        return client.delete<T>(normalizedThing);
+      }
+      if (normalizedThing instanceof RecordIdRange) {
+        return client.delete<T>(normalizedThing);
+      }
+      return client.delete<T>(normalizedThing as AnyRecordId);
     }catch(e){
       console.error('ERROR while delete', e);
-      toast.error(e);
+      toast.error(getErrorMessage(e));
       throw e;
     }
   }
 
-  async function insert(thing: Tables|string, data: any){
+  async function insert<T = any>(thing: Table | string, data: Values<T> | Values<T>[]){
     try{
       // log sql in dev mode
       if(import.meta.env.DEV) {
@@ -79,16 +134,19 @@ export const useDB = () => {
         console.groupEnd()
       }
 
-      return client.insert(thing, data);
+      return client.insert<T>(toTable(thing), data);
     }catch(e){
       console.error('ERROR while insert', e);
-      toast.error(e);
+      toast.error(getErrorMessage(e));
       throw e;
     }
   }
 
 
-  const update = async (thing: Tables|string|any, data: any) => {
+  const update = async <T extends Record<string, unknown> = Record<string, unknown>>(
+    thing: DbThing,
+    data: Values<T>
+  ) => {
     try{
       // log sql in dev mode
       if(import.meta.env.DEV) {
@@ -98,15 +156,25 @@ export const useDB = () => {
         console.groupEnd()
       }
 
-      return client.update(thing, data);
+      const normalizedThing = toThing(thing);
+      if (normalizedThing instanceof Table) {
+        return client.update<T>(normalizedThing).merge(data);
+      }
+      if (normalizedThing instanceof RecordIdRange) {
+        return client.update<T>(normalizedThing).merge(data);
+      }
+      return client.update<T>(normalizedThing as AnyRecordId).merge(data);
     }catch(e){
       console.error('ERROR while updating', e);
-      toast.error(e);
+      toast.error(getErrorMessage(e));
       throw e;
     }
   }
 
-  const patch = async (thing: Tables|string|any, data: any) => {
+  const patch = async <T extends Record<string, unknown> = Record<string, unknown>>(
+    thing: DbThing,
+    data: Patch[]
+  ) => {
     try{
       // log sql in dev mode
       if(import.meta.env.DEV) {
@@ -116,15 +184,25 @@ export const useDB = () => {
         console.groupEnd()
       }
 
-      return client.patch(thing, data);
+      const normalizedThing = toThing(thing);
+      if (normalizedThing instanceof Table) {
+        return client.update<T>(normalizedThing).patch(data);
+      }
+      if (normalizedThing instanceof RecordIdRange) {
+        return client.update<T>(normalizedThing).patch(data);
+      }
+      return client.update<T>(normalizedThing as AnyRecordId).patch(data);
     }catch(e){
       console.error('ERROR while patching', e);
-      toast.error(e);
+      toast.error(getErrorMessage(e));
       throw e;
     }
   }
 
-  const merge = async (thing: Tables|string|any, data: any) => {
+  const merge = async <T extends Record<string, unknown> = Record<string, unknown>>(
+    thing: DbThing,
+    data: Values<T>
+  ) => {
     try{
       // log sql in dev mode
       if(import.meta.env.DEV) {
@@ -134,15 +212,25 @@ export const useDB = () => {
         console.groupEnd()
       }
 
-      return client.merge(thing, data);
+      const normalizedThing = toThing(thing);
+      if (normalizedThing instanceof Table) {
+        return client.update<T>(normalizedThing).merge(data);
+      }
+      if (normalizedThing instanceof RecordIdRange) {
+        return client.update<T>(normalizedThing).merge(data);
+      }
+      return client.update<T>(normalizedThing as AnyRecordId).merge(data);
     }catch(e){
       console.error('ERROR while merging', e);
-      toast.error(e);
+      toast.error(getErrorMessage(e));
       throw e;
     }
   }
 
-  const upsert = async (thing: Tables|string|any, data: any) => {
+  const upsert = async <T extends Record<string, unknown> = Record<string, unknown>>(
+    thing: DbThing,
+    data: Values<T>
+  ) => {
     try{
       // log sql in dev mode
       if(import.meta.env.DEV) {
@@ -152,20 +240,38 @@ export const useDB = () => {
         console.groupEnd()
       }
 
-      return client.upsert(thing, data);
+      const normalizedThing = toThing(thing);
+      if (normalizedThing instanceof Table) {
+        return client.upsert<T>(normalizedThing).content(data);
+      }
+      if (normalizedThing instanceof RecordIdRange) {
+        return client.upsert<T>(normalizedThing).content(data);
+      }
+      return client.upsert<T>(normalizedThing as AnyRecordId).content(data);
     }catch(e){
       console.error('ERROR while upserting', e);
-      toast.error(e);
+      toast.error(getErrorMessage(e));
       throw e;
     }
   }
 
-  const live = async (thing: Tables|string, callback: (action: any, result: any) => void, diff?: boolean) => {
+  const live = async <T = Record<string, unknown>>(
+    thing: LiveResource | string,
+    callback?: LiveCallback<T>
+  ): Promise<LiveSubscription> => {
     try{
-      return client.live(thing, callback, diff)
+      const subscription = await client.live<T>(toTable(thing));
+
+      if (callback) {
+        subscription.subscribe((message) => {
+          callback(message.action, message.value as T);
+        });
+      }
+
+      return subscription;
     }catch(e){
       console.log('ERROR while live query', e);
-      toast.error(e);
+      toast.error(getErrorMessage(e));
       throw e;
     }
   }

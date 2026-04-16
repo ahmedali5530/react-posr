@@ -7,6 +7,7 @@ import { dispatchPrint } from "@/lib/print.service.ts";
 import { PRINT_TYPE } from "@/lib/print.registry.tsx";
 import { useAtom } from "jotai";
 import { appPage, appState } from "@/store/jotai";
+import { LiveSubscription } from "surrealdb";
 
 export interface DeliveryOrdersProviderState {
   deliveryOrders: Order[];
@@ -34,7 +35,7 @@ export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ 
   const { deliveryOrders, refetch: fetchDeliveryOrders } = useFetchDeliveryOrders();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [liveQuery, setLiveQuery] = useState<any>(null);
+  const [liveQuery, setLiveQuery] = useState<LiveSubscription | null>(null);
   const processedOrderIdsRef = useRef<Set<string>>(new Set());
   const initialLoadDoneRef = useRef(false);
 
@@ -85,7 +86,7 @@ export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ 
   // Set up live query to watch for new delivery orders
   useEffect(() => {
     let isMounted = true;
-    let queryId: any = null;
+    let querySubscription: LiveSubscription | null = null;
 
     const runLiveQuery = async () => {
       try {
@@ -98,7 +99,7 @@ export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ 
             // Only handle delivery orders
             if (result.delivery && typeof result.delivery === 'object' && Object.keys(result.delivery).length > 0) {
               try {
-                const [fullOrder] = await dbRef.current.query<Order>(
+                const [fullOrder] = await dbRef.current.query<[Order]>(
                   `SELECT * FROM only ${result.id} ${DELIVERY_ORDER_FETCH}`
                 );
 
@@ -117,7 +118,7 @@ export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ 
         });
 
         if (isMounted) {
-          queryId = result;
+          querySubscription = result;
           setLiveQuery(result);
         }
       } catch (error) {
@@ -129,9 +130,7 @@ export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ 
 
     return () => {
       isMounted = false;
-      if (queryId) {
-        db.db.kill(queryId).catch(console.error);
-      }
+      querySubscription?.kill().catch(console.error);
     };
   }, []);
 

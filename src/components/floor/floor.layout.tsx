@@ -17,15 +17,15 @@ import {Order, ORDER_FETCHES, OrderStatus} from "@/api/model/order.ts";
 import { toast } from "sonner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChair, faTable } from "@fortawesome/free-solid-svg-icons";
-import { StringRecordId } from "surrealdb";
+import { LiveSubscription } from "surrealdb";
 
 
 export const FloorLayout = () => {
   const [state, setState] = useAtom(appState);
   const [, setSettings] = useAtom(appSettings);
   const db = useDB();
-  const [liveQuery, setLiveQuery] = useState(null);
-  const [tablesLiveQuery, setTablesLiveQuery] = useState(null);
+  const [liveQuery, setLiveQuery] = useState<LiveSubscription | null>(null);
+  const [tablesLiveQuery, setTablesLiveQuery] = useState<LiveSubscription | null>(null);
   const [page] = useAtom(appPage);
   const [, setAlert] = useAtom(appAlert);
 
@@ -77,8 +77,8 @@ export const FloorLayout = () => {
     runTablesLiveQuery().then();
 
     return () => {
-      db.db.kill(liveQuery).then();
-      db.db.kill(tablesLiveQuery).then();
+      liveQuery?.kill().catch(() => undefined);
+      tablesLiveQuery?.kill().catch(() => undefined);
     }
   }, []);
 

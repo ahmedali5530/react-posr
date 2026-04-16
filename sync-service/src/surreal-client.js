@@ -4,14 +4,13 @@ const { Surreal } = require('surrealdb');
 
 async function createConnectedClient(label, connectionConfig, logger) {
   const client = new Surreal();
-  await client.connect(connectionConfig.url);
-  await client.signin({
-    username: connectionConfig.user,
-    password: connectionConfig.pass,
-  });
-  await client.use({
+  await client.connect(connectionConfig.url, {
     namespace: connectionConfig.ns,
     database: connectionConfig.db,
+    authentication: {
+      username: connectionConfig.user,
+      password: connectionConfig.pass,
+    },
   });
 
   logger.info(`${label} SurrealDB connected`, {

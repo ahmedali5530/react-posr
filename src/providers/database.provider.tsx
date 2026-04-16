@@ -1,9 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useCallback, useState, ReactNode } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Surreal } from "surrealdb";
-import { ConnectionUnavailable, HttpConnectionError } from 'surrealdb';
 import { DB_REST_DB, DB_REST_NS, DB_REST_PASS, DB_REST_USER, withApi } from "@/api/db/settings.ts";
-import _ from "lodash";
 
 export interface DatabaseProviderState {
   /** The Surreal instance */
@@ -51,7 +49,7 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({
       await surrealInstance.connect(withApi(''), {
         namespace: DB_REST_NS,
         database: DB_REST_DB,
-        auth: {
+        authentication: {
           username: DB_REST_USER,
           password: DB_REST_PASS,
         }
@@ -99,11 +97,19 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({
     [surrealInstance, isPending, isSuccess, isError, error, connect, close],
   );
 
-  window.addEventListener('unhandledrejection', function(e){
-    if(e.reason.name === 'ConnectionUnavailable' || e.reason.name === 'EngineDisconnected'){
-      // connect();
-    }
-  })
+  useEffect(() => {
+    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const errorName = event?.reason?.name;
+      if (errorName === "ConnectionUnavailable" || errorName === "EngineDisconnected") {
+        // Intentionally left as a no-op; UI presents reconnect controls.
+      }
+    };
+
+    window.addEventListener("unhandledrejection", onUnhandledRejection);
+    return () => {
+      window.removeEventListener("unhandledrejection", onUnhandledRejection);
+    };
+  }, []);
 
   if (isError) {
     return (

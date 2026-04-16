@@ -21,14 +21,14 @@ import {OrderRow} from "@/components/orders/order.row.tsx";
 import {Table} from "@/api/model/table.ts";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.tsx";
-import {RecordId, StringRecordId} from "surrealdb";
+import {LiveSubscription, RecordId, StringRecordId} from "surrealdb";
 import {toast} from "sonner";
 import {useQueryBuilder} from "@/api/db/query-builder.ts";
 import {useFetchRow} from "@/hooks/useFetchRow.ts";
 
 export const Orders = () => {
   const db = useDB();
-  const [liveQuery, setLiveQuery] = useState(null);
+  const [liveQuery, setLiveQuery] = useState<LiveSubscription | null>(null);
   const fetchHook = useFetchRow();
 
   const [params, setParams] = useAtom(appSettings);
@@ -140,7 +140,7 @@ export const Orders = () => {
     runLiveQuery().then();
 
     return () => {
-      db.db.kill(liveQuery).then(() => console.log('live query killed'));
+      liveQuery?.kill().then(() => console.log('live query killed')).catch(() => undefined);
     }
   }, []);
 

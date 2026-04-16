@@ -20,7 +20,7 @@ export const TableLockProvider: React.FC<TableLockProviderProps> = ({ children }
 
     const releaseStaleLocks = async () => {
       try {
-        const [lockedTables] = await dbRef.current.query<Table>(
+        const [lockedTables] = await dbRef.current.query<[Table[]]>(
           `SELECT id, locked_at FROM ${Tables.tables} WHERE is_locked = true AND locked_at != NONE`
         );
 

@@ -59,7 +59,7 @@
     "react-window": "^1.8.10",
     "sass": "^1.71.1",
     "sonner": "^1.4.41",
-    "surrealdb": "^1.3.2",
+    "surrealdb": "^2.0.3",
     "swiper": "^12.1.3",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",

@@ -1,6 +1,7 @@
 'use strict';
 
 const { createConnectedClient, closeClient } = require('./surreal-client');
+const { Table } = require('surrealdb');
 
 function normalizeRecordId(record) {
   if (!record || typeof record !== 'object') return null;
@@ -124,18 +125,23 @@ class SyncManager {
     const subscribed = [];
 
     for (const tableName of tables) {
-      const liveId = await this.source.live(tableName, (arg1, arg2) => {
-        this.handleLiveEvent(tableName, arg1, arg2).catch((error) => {
-          this.stats.eventsFailed += 1;
-          this.stats.lastError = error.message || String(error);
-          this.logger.error(`Failed to process live event for table ${tableName}`, {
-            error: this.stats.lastError,
-          });
+      const subscription = await this.source.live(new Table(tableName));
+
+      (async () => {
+        for await (const message of subscription) {
+          await this.handleLiveEvent(tableName, message.action, message.value);
+        }
+      })().catch((error) => {
+        if (this.isStopping) return;
+        this.stats.eventsFailed += 1;
+        this.stats.lastError = error.message || String(error);
+        this.logger.error(`Failed to process live event for table ${tableName}`, {
+          error: this.stats.lastError,
         });
       });
 
-      if (liveId) {
-        this.tableSubscriptions.set(tableName, liveId);
+      if (subscription) {
+        this.tableSubscriptions.set(tableName, subscription);
       }
 
       subscribed.push(tableName);
@@ -160,7 +166,7 @@ class SyncManager {
         ...result,
         client_id: this.config.clientId,
       };
-      await this.master.upsert(recordId, payload);
+      await this.master.upsert(recordId).content(payload);
     }
 
     this.stats.eventsProcessed += 1;
@@ -216,9 +222,9 @@ class SyncManager {
     }
 
     const pending = [];
-    for (const liveId of this.tableSubscriptions.values()) {
-      if (!liveId) continue;
-      pending.push(this.source.kill(liveId));
+    for (const subscription of this.tableSubscriptions.values()) {
+      if (!subscription) continue;
+      pending.push(subscription.kill());
     }
 
     await Promise.allSettled(pending);

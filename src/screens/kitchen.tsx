@@ -15,6 +15,7 @@ import { DateTime } from "luxon";
 import {cn, formatNumber} from "@/lib/utils.ts";
 import {Customers} from "@/components/customer/customer.tsx";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
+import {LiveSubscription} from "surrealdb";
 
 
 
@@ -70,8 +71,8 @@ export const KitchenScreen = () => {
     }
   }, [kitchens, kitchen]);
 
-  const [ordersLiveQuery, setOrdersLiveQuery] = useState(null);
-  const [kitchenItemsLiveQuery, setKitchenItemsLiveQuery] = useState(null);
+  const [ordersLiveQuery, setOrdersLiveQuery] = useState<LiveSubscription | null>(null);
+  const [kitchenItemsLiveQuery, setKitchenItemsLiveQuery] = useState<LiveSubscription | null>(null);
   const runLiveQuery = async () => {
     const result = await db.live(Tables.orders, function (action) {
       if(action === 'CREATE'){
@@ -96,8 +97,8 @@ export const KitchenScreen = () => {
     }
 
     return () => {
-      db.db.kill(ordersLiveQuery).then();
-      db.db.kill(kitchenItemsLiveQuery).then();
+      ordersLiveQuery?.kill().catch(() => undefined);
+      kitchenItemsLiveQuery?.kill().catch(() => undefined);
     }
   }, [kitchen]);
 

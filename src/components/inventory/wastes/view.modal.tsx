@@ -27,7 +27,7 @@ export const InventoryWasteViewModal = ({open, waste, onClose}: Props) => {
 
       setLoading(true);
       try {
-        const [result] = await db.query<InventoryWaste>(
+        const [result] = await db.query<[InventoryWaste]>(
           `SELECT * FROM ONLY ${waste.id} FETCH purchase, purchase.items, purchase.items.item, issue, issue.items, issue.items.item, created_by, items, items.item, documents`
         );
         setViewWaste(result as InventoryWaste);

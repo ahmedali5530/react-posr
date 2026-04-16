@@ -34,7 +34,7 @@ export const OrderPaymentTax = ({
             className="min-w-[150px]"
             variant="primary"
             active={item.id.toString() === tax?.id.toString()}
-            key={item.id}
+            key={item.id.toString()}
             onClick={() => setTax(item)}
             size="lg"
           >

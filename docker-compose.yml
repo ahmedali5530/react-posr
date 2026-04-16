@@ -25,7 +25,7 @@ services:
       - sync
 
   surrealdb:
-    image: surrealdb/surrealdb:v2.6.2
+    image: surrealdb/surrealdb:v3.0.5
     # Same as: surreal start -u root -p root surrealkv://database --bind 0.0.0.0:8001
     working_dir: /
     user: "0:0"

@@ -27,7 +27,7 @@ export const InventoryIssueReturnViewModal = ({open, issueReturn, onClose}: Prop
 
       setLoading(true);
       try {
-        const [result] = await db.query<InventoryIssueReturn>(
+        const [result] = await db.query<[InventoryIssueReturn]>(
           `SELECT * FROM ONLY ${issueReturn.id} FETCH issuance, issuance.items, issuance.items.item, issued_to, kitchen, created_by, items, items.item, items.issued_item, documents`
         );
         setViewReturn(result as InventoryIssueReturn);

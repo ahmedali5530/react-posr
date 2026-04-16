@@ -82,12 +82,14 @@ function useApi<T>(
     }
     
     try {
-      const totalQuery = await db.query(`Select count() from ${table}${initialFilters.length > 0 ? ` WHERE ${initialFilters.join(' ')}` : ''} group all`);
-      const listQuery = await db.query(mainQuery, queryBuilder.parameters);
+      const [totalQuery] = await db.query<[{ count?: number }[]]>(
+        `Select count() from ${table}${initialFilters.length > 0 ? ` WHERE ${initialFilters.join(' ')}` : ''} group all`
+      );
+      const [listQuery] = await db.query<[T[]]>(mainQuery, queryBuilder.parameters);
 
       return{
-        total: totalQuery[0][0]?.count || 0,
-        data: listQuery[0] || []
+        total: totalQuery?.[0]?.count || 0,
+        data: listQuery || []
       };
     } catch (error: any) {
       // If we get a "No socket" error, it means the connection was lost
@@ -109,7 +111,7 @@ function useApi<T>(
   }: UseQueryResult<T> = useQuery({
     queryKey: queryKeys,
     queryFn: fetchFilteredData,
-    enabled: isConnected && !!db && !!db.db, // Only run query when database is connected
+    enabled: isConnected && !!db, // Only run query when database is connected
     refetchOnWindowFocus: false,
     retry: false,
     gcTime: 0,

@@ -3,7 +3,7 @@ import {Dish} from "@/api/model/dish.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {Button} from "@/components/common/input/button.tsx";
 import {DishForm} from "@/components/settings/dishes/dish.form.tsx";
-import {faImage, faPencil, faPlus, faUpload} from "@fortawesome/free-solid-svg-icons";
+import {faImage, faPencil, faPlus, faTrash, faUpload} from "@fortawesome/free-solid-svg-icons";
 import {createColumnHelper} from "@tanstack/react-table";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import useApi, {SettingsData} from "@/api/db/use.api.ts";
@@ -12,6 +12,7 @@ import {detectMimeType} from "@/utils/files.ts";
 import {CsvUploadModal} from "@/components/common/table/csv.uploader.tsx";
 import {useDB} from "@/api/db/db.ts";
 import {toRecordId} from "@/lib/utils.ts";
+import {DeleteConfirm} from "@/components/common/table/delete.confirm.tsx";
 
 export const AdminDishes = () => {
   const db = useDB();
@@ -43,7 +44,9 @@ export const AdminDishes = () => {
           const blob = new Blob([buffer], { type: mimeType });
           return <a href={URL.createObjectURL(blob)} target="_blank"><img alt={info.row.original.name} src={URL.createObjectURL(blob)} className="w-[50px] h-[50px]" /></a>
         }
-      }
+      },
+      enableColumnFilter: false,
+      enableSorting: false,
     }),
     columnHelper.accessor("name", {
       header: 'Name'
@@ -101,7 +104,7 @@ export const AdminDishes = () => {
       enableColumnFilter: false,
       cell: (info) => {
         return (
-          <>
+          <div className="flex gap-3 items-center">
             <Button
               variant="primary"
               onClick={() => {
@@ -109,11 +112,28 @@ export const AdminDishes = () => {
                 setFormModal(true);
               }}
             ><FontAwesomeIcon icon={faPencil}/></Button>
-          </>
+            <div className="separator"></div>
+            <DeleteConfirm
+              message={`Delete item ${info.row.original.name}`}
+              onConfirm={() => deleteItem(info.row.original.id)}
+            />
+          </div>
         );
       },
     }),
   ];
+
+  const deleteItem = async (_id: string) => {
+    alert('abi testing chal rhi hai bhai');
+    // const items = await db.query(`select count() from ${Tables.dishes} where id ?= $category group all`, {
+    //   'category': toRecordId(id)
+    // });
+    //
+    // if(items[0].length === 0) {
+    //   await db.delete(id);
+    //   loadHook.fetchData();
+    // }
+  }
 
   return (
     <>
