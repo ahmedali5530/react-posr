@@ -29,8 +29,14 @@ posr.db*
 cert
 posr.db
 posr.db1
+
 database/clog
 database/manifest
+database/sstables
+database/vlog
+database/wal
+database/LOCK
+
 .orchids
 
 # Print service persisted logo (written at runtime)
