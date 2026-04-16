@@ -70,7 +70,15 @@ export const KitchenOrder = ({
         {order.items.map(item => (
           <div
             onClick={() => singleReady(item.id)}
-            className="flex flex-col" key={item.id}>
+            className={
+              cn(
+                "flex flex-col",
+                item.completed_at ? 'text-success-700 line-through' : '',
+                item.order_item?.deleted_at ? 'text-danger-700 line-through' : ''
+              )
+            }
+            key={item.id}
+          >
             <OrderItemName item={item.order_item} showQuantity />
           </div>
         ))}

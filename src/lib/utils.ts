@@ -69,3 +69,11 @@ export const toRecordId = (id: any): any => {
 
   return id;
 }
+
+export const safeNumber = (num: any, fallback = 0) => {
+  if(isNaN(num)){
+    return fallback;
+  }
+
+  return num;
+}

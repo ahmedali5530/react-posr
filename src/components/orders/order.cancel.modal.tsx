@@ -156,7 +156,7 @@ export const OrderCancelModal = ({
           deleted_by: userId,
           logged_in_user: userId,
           order: orderId,
-          order_item: itemId,
+          // order_item: itemId,
           quantity: qty,
           reason: selectedReason,
           items: [itemId],
@@ -188,7 +188,7 @@ export const OrderCancelModal = ({
         }
 
         for (const {kitchen, items} of Object.values(kitchenItemsMap)) {
-          await dispatchPrint(db, 'deletion', {
+          void dispatchPrint(db, 'deletion', {
             items,
             order,
             kitchenName: kitchen.name,

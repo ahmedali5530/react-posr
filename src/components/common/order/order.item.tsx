@@ -21,7 +21,7 @@ export const OrderItemName = ({
         {showPrice && <span className="flex-0 w-[70px] text-right">{formatNumber(calculateOrderItemPrice(item))}</span>}
       </div>
       {item.comments && (
-        <span className="flex-1 text-xs italic text-danger-500">({item.comments})</span>
+        <span className="flex-1 text-sm italic text-danger-500">({item.comments})</span>
       )}
       {item?.modifiers?.length > 0 && (
         <div className="pl-3 flex flex-col">

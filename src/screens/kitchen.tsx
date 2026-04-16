@@ -12,7 +12,7 @@ import { useDB } from "@/api/db/db.ts";
 import { OrderItemKitchen } from "@/api/model/order_item_kitchen.ts";
 import { KitchenOrder } from "@/components/kitchen/kitchen.order.tsx";
 import { DateTime } from "luxon";
-import {cn, formatNumber} from "@/lib/utils.ts";
+import {cn, formatNumber, safeNumber, toRecordId} from "@/lib/utils.ts";
 import {Customers} from "@/components/customer/customer.tsx";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {LiveSubscription} from "surrealdb";
@@ -26,7 +26,14 @@ export const KitchenScreen = () => {
   const {
     data: kitchens
   } = useApi<SettingsData<Kitchen>>(Tables.kitchens, [], ['priority asc'], 0, 10, ['items', 'printers']);
-  const [orders, setOrders] = useState<KitchenOrderModel[]>([]);
+  const [allOrders, setOrders] = useState<KitchenOrderModel[]>([]);
+  const orders = useMemo(() => {
+    return allOrders.filter(item => {
+      return item.items.filter(iitem => {
+        return !!iitem.completed_at || !!iitem.order_item.deleted_at
+      }).length != item.items.length
+    })
+  }, [allOrders]);
   const [avgTime, setAvgTime] = useState('-');
 
   const loadOrders = useCallback(async (kitchenId: string) => {
@@ -34,13 +41,17 @@ export const KitchenScreen = () => {
       select *,
              time::format(created_at, '%F %T') as batch_created_at
       from ${Tables.order_items_kitchen}
-      where order_item.order.status = 'In Progress'
-        and kitchen = $kitchen
-        and completed_at = None
+      where 
+--           order_item.order.status = 'In Progress'
+--         and 
+          kitchen = $kitchen
+        and created_at >= $startDate
+        and order_item.is_suspended != true
       order by created_at desc
       fetch order_item, order_item.item, order_item.order, order_item.order.table, order_item.order.user, order_item.order.order_type
     `, {
-      kitchen: kitchenId
+      kitchen: toRecordId(kitchenId),
+      startDate: DateTime.now().startOf('day').toJSDate()
     });
 
     const groupedOrders = new Map<string, KitchenOrderModel>();
@@ -103,13 +114,13 @@ export const KitchenScreen = () => {
   }, [kitchen]);
 
   const calculateAverageTime = useCallback(async (kitchenId: string) => {
-    const completedOrders  = await db.query(`select math::sum(time::unix(completed_at) - time::unix(created_at)) AS diff, count() from ${Tables.order_items_kitchen} where kitchen = $kitchen and completed_at != None and time::format(created_at, "%Y-%m-%d") = $date group all`, {
+    const completedOrders  = await db.query(`select math::sum(time::unix(completed_at) - time::unix(created_at)) AS diff, count() from ${Tables.order_items_kitchen} where kitchen = $kitchen and completed_at != None and time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") = $date group all`, {
       kitchen: kitchenId,
-      date: DateTime.now().toISODate()
+      date: DateTime.now().toFormat(import.meta.env.VITE_DATE_FORMAT)
     });
 
     if(completedOrders[0].length > 0) {
-      const duration: any = await db.query(`return duration::mins(duration::from::secs(math::floor(${completedOrders[0][0].diff / completedOrders[0][0].count})))`);
+      const duration: any = await db.query(`return duration::mins(duration::from_secs(math::floor(${safeNumber(completedOrders[0][0].diff / completedOrders[0][0].count, 0)})))`);
 
       setAvgTime(`${formatNumber(duration[0])} mins`);
     }else{
