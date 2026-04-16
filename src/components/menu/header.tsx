@@ -1,16 +1,16 @@
 import {useAtom} from "jotai";
 import {appSettings, appState} from "@/store/jotai.ts";
 import {Button} from "@/components/common/input/button.tsx";
-import {faArrowLeft, faUser, faUsers} from "@fortawesome/free-solid-svg-icons";
+import {faArrowLeft, faPlus, faTable, faUser, faUsers} from "@fortawesome/free-solid-svg-icons";
 import {cn, toRecordId} from "@/lib/utils.ts";
 import React, {useEffect, useState} from "react";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
-import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.tsx";
 import {useDB} from "@/api/db/db.ts";
 import {MenuItemType} from "@/api/model/cart_item.ts";
 import {Payment} from "@/components/payment/payment.tsx";
 import {Customers} from "@/components/customer/customer.tsx";
 import {getInvoiceNumber} from "@/lib/order.ts";
+import ScrollContainer from "react-indiana-drag-scroll";
 
 export const MenuHeader = () => {
   const db = useDB();
@@ -155,28 +155,40 @@ export const MenuHeader = () => {
         <div className="flex items-center gap-2">
           <Button variant="primary" icon={faArrowLeft} onClick={reset} size="lg">{state?.floor?.name}</Button>
           {state.orders.length > 0 ? (
-            <Dropdown
-              label={state?.order?.order ? 'Order# ' + getInvoiceNumber(state?.order?.order) : 'New Order'} btnSize="lg"
-              btnFlat={true}
-              onAction={onOrderClick}
-            >
-              {state?.orders?.map((order, index) => (
-                <DropdownItem
-                  id={order.id}
-                  key={index}
-                  className="min-w-[50px]"
-                >Order# {getInvoiceNumber(order)}</DropdownItem>
-              ))}
-              <DropdownItem id="new" key="new" className="min-w-[50px]">New Order</DropdownItem>
-            </Dropdown>
-          ) : (
-            <Button variant="primary" flat size="lg">New Order</Button>
-          )}
+            <>
+              <ScrollContainer className="max-w-[380px] flex flex-nowrap gap-3">
+                <div className="input-group">
+                  {state?.orders?.map((order, index) => (
+                    <Button
+                      key={index}
+                      variant="primary"
+                      onClick={() => onOrderClick(order.id)}
+                      flat
+                      size="lg"
+                      active={state?.order?.id?.toString() === order?.id.toString()}
+                    >
+                      Order# {getInvoiceNumber(order)}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollContainer>
+              <Button
+                active={state?.order?.id === MenuItemType.new}
+                variant="primary"
+                flat
+                size="lg"
+                onClick={() => onOrderClick('new')}
+                icon={faPlus}
+              >New Order</Button>
+            </>
+          ) : null}
 
-          <button type="button"
-                  className="btn btn-primary lg btn-flat min-w-[50px]"
-                  onClick={switchTable}
-          >{state?.table?.name}{state?.table?.number}</button>
+          <Button
+            type="button"
+            className="btn btn-primary lg btn-flat min-w-[50px]"
+            onClick={switchTable}
+            icon={faTable}
+          >{state?.table?.name}{state?.table?.number}</Button>
           <Button type="button"
                   className="btn btn-primary lg btn-flat"
                   onClick={openPersons}
