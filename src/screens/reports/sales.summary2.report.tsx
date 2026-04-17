@@ -6,6 +6,7 @@ import {Order, OrderStatus} from "@/api/model/order.ts";
 import {OrderVoid} from "@/api/model/order_void.ts";
 import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
+import { toJsDate } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -375,7 +376,7 @@ export const SalesSummary2Report = () => {
     });
 
     orders.forEach(order => {
-      const dayPart = getDayPartLabel(new Date(order.created_at));
+      const dayPart = getDayPartLabel(toJsDate(order.created_at));
       const metrics = map.get(dayPart)!;
       const orderMetrics = calculateOrderMetrics(order);
 
@@ -436,18 +437,18 @@ export const SalesSummary2Report = () => {
   }, [orders, orderVoids, financialMetrics.refunds]);
 
   const checkStatusMetrics = useMemo(() => {
-    const startDate = filters.startDate ? new Date(filters.startDate) : null;
+    const startDate = filters.startDate ? toJsDate(filters.startDate) : null;
     const checksCarriedOver = startDate
       ? orders.filter(order => {
-          const orderDate = new Date(order.created_at);
+          const orderDate = toJsDate(order.created_at);
           return orderDate < startDate && order.status === OrderStatus["In Progress"];
         }).length
       : 0;
     const checksBegun = filters.startDate && filters.endDate
       ? orders.filter(order => {
-          const orderDate = new Date(order.created_at);
-          const start = new Date(filters.startDate!);
-          const end = new Date(filters.endDate!);
+          const orderDate = toJsDate(order.created_at);
+          const start = toJsDate(filters.startDate!);
+          const end = toJsDate(filters.endDate!);
           end.setHours(23, 59, 59, 999);
           return orderDate >= start && orderDate <= end;
         }).length

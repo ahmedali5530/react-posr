@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { getUserModules } from "@/lib/access.rules.ts";
 import { UserRole } from "@/api/model/user_role.ts";
 import { Input } from "@/components/common/input/input.tsx";
+import { nowSurrealDateTime } from "@/lib/datetime.ts";
 
 export const Login = () => {
   const db = useDB();
@@ -125,7 +126,7 @@ export const Login = () => {
     if(!pendingUser) return;
 
     try {
-      const now = DateTime.now().toJSDate();
+      const now = nowSurrealDateTime();
       await db.create(Tables.time_entries, {
         clock_in: now,
         user: (pendingUser.id),

@@ -4,11 +4,12 @@ import {InventoryItem} from "@/api/model/inventory_item.ts";
 import {InventoryStore} from "@/api/model/inventory_store.ts";
 import {InventorySupplier} from "@/api/model/inventory_supplier.ts";
 import {Document} from '@/api/model/document.ts';
+import { DateTime } from "surrealdb";
 
 export interface InventoryPurchaseReturn {
   id: string
   purchase?: InventoryPurchase
-  created_at: string
+  created_at: DateTime
   created_by: User
   invoice_number: number
   items: InventoryPurchaseReturnItem[]

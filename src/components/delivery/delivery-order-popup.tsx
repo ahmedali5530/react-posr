@@ -23,6 +23,7 @@ import {OrderItemName} from "@/components/common/order/order.item.tsx";
 import {OrderPayment} from "@/components/orders/order.payment.tsx";
 import {User} from "@/api/model/user.ts";
 import {Tables} from "@/api/db/tables.ts";
+import { toLuxonDateTime } from "@/lib/datetime.ts";
 
 interface DeliveryOrderPopupProps {
   order: Order;
@@ -353,7 +354,7 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
           <div className="bg-danger-200 p-4 rounded-lg border-2 border-danger-300">
             {order?.created_at && (
               <div className="space-y-2">
-                <p className="text-2xl font-medium">Ordered at: {DateTime.fromJSDate(new Date(order.created_at)).toFormat(import.meta.env.VITE_TIME_FORMAT)}</p>
+                <p className="text-2xl font-medium">Ordered at: {toLuxonDateTime(order.created_at).toFormat(import.meta.env.VITE_TIME_FORMAT)}</p>
               </div>
             )}
             <div className="space-y-2">
@@ -361,7 +362,7 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
                 Delivery time: {
                   !delivery?.deliveryTime || delivery.deliveryTime === 'now' || delivery.deliveryTime === 'asap'
                     ? 'ASAP'
-                    : DateTime.fromJSDate(new Date(delivery.deliveryTime)).toFormat(import.meta.env.VITE_TIME_FORMAT)
+                    : toLuxonDateTime(delivery.deliveryTime).toFormat(import.meta.env.VITE_TIME_FORMAT)
                 }
               </p>
             </div>
@@ -440,7 +441,7 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
               <div className="flex justify-between">
                 <span className="text-sm font-medium text-neutral-600">Created:</span>
                 <span className="text-base">
-                {DateTime.fromJSDate(new Date(order.created_at)).toFormat("yyyy-MM-dd hh:mm a")}
+                {toLuxonDateTime(order.created_at).toFormat("yyyy-MM-dd hh:mm a")}
               </span>
               </div>
             </div>

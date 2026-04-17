@@ -1,6 +1,7 @@
 import {User} from "@/api/model/user.ts";
 import {Order} from "@/api/model/order.ts";
 import {OrderItem} from "@/api/model/order_item.ts";
+import { DateTime } from "surrealdb";
 
 export enum OrderVoidReason {
   FOHNotMade = 'FOH Not Made',
@@ -18,7 +19,7 @@ export interface OrderVoid {
   comments?: string
   reason: string
   deleted_by: User
-  created_at: string
+  created_at: DateTime
   order?: Order
   order_item: OrderItem
   quantity: number

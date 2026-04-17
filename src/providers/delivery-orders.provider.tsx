@@ -8,6 +8,7 @@ import { PRINT_TYPE } from "@/lib/print.registry.tsx";
 import { useAtom } from "jotai";
 import { appPage, appState } from "@/store/jotai";
 import { LiveSubscription } from "surrealdb";
+import { toJsDate } from "@/lib/datetime.ts";
 
 export interface DeliveryOrdersProviderState {
   deliveryOrders: Order[];
@@ -75,7 +76,7 @@ export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ 
 
     if (newOrders.length > 0) {
       const newestOrder = newOrders.sort((a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        toJsDate(b.created_at).getTime() - toJsDate(a.created_at).getTime()
       )[0];
 
       setSelectedOrder(newestOrder);

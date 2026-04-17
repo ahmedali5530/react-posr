@@ -1,6 +1,7 @@
 import { ID } from "@/api/model/common.ts";
 import { Shift } from "@/api/model/shift.ts";
 import { User } from "@/api/model/user.ts";
+import { DateTime } from "surrealdb";
 
 export interface TipDistributionUserShare {
   id?: string
@@ -12,10 +13,10 @@ export interface TipDistributionUserShare {
 
 export interface TipDistribution extends ID {
   shift?: Shift
-  from_at: Date
-  to_at: Date
+  from_at: DateTime
+  to_at: DateTime
   total_tips: number
   users: TipDistributionUserShare[]
-  created_at?: Date
+  created_at?: DateTime
   created_by?: User
 }

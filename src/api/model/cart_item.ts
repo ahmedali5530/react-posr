@@ -1,6 +1,7 @@
 import { Dish } from "@/api/model/dish.ts";
 import { ModifierGroup } from "@/api/model/modifier_group.ts";
 import { DishModifierGroup } from "@/api/model/dish_modifier_group.ts";
+import { DateTime } from "surrealdb";
 
 export enum MenuItemType {
   new = 'new',
@@ -31,9 +32,9 @@ export interface MenuItem {
 
   newOrOld: MenuItemType
 
-  created_at?: string
-  updated_at?: string
-  deleted_at?: string
+  created_at?: DateTime
+  updated_at?: DateTime
+  deleted_at?: DateTime
 }
 
 export interface CartModifierGroup extends DishModifierGroup {

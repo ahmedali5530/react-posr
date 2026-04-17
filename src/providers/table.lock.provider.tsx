@@ -2,6 +2,7 @@ import React, { ReactNode, useEffect, useRef } from "react";
 import { useDB } from "@/api/db/db.ts";
 import { Tables } from "@/api/db/tables.ts";
 import { Table } from "@/api/model/table.ts";
+import { toJsDate } from "@/lib/datetime.ts";
 
 interface TableLockProviderProps {
   children: ReactNode;
@@ -34,7 +35,7 @@ export const TableLockProvider: React.FC<TableLockProviderProps> = ({ children }
             return true;
           }
 
-          const lockedAt = new Date(table.locked_at).getTime();
+          const lockedAt = toJsDate(table.locked_at).getTime();
           return !Number.isFinite(lockedAt) || lockedAt < staleThreshold;
         });
 

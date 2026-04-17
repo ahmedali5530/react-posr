@@ -11,6 +11,7 @@ import {InventoryWasteForm} from "@/components/inventory/wastes/form.tsx";
 import {useDB} from "@/api/db/db.ts";
 import {DeleteConfirm} from "@/components/common/table/delete.confirm.tsx";
 import {InventoryWasteViewModal} from "@/components/inventory/wastes/view.modal.tsx";
+import { toJsDate } from "@/lib/datetime.ts";
 
 export const InventoryWastes = () => {
   const loadHook = useApi<SettingsData<InventoryWaste>>(
@@ -50,7 +51,7 @@ export const InventoryWastes = () => {
     }),
     columnHelper.accessor("created_at", {
       header: "Created at",
-      cell: info => info.getValue() ? new Date(info.getValue() as string).toLocaleString() : ""
+      cell: info => info.getValue() ? toJsDate(info.getValue() as any).toLocaleString() : ""
     }),
     columnHelper.accessor("items", {
       header: "Items",

@@ -21,6 +21,7 @@ import { calculateOrderTotal } from "@/lib/cart.ts";
 import { Countdown } from "@/components/floor/countdown.tsx";
 import { DateTime } from "luxon";
 import { Input } from "@/components/common/input/input.tsx";
+import { toLuxonDateTime } from "@/lib/datetime.ts";
 
 interface Props {
   table: Table
@@ -138,7 +139,7 @@ export const FloorTable = ({
   const total = calculateOrderTotal(order);
   const isLateOrder = useMemo(() => {
     if( order ) {
-      const diff = DateTime.now().diff(DateTime.fromJSDate(order.created_at)).as('hours');
+      const diff = DateTime.now().diff(toLuxonDateTime(order.created_at)).as('hours');
       return diff >= 2;
     }
 

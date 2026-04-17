@@ -6,6 +6,7 @@ import {Order} from "@/api/model/order.ts";
 import {OrderVoid} from "@/api/model/order_void.ts";
 import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
+import { toJsDate } from "@/lib/datetime.ts";
 
 type BreakdownItem = {
   label: string;
@@ -204,7 +205,7 @@ export const SalesSummaryReport = () => {
     );
 
     orders.forEach(order => {
-      const label = getDayPartLabel(new Date(order.created_at));
+      const label = getDayPartLabel(toJsDate(order.created_at));
       base[label].checks += 1;
       base[label].guests += safeNumber(order.covers);
     });

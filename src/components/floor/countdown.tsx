@@ -1,28 +1,31 @@
-import { DateTime, ToHumanDurationOptions } from "luxon";
+import {DateTime as LuxonDateTime, ToHumanDurationOptions} from "luxon";
 import { useEffect, useState } from "react";
+import { DateInput, toLuxonDateTime } from "@/lib/datetime.ts";
 
 interface Props{
-  time: Date
+  time: DateInput
   showAll?: boolean
 }
 
 export const Countdown = ({time, showAll}: Props) => {
   const [diff, setDiff] = useState('-, -, -');
 
+
   const calculateDiff = () => {
     const humanFormatSettings: ToHumanDurationOptions = {
       unitDisplay: 'narrow',
       maximumFractionDigits: 0
     };
+    const startedAt = toLuxonDateTime(time);
 
     if(showAll){
-      setDiff(DateTime.now().diff(DateTime.fromJSDate(time)).shiftTo('hours', 'minutes', 'seconds').toHuman(humanFormatSettings));
+      setDiff(LuxonDateTime.now().diff(startedAt).shiftTo('hours', 'minutes', 'seconds').toHuman(humanFormatSettings));
     }else {
-      const diff = DateTime.now().diff(DateTime.fromJSDate(time)).as('hours');
+      const diff = LuxonDateTime.now().diff(startedAt).as('hours');
       if( diff < 1 ) {
-        setDiff(DateTime.now().diff(DateTime.fromJSDate(time)).shiftTo('minutes', 'seconds').toHuman(humanFormatSettings));
+        setDiff(LuxonDateTime.now().diff(startedAt).shiftTo('minutes', 'seconds').toHuman(humanFormatSettings));
       } else {
-        setDiff(DateTime.now().diff(DateTime.fromJSDate(time)).shiftTo('hours', 'minutes').toHuman(humanFormatSettings));
+        setDiff(LuxonDateTime.now().diff(startedAt).shiftTo('hours', 'minutes').toHuman(humanFormatSettings));
       }
     }
   }

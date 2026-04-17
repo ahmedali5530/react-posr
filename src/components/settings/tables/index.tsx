@@ -1,16 +1,18 @@
 import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Tables } from "@/api/db/tables.ts";
 import { useState } from "react";
-import { createColumnHelper } from "@tanstack/react-table";
+import { createColumnHelper, RowSelectionState } from "@tanstack/react-table";
 import { Table } from "@/api/model/table.ts";
 import { Button } from "@/components/common/input/button.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {faCheck, faLock, faPencil, faPlus, faUpload} from "@fortawesome/free-solid-svg-icons";
 import { TableComponent } from "@/components/common/table/table.tsx";
 import { TableForm } from "@/components/settings/tables/table.form.tsx";
+import { TableBulkForm } from "@/components/settings/tables/table.bulk.form.tsx";
 import { useDB } from "@/api/db/db.ts";
 import {toRecordId, truthy} from "@/lib/utils.ts";
 import {CsvUploadModal} from "@/components/common/table/csv.uploader.tsx";
+import {Checkbox} from "@/components/common/input/checkbox.tsx";
 
 export const AdminTables = () => {
   const loadHook = useApi<SettingsData<Table>>(Tables.tables, [], [], 0, 10, ['floor', 'categories', 'payment_types', 'order_types']);
@@ -19,9 +21,31 @@ export const AdminTables = () => {
   const [data, setData] = useState<Table>();
   const [formModal, setFormModal] = useState(false);
   const [importModal, setImportModal] = useState(false);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [bulkEdit, setBulkEdit] = useState({
+    state: false,
+    data: [] as Table[]
+  });
 
   const columnHelper = createColumnHelper<Table>();
   const columns: any = [
+    {
+      id: 'select-col',
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllRowsSelected()}
+          indeterminate={table.getIsSomeRowsSelected()}
+          onChange={table.getToggleAllRowsSelectedHandler()} //or getToggleAllPageRowsSelectedHandler
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          disabled={!row.getCanSelect()}
+          onChange={row.getToggleSelectedHandler()}
+        />
+      ),
+    },
     columnHelper.accessor("name", {
       header: 'Name'
     }),
@@ -108,6 +132,23 @@ export const AdminTables = () => {
           <Button variant="primary" onClick={() => {
             setFormModal(true);
           }} icon={faPlus}> Table</Button>
+        ]}
+        enableSelection
+        rowSelection={rowSelection}
+        onRowSelectionChange={(selectionState, selectedRows) => {
+          setRowSelection(selectionState);
+          setBulkEdit((prev) => ({
+            ...prev,
+            data: selectedRows as Table[],
+          }));
+        }}
+        selectionButtons={[
+          <Button variant="primary" onClick={() => {
+            setBulkEdit((prev) => ({
+              ...prev,
+              state: true,
+            }));
+          }} icon={faPencil}> Bulk Edit</Button>
         ]}
       />
 
@@ -199,6 +240,21 @@ export const AdminTables = () => {
             }
           }}
           onDone={() => loadHook.fetchData()}
+        />
+      )}
+
+      {bulkEdit.state && (
+        <TableBulkForm
+          open={bulkEdit.state}
+          data={bulkEdit.data}
+          onClose={() => {
+            loadHook.fetchData();
+            setRowSelection({});
+            setBulkEdit({
+              state: false,
+              data: [],
+            });
+          }}
         />
       )}
 

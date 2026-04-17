@@ -6,6 +6,7 @@ import {Order} from "@/api/model/order.ts";
 import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
 import {DateTime} from "luxon";
+import { toLuxonDateTime } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -215,7 +216,7 @@ export const ProductMixWeeklyReport = () => {
     }
 
     filteredOrders.forEach(order => {
-      const orderDate = DateTime.fromJSDate(new Date(order.created_at));
+      const orderDate = toLuxonDateTime(order.created_at);
       const dayKey = orderDate.toISODate() || '';
       
       // Skip if not within the week

@@ -17,6 +17,7 @@ import {withCurrency} from "@/lib/utils.ts";
 import {getOrderFilteredItems} from "@/lib/order.ts";
 import {dispatchPrint} from "@/lib/print.service.ts";
 import {PRINT_TYPE} from "@/lib/print.registry.tsx";
+import { nowSurrealDateTime } from "@/lib/datetime.ts";
 
 interface OrderRefundModalProps {
   order: OrderModel
@@ -123,7 +124,7 @@ export const OrderRefundModal = ({
       await db.create(Tables.order_refunds, {
         order: orderId,
         items: itemIds,
-        created_at: new Date(),
+        created_at: nowSurrealDateTime(),
         manager: userId,
         logged_in_user: userId,
         reason: reason || undefined,

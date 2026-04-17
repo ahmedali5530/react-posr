@@ -24,6 +24,7 @@ import {fetchNextSequentialNumber, isUniqueRecordNumber} from "@/utils/recordNum
 import {DatePicker} from "@/components/common/react-aria/datepicker.tsx";
 import {DateValue} from "react-aria-components";
 import {dateToCalendarDate, calendarDateToDate, getToday} from "@/utils/date.ts";
+import { nowSurrealDateTime, toJsDate, toSurrealDateTime } from "@/lib/datetime.ts";
 
 interface PurchaseOrderItemFormValue {
   item: { label: string; value: string } | null;
@@ -203,7 +204,7 @@ export const InventoryPurchaseOrderForm = ({open, onClose, data}: Props) => {
           label: data.supplier.name,
           value: data.supplier.id
         } : null,
-        date: data.created_at ? dateToCalendarDate(data.created_at) : getToday(),
+        date: data.created_at ? dateToCalendarDate(toJsDate(data.created_at)) : getToday(),
         documents: undefined,
         items: data?.items?.map(item => ({
           item: {
@@ -251,7 +252,7 @@ export const InventoryPurchaseOrderForm = ({open, onClose, data}: Props) => {
         po_number: Number(values.po_number),
         supplier: values.supplier ? toRecordId(values.supplier.value) : undefined,
         items: [],
-        created_at: values.date ? calendarDateToDate(values.date) || new Date() : new Date(),
+        created_at: values.date ? toSurrealDateTime(calendarDateToDate(values.date) || undefined) : nowSurrealDateTime(),
         created_by: state.user.id,
         status: PurchaseOrderStatus.pending,
         documents: documentRefs.length > 0 ? documentRefs : undefined,

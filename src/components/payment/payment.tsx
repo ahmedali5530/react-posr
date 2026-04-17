@@ -5,7 +5,6 @@ import {useAtom} from "jotai";
 import {appPage, appState} from "@/store/jotai.ts";
 import {calculateCartItemPrice} from "@/lib/cart.ts";
 import {useDB} from "@/api/db/db.ts";
-import {DateTime} from "luxon";
 import {Tables} from "@/api/db/tables.ts";
 import {Order, ORDER_FETCHES, OrderStatus} from "@/api/model/order.ts";
 import {OrderPayment} from "@/components/orders/order.payment.tsx";
@@ -14,6 +13,7 @@ import {StringRecordId} from "surrealdb";
 import {MenuItemType} from "@/api/model/cart_item.ts";
 import {dispatchPrint} from "@/lib/print.service.ts";
 import {DiscountType} from "@/api/model/discount.ts";
+import { nowSurrealDateTime } from "@/lib/datetime.ts";
 
 export const Payment = () => {
   const db = useDB();
@@ -41,7 +41,7 @@ export const Payment = () => {
   const createOrder = async () => {
 
     setLoading(true);
-    const date = DateTime.now().toJSDate();
+    const date = nowSurrealDateTime();
 
     const isNewOrder = state?.order?.id === 'new';
 

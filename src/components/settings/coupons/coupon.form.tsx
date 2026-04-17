@@ -10,6 +10,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect } from "react";
 import { Coupon, CouponType, WeekDay } from "@/api/model/coupon.ts";
 import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
+import { DateTime } from "luxon";
+import { nowSurrealDateTime, toJsDate, toLuxonDateTime, toSurrealDateTime } from "@/lib/datetime.ts";
 
 interface Props {
   open: boolean;
@@ -98,8 +100,16 @@ export const CouponForm = ({ open, onClose, data }: Props) => {
 
   useEffect(() => {
     if (data) {
+      const startDateString = data.start_date ? toLuxonDateTime(data.start_date).toFormat("yyyy-LL-dd'T'HH:mm") : undefined;
+      const endDateString = data.end_date ? toLuxonDateTime(data.end_date).toFormat("yyyy-LL-dd'T'HH:mm") : undefined;
+      const startTimeString = data.start_time ? toLuxonDateTime(data.start_time).toFormat("HH:mm") : undefined;
+      const endTimeString = data.end_time ? toLuxonDateTime(data.end_time).toFormat("HH:mm") : undefined;
       reset({
         ...data,
+        start_date: startDateString,
+        end_date: endDateString,
+        start_time: startTimeString,
+        end_time: endTimeString,
         coupon_type: data.coupon_type
           ? { label: data.coupon_type, value: data.coupon_type }
           : undefined,
@@ -129,19 +139,18 @@ export const CouponForm = ({ open, onClose, data }: Props) => {
       );
     }
 
-    // Normalize date/time fields to JS Date objects before sending to DB
+    // Normalize date/time fields to Surreal DateTime before sending to DB
     const toDateTime = (input?: string | null) => {
       if (!input) return undefined;
-      const d = new Date(input);
-      return Number.isNaN(d.getTime()) ? undefined : d;
+      const dt = DateTime.fromISO(input);
+      return dt.isValid ? toSurrealDateTime(dt) : undefined;
     };
 
     const toTimeOfDayDate = (input?: string | null) => {
       if (!input) return undefined;
       const [hh, mm] = input.split(":").map((v) => Number(v) || 0);
-      const d = new Date();
-      d.setHours(hh, mm, 0, 0);
-      return d;
+      const dt = DateTime.now().set({ hour: hh, minute: mm, second: 0, millisecond: 0 });
+      return toSurrealDateTime(dt);
     };
 
     vals.start_date = toDateTime(vals.start_date);
@@ -153,14 +162,15 @@ export const CouponForm = ({ open, onClose, data }: Props) => {
       if (vals.id) {
         await db.update(vals.id, {
           ...vals,
-          updated_at: new Date(),
+          updated_at: nowSurrealDateTime(),
         });
       } else {
+        const now = nowSurrealDateTime();
         await db.create(Tables.coupons, {
           ...vals,
           used_count: 0,
-          created_at: new Date(),
-          updated_at: new Date(),
+          created_at: now,
+          updated_at: now,
         });
       }
 
@@ -349,7 +359,7 @@ export const CouponForm = ({ open, onClose, data }: Props) => {
                   const value = field.value
                     ? typeof field.value === "string"
                       ? field.value
-                      : new Date(field.value as any).toTimeString().slice(0, 5)
+                      : toJsDate(field.value as any).toTimeString().slice(0, 5)
                     : "";
                   return (
                     <Input
@@ -369,7 +379,7 @@ export const CouponForm = ({ open, onClose, data }: Props) => {
                   const value = field.value
                     ? typeof field.value === "string"
                       ? field.value
-                      : new Date(field.value as any).toTimeString().slice(0, 5)
+                      : toJsDate(field.value as any).toTimeString().slice(0, 5)
                     : "";
                   return (
                     <Input
@@ -391,7 +401,7 @@ export const CouponForm = ({ open, onClose, data }: Props) => {
                   const value = field.value
                     ? typeof field.value === "string"
                       ? field.value
-                      : new Date(field.value as any).toISOString().slice(0, 16)
+                      : toJsDate(field.value as any).toISOString().slice(0, 16)
                     : "";
                   return (
                     <Input
@@ -411,7 +421,7 @@ export const CouponForm = ({ open, onClose, data }: Props) => {
                   const value = field.value
                     ? typeof field.value === "string"
                       ? field.value
-                      : new Date(field.value as any).toISOString().slice(0, 16)
+                      : toJsDate(field.value as any).toISOString().slice(0, 16)
                     : "";
                   return (
                     <Input

@@ -6,6 +6,7 @@ import {Order} from "@/api/model/order.ts";
 import {TimeEntry} from "@/api/model/time_entry.ts";
 import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderTotal} from "@/lib/cart.ts";
+import { toJsDate } from "@/lib/datetime.ts";
 
 interface HourlyData {
   hour: number;
@@ -118,7 +119,7 @@ export const SalesHourlyLabourReport = () => {
 
       // Filter orders for this hour
       const hourOrders = orders.filter(order => {
-        const orderDate = new Date(order.created_at);
+        const orderDate = toJsDate(order.created_at);
         const orderHour = orderDate.getHours();
         // Handle 24-hour format: 1am = 1, 2am = 2, ..., 11pm = 23, 12am = 0
         if (hour === 24) {
@@ -164,17 +165,17 @@ export const SalesHourlyLabourReport = () => {
       const labourMinutes = timeEntries.reduce((sum, entry) => {
         if (!entry.clock_in || !entry.clock_out) return sum;
         
-        const clockIn = new Date(entry.clock_in);
-        const clockOut = new Date(entry.clock_out);
+        const clockIn = toJsDate(entry.clock_in);
+        const clockOut = toJsDate(entry.clock_out);
         
         // Determine the hour range for this report hour (1am = 1, 12am = 0)
         const reportHour = hour === 24 ? 0 : hourStart;
         const nextHour = hour === 24 ? 1 : hourEnd;
         
         // Set hour boundaries based on the clock_in date
-        const hourStartTime = new Date(clockIn);
+        const hourStartTime = toJsDate(clockIn.getTime());
         hourStartTime.setHours(reportHour, 0, 0, 0);
-        const hourEndTime = new Date(clockIn);
+        const hourEndTime = toJsDate(clockIn.getTime());
         hourEndTime.setHours(nextHour, 0, 0, 0);
         
         // Check if time entry overlaps with this hour

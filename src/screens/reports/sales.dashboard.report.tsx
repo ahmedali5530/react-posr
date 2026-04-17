@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import {TabList, Tabs} from "react-aria-components";
 import {Tab, TabPanel} from "@/components/common/react-aria/tabs.tsx";
+import { toJsDate, toLuxonDateTime } from "@/lib/datetime.ts";
 
 
 // ==================== Types ====================
@@ -817,7 +818,7 @@ const DeliverySection = ({orders}: {orders: Order[]}) => {
                     </span>
                   </td>
                   <td className="py-3 px-3 text-sm text-neutral-600">
-                    {DateTime.fromJSDate(new Date(order.created_at)).toFormat('HH:mm')}
+                    {toLuxonDateTime(order.created_at).toFormat('HH:mm')}
                   </td>
                   <td className="py-3 pr-4 text-right text-sm font-semibold text-neutral-900">
                     {withCurrency(calculateOrderNetSales(order))}
@@ -920,8 +921,8 @@ const UserSessionsWidget = () => {
         const sessionsData = sessionsResults
           .filter(({entry}) => entry) // Only users with time entries
           .map(({user, entry}) => {
-            const clockIn = new Date(entry.clock_in);
-            const clockOut = entry.clock_out ? new Date(entry.clock_out) : null;
+            const clockIn = toJsDate(entry.clock_in);
+            const clockOut = entry.clock_out ? toJsDate(entry.clock_out) : null;
             const durationSeconds = entry.duration_seconds || 0;
 
             // Format duration
@@ -1105,9 +1106,9 @@ const LatestOrdersTable = ({orders}: {orders: Order[]}) => {
                   {order.items?.length || 0}
                 </td>
                 <td className="py-3 px-3 text-sm text-neutral-600">
-                  {DateTime.fromJSDate(new Date(order.created_at)).toFormat(import.meta.env.VITE_DATE_FORMAT)}
+                  {toLuxonDateTime(order.created_at).toFormat(import.meta.env.VITE_DATE_FORMAT)}
                   <br/>
-                  {DateTime.fromJSDate(new Date(order.created_at)).toFormat(import.meta.env.VITE_TIME_FORMAT)}
+                  {toLuxonDateTime(order.created_at).toFormat(import.meta.env.VITE_TIME_FORMAT)}
                 </td>
                 <td className="py-3 pr-4 text-right text-sm font-semibold text-neutral-900">
                   {withCurrency(calculateOrderNetSales(order))}
@@ -1232,7 +1233,7 @@ export const SalesDashboardReport = () => {
     const grouped = new Map<string, number>();
 
     orders.filter(o => o.status === 'Paid').forEach(order => {
-      const date = DateTime.fromJSDate(new Date(order.created_at));
+      const date = toLuxonDateTime(order.created_at);
       const key = date.toFormat('yyyy-MM-dd HH:00');
 
       grouped.set(key, (grouped.get(key) || 0) + calculateOrderNetSales(order));
@@ -1247,7 +1248,7 @@ export const SalesDashboardReport = () => {
     const grouped = new Map<string, number>();
 
     orders.forEach(order => {
-      const date = DateTime.fromJSDate(new Date(order.created_at));
+      const date = toLuxonDateTime(order.created_at);
       const key = date.toFormat('HH:00');
 
       grouped.set(key, (grouped.get(key) || 0) + 1);
@@ -1283,7 +1284,7 @@ export const SalesDashboardReport = () => {
     const map = new Map<string, {orders: number; revenue: number}>();
 
     orders.filter(o => o.status === 'Paid').forEach(order => {
-      const dayPart = getDayPart(new Date(order.created_at));
+      const dayPart = getDayPart(toJsDate(order.created_at));
       const current = map.get(dayPart) || {orders: 0, revenue: 0};
       current.orders += 1;
       current.revenue += calculateOrderNetSales(order);
@@ -1407,13 +1408,13 @@ export const SalesDashboardReport = () => {
     return orders.filter(o =>
       o.delivery && o.status !== 'Paid' && o.status !== 'Cancelled'
     ).sort((a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      toJsDate(b.created_at).getTime() - toJsDate(a.created_at).getTime()
     );
   }, [orders]);
 
   const latestOrders = useMemo(() => {
     return orders.sort((a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      toJsDate(b.created_at).getTime() - toJsDate(a.created_at).getTime()
     );
   }, [orders]);
 

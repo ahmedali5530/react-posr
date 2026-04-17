@@ -12,12 +12,12 @@ import { Category } from "@/api/model/category.ts";
 import { OrderType } from "@/api/model/order_type.ts";
 import { PaymentType } from "@/api/model/payment_type.ts";
 import { useDB } from "@/api/db/db.ts";
-import { DateTime } from "luxon";
 import {Order, ORDER_FETCHES, OrderStatus} from "@/api/model/order.ts";
 import { toast } from "sonner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChair, faTable } from "@fortawesome/free-solid-svg-icons";
 import { LiveSubscription } from "surrealdb";
+import { nowSurrealDateTime } from "@/lib/datetime.ts";
 
 
 export const FloorLayout = () => {
@@ -174,7 +174,7 @@ export const FloorLayout = () => {
 
       await db.merge(item.id, {
         is_locked: true,
-        locked_at: DateTime.now().toJSDate(),
+        locked_at: nowSurrealDateTime(),
         locked_by: `${page.user.first_name} ${page.user.last_name}`
       });
     }

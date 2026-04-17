@@ -19,6 +19,7 @@ import { calculateOrderItemPrice } from "@/lib/cart.ts";
 import { getOrderFilteredItems } from "@/lib/order.ts";
 import { toRecordId, withCurrency } from "@/lib/utils.ts";
 import type { UserShift } from "@/api/model/user.ts";
+import { nowSurrealDateTime, toJsDate, toLuxonDateTime } from "@/lib/datetime.ts";
 
 const formatShiftClock = (time: string) => {
   const trimmed = time.trim();
@@ -265,9 +266,9 @@ export const Clock = () => {
     if (!timeEntry || !page.user) return;
 
     try {
-      const clockOutTime = DateTime.now().toJSDate();
-      const clockInTime = new Date(timeEntry.clock_in);
-      const durationSeconds = Math.floor((clockOutTime.getTime() - clockInTime.getTime()) / 1000);
+      const clockOutTime = nowSurrealDateTime();
+      const clockInTime = toJsDate(timeEntry.clock_in);
+      const durationSeconds = Math.floor((toJsDate(clockOutTime).getTime() - clockInTime.getTime()) / 1000);
 
       // Update time entry with clock out time and duration
       await db.merge(timeEntry.id, {
@@ -305,9 +306,9 @@ export const Clock = () => {
     return null;
   }
 
-  const clockInDate = new Date(timeEntry.clock_in);
-  const formattedClockInTime = DateTime.fromJSDate(clockInDate).toFormat('hh:mm a');
-  const formattedClockInDate = DateTime.fromJSDate(clockInDate).toFormat('MMMM dd, yyyy');
+  const clockInDate = toJsDate(timeEntry.clock_in);
+  const formattedClockInTime = toLuxonDateTime(timeEntry.clock_in).toFormat('hh:mm a');
+  const formattedClockInDate = toLuxonDateTime(timeEntry.clock_in).toFormat('MMMM dd, yyyy');
 
   const user = page.user;
   const userDisplayName = user

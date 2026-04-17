@@ -2,9 +2,9 @@ import {Order as OrderModel, OrderStatus} from "@/api/model/order.ts";
 import {calculateOrderTotal} from "@/lib/cart.ts";
 import React, {useMemo, useState} from "react";
 import {cn, withCurrency} from "@/lib/utils.ts";
-import {DateTime} from "luxon";
 import {OrderPayment} from "@/components/orders/order.payment.tsx";
 import {getInvoiceNumber, getOrderFilteredItems} from "@/lib/order.ts";
+import { toLuxonDateTime } from "@/lib/datetime.ts";
 
 interface Props {
   order: OrderModel
@@ -53,7 +53,7 @@ export const OrderRow = ({
         }>{order?.status}</span>
         </div>
         <div className="flex basis-[200px] items-center px-3">
-          {DateTime.fromJSDate(order.created_at).toFormat('yyyy-MM-dd hh:mm a')}
+          {toLuxonDateTime(order.created_at).toFormat('yyyy-MM-dd hh:mm a')}
         </div>
         <div className="flex items-center px-3 gap-1">
           <span className="inline-flex h-[24px] min-w-[24px] rounded-full bg-gray-900 text-white justify-center items-center">

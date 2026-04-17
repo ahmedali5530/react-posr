@@ -8,6 +8,7 @@ import {calculateOrderTotal} from "@/lib/cart.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
 import {OrderPayment} from "@/api/model/order_payment.ts";
 import {DateTime} from "luxon";
+import { toLuxonDateTime } from "@/lib/datetime.ts";
 
 type WeekdayName = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
 type MetricKey = 'amountCollected' | 'grossSales' | 'couponAmount' | 'labourMinutes';
@@ -146,7 +147,7 @@ export const SalesHourlyLabourWeeklyReport = () => {
       date >= weekStart.startOf('day') && date <= weekEnd.endOf('day');
 
     orders.forEach((order) => {
-      const created = DateTime.fromJSDate(new Date(order.created_at));
+      const created = toLuxonDateTime(order.created_at);
       if (!withinWeek(created)) {
         return;
       }
@@ -175,8 +176,8 @@ export const SalesHourlyLabourWeeklyReport = () => {
         return;
       }
 
-      let start = DateTime.fromJSDate(new Date(entry.clock_in));
-      let end = DateTime.fromJSDate(new Date(entry.clock_out));
+      let start = toLuxonDateTime(entry.clock_in);
+      let end = toLuxonDateTime(entry.clock_out);
       if (!start.isValid || !end.isValid || end <= start) {
         return;
       }

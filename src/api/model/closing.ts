@@ -1,5 +1,6 @@
 import { ID } from "@/api/model/common.ts";
 import { PaymentType } from "@/api/model/payment_type.ts";
+import { DateTime } from "surrealdb";
 
 export interface TerminalCash {
   terminal_id: string;
@@ -32,6 +33,6 @@ export interface Closing extends ID {
   net_amount: number;
   notes?: string;
   created_by?: string;
-  created_at: string;
+  created_at: DateTime;
   status: 'draft' | 'completed';
 }

@@ -3,10 +3,11 @@ import {Kitchen} from "@/api/model/kitchen.ts";
 import {InventoryItem} from "@/api/model/inventory_item.ts";
 import {InventoryStore} from "@/api/model/inventory_store.ts";
 import {Document} from '@/api/model/document.ts';
+import { DateTime } from "surrealdb";
 
 export interface InventoryIssue {
   id: string
-  created_at: string
+  created_at: DateTime
   created_by: User
   kitchen?: Kitchen
   issued_to?: User

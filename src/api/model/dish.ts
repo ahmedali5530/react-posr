@@ -3,6 +3,7 @@ import { ID, Name, Priority } from "@/api/model/common.ts";
 import { Tax } from "@/api/model/tax.ts";
 import { DishModifierGroup } from "@/api/model/dish_modifier_group.ts";
 import {InventoryItem} from "@/api/model/inventory_item.ts";
+import { DateTime } from "surrealdb";
 
 export interface Dish extends ID, Name, Priority {
   allow_half?: boolean
@@ -18,8 +19,8 @@ export interface Dish extends ID, Name, Priority {
   discount?: number
   tax?: Tax
 
-  deleted_at?: Date
-  created_at?: Date
+  deleted_at?: DateTime
+  created_at?: DateTime
 }
 
 export interface MenuItemRecipe extends ID {

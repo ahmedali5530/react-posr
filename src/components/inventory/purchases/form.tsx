@@ -30,6 +30,7 @@ import {calendarDateToDate, dateToCalendarDate, getToday} from "@/utils/date.ts"
 import {Switch} from "@/components/common/input/switch.tsx";
 import {OrderStatus} from "@/api/model/order.ts";
 import {DateTime} from "luxon";
+import { nowSurrealDateTime, toJsDate, toSurrealDateTime } from "@/lib/datetime.ts";
 
 type PurchaseMethod = "manual" | "csv" | "purchase_order";
 
@@ -313,7 +314,7 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
         },
         comments: data.comments ?? "",
         documents: undefined,
-        date: data.created_at ? dateToCalendarDate(data.created_at) : getToday(),
+        date: data.created_at ? dateToCalendarDate(toJsDate(data.created_at)) : getToday(),
         update_item_cost: false,
         items: data.items?.map(item => ({
           item: item.item ? {
@@ -409,7 +410,7 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
         comments: values.comments?.trim() ? values.comments.trim() : undefined,
         documents: documentRefs.length > 0 ? documentRefs : undefined,
         items: [],
-        created_at: values.date ? calendarDateToDate(values.date) || new Date() : new Date(),
+        created_at: values.date ? toSurrealDateTime(calendarDateToDate(values.date) || undefined) : nowSurrealDateTime(),
         created_by: toRecordId(state.user.id)
       };
 

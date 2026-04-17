@@ -1,3 +1,4 @@
+import { DateTime } from "surrealdb";
 export type CouponType = 'order' | 'product' | 'shipping';
 export type CouponDiscountType = 'fixed' | 'percent';
 
@@ -33,8 +34,8 @@ export interface Coupon {
   start_time?: string; // "HH:mm:ss"
   end_time?: string;
 
-  start_date?: string; // ISO datetime
-  end_date?: string;
+  start_date?: DateTime;
+  end_date?: DateTime;
 
   stackable: boolean;
   first_order_only: boolean;
@@ -42,8 +43,8 @@ export interface Coupon {
 
   is_active: boolean;
 
-  created_at: string;
-  updated_at: string;
+  created_at: DateTime;
+  updated_at: DateTime;
 }
 
 export interface CouponRedemption {
@@ -55,5 +56,5 @@ export interface CouponRedemption {
 
   discount_amount: number;
 
-  redeemed_at: string;
+  redeemed_at: DateTime;
 }

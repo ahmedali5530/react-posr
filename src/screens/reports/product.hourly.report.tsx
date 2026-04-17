@@ -6,6 +6,7 @@ import {Order} from "@/api/model/order.ts";
 import {OrderItem} from "@/api/model/order_item.ts";
 import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
+import { toJsDate } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -115,7 +116,7 @@ export const ProductHourlyReport = () => {
       : Array.from({length: 24}, (_, i) => i);
 
     orders.forEach(order => {
-      const orderDate = new Date(order.created_at);
+      const orderDate = toJsDate(order.created_at);
       const orderHour = orderDate.getHours();
 
       // Skip if hour filter is applied and this hour is not in the filter

@@ -7,6 +7,7 @@ import {OrderVoid} from "@/api/model/order_void.ts";
 import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
 import {DateTime} from "luxon";
+import { toJsDate, toLuxonDateTime } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -165,7 +166,7 @@ export const SalesWeeklyReport = () => {
 
     // Process orders
     orders.forEach(order => {
-      const orderDate = DateTime.fromJSDate(new Date(order.created_at));
+      const orderDate = toLuxonDateTime(order.created_at);
       const dateKey = orderDate.toISODate();
       if (!dateKey || !metrics[dateKey]) {
         return;
@@ -196,7 +197,7 @@ export const SalesWeeklyReport = () => {
       });
 
       // Sales by day part
-      const dayPart = getDayPartLabel(new Date(order.created_at));
+      const dayPart = getDayPartLabel(toJsDate(order.created_at));
       dayMetric.salesByDayPart[dayPart] += netSales;
 
       // Service charges
@@ -228,7 +229,7 @@ export const SalesWeeklyReport = () => {
 
     // Process voids
     orderVoids.forEach(voidEntry => {
-      const voidDate = DateTime.fromISO(voidEntry.created_at);
+      const voidDate = toLuxonDateTime(voidEntry.created_at);
       const dateKey = voidDate.toISODate();
       if (!dateKey || !metrics[dateKey]) {
         return;

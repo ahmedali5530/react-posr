@@ -11,6 +11,7 @@ import {InventoryPurchaseOrderForm} from "@/components/inventory/purchase_orders
 import {DeleteConfirm} from "@/components/common/table/delete.confirm.tsx";
 import {useDB} from "@/api/db/db.ts";
 import {InventoryPurchaseOrderViewModal} from "@/components/inventory/purchase_orders/view.modal.tsx";
+import { toJsDate } from "@/lib/datetime.ts";
 
 export const InventoryPurchaseOrders = () => {
   const loadHook = useApi<SettingsData<InventoryPurchaseOrder>>(
@@ -43,7 +44,7 @@ export const InventoryPurchaseOrders = () => {
     }),
     columnHelper.accessor("created_at", {
       header: "Created at",
-      cell: info => info.getValue() ? new Date(info.getValue() as string).toLocaleString() : ""
+      cell: info => info.getValue() ? toJsDate(info.getValue() as any).toLocaleString() : ""
     }),
     columnHelper.accessor("items", {
       header: "Items",

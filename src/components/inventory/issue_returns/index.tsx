@@ -9,6 +9,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faFile, faPencil, faPlus} from "@fortawesome/free-solid-svg-icons";
 import {InventoryIssueReturnForm} from "@/components/inventory/issue_returns/form.tsx";
 import {InventoryIssueReturnViewModal} from "@/components/inventory/issue_returns/view.modal.tsx";
+import { toJsDate } from "@/lib/datetime.ts";
 
 export const InventoryIssueReturns = () => {
   const loadHook = useApi<SettingsData<InventoryIssueReturn>>(
@@ -38,7 +39,7 @@ export const InventoryIssueReturns = () => {
     }),
     columnHelper.accessor("created_at", {
       header: "Created at",
-      cell: info => info.getValue() ? new Date(info.getValue() as string).toLocaleString() : ""
+      cell: info => info.getValue() ? toJsDate(info.getValue() as any).toLocaleString() : ""
     }),
     columnHelper.accessor('issued_to', {
       id: "issued_to",

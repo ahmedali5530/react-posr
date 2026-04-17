@@ -22,6 +22,7 @@ import {formatNumber, withCurrency} from "@/lib/utils.ts";
 import {toast} from "sonner";
 import ScrollContainer from "react-indiana-drag-scroll";
 import {useSecurity} from "@/hooks/useSecurity.ts";
+import { toJsDate } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -221,8 +222,8 @@ export const Summary = () => {
           checks: 0,
           sales: 0,
         };
-        const inAt = entry.clock_in ? new Date(entry.clock_in).getTime() : 0;
-        const outAt = entry.clock_out ? new Date(entry.clock_out).getTime() : 0;
+        const inAt = entry.clock_in ? toJsDate(entry.clock_in).getTime() : 0;
+        const outAt = entry.clock_out ? toJsDate(entry.clock_out).getTime() : 0;
         if (inAt > 0 && outAt > inAt) current.durationMs += (outAt - inAt);
         perUser.set(userId, current);
       });

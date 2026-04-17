@@ -6,6 +6,7 @@ import { Button } from "@/components/common/input/button.tsx";
 import { useDB } from "@/api/db/db.ts";
 import { OrderItemName } from "@/components/common/order/order.item.tsx";
 import {getInvoiceNumber} from "@/lib/order.ts";
+import { nowSurrealDateTime, toLuxonDateTime } from "@/lib/datetime.ts";
 
 interface Props {
   order: KitchenOrderModel
@@ -16,19 +17,19 @@ export const KitchenOrder = ({
 }: Props) => {
   const db = useDB();
 
-  const diff = DateTime.now().diff(DateTime.fromJSDate(order.items[0]?.created_at)).as('minutes');
+  const diff = DateTime.now().diff(toLuxonDateTime(order.items[0]?.created_at)).as('minutes');
 
   const ready = async () => {
     for(const item of order.items){
       await db.merge(item.id, {
-        completed_at: DateTime.now().toJSDate()
+        completed_at: nowSurrealDateTime()
       });
     }
   }
 
   const singleReady = async (item: string) => {
     await db.merge(item, {
-      completed_at: DateTime.now().toJSDate()
+      completed_at: nowSurrealDateTime()
     });
   }
 

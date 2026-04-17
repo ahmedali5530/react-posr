@@ -9,11 +9,11 @@ import React, {useMemo, useState} from "react";
 import {faCheck, faPlus, faTrash} from "@fortawesome/free-solid-svg-icons";
 import {useDB} from "@/api/db/db.ts";
 import {Tables} from "@/api/db/tables.ts";
-import {DateTime} from "luxon";
 import {toast} from "sonner";
 import {RecordId, StringRecordId} from "surrealdb";
 import {nanoid} from "nanoid";
 import {getOrderFilteredItems} from "@/lib/order.ts";
+import { nowSurrealDateTime } from "@/lib/datetime.ts";
 
 interface Props {
   order: OrderModel
@@ -215,7 +215,7 @@ export const SplitAmount = ({
             category: originalItem.category || undefined,
             is_addition: false,
             tax: originalItem.tax ? (originalItem.tax * splitRatio) : 0,
-            created_at: DateTime.now().toJSDate(),
+            created_at: nowSurrealDateTime(),
             // Set original_price: use current price if empty, otherwise keep existing original_price
             original_price: originalPrice
           };

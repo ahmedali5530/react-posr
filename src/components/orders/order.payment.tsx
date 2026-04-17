@@ -30,6 +30,7 @@ import { Coupon, CouponRedemption, WeekDay } from "@/api/model/coupon.ts";
 import { OrderPaymentCoupon } from "@/components/orders/payment/order.payment.coupon.tsx";
 import {toast} from "sonner";
 import {useSecurity} from "@/hooks/useSecurity.ts";
+import { nowSurrealDateTime, toJsDate } from "@/lib/datetime.ts";
 
 interface Props {
   order: Order
@@ -263,7 +264,8 @@ export const OrderPayment = ({
 
     setIsApplyingCoupon(true);
     try {
-      const now = new Date();
+      const now = nowSurrealDateTime();
+      const nowJs = now.toDate();
 
       const [coupons] = await db.query<Coupon[]>(
         `SELECT * FROM ${Tables.coupons} WHERE code = $code AND is_active = true ORDER BY priority ASC LIMIT 1`,
@@ -292,7 +294,7 @@ export const OrderPayment = ({
 
       const dayMap: WeekDay[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
       if (Array.isArray(couponRecord.valid_days) && couponRecord.valid_days.length > 0) {
-        const today = dayMap[now.getDay()];
+        const today = dayMap[nowJs.getDay()];
         if (!couponRecord.valid_days.includes(today)) {
           toast.error("Coupon is not valid today");
           return;
@@ -300,7 +302,7 @@ export const OrderPayment = ({
       }
 
       if (couponRecord.start_time || couponRecord.end_time) {
-        const [h, m] = now.toTimeString().split(":").map(Number);
+        const [h, m] = nowJs.toTimeString().split(":").map(Number);
         const currentMinutes = h * 60 + m;
 
         const toMinutesFromField = (value: unknown) => {
@@ -310,7 +312,7 @@ export const OrderPayment = ({
             if (Number.isNaN(hh) || Number.isNaN(mm)) return undefined;
             return hh * 60 + mm;
           }
-          const d = new Date(value as any);
+          const d = toJsDate(value as any);
           if (Number.isNaN(d.getTime())) return undefined;
           return d.getHours() * 60 + d.getMinutes();
         };
@@ -328,15 +330,15 @@ export const OrderPayment = ({
       }
 
       if (couponRecord.start_date) {
-        const startDate = new Date(couponRecord.start_date as any);
-        if (now < startDate) {
+        const startDate = toJsDate(couponRecord.start_date as any);
+        if (nowJs < startDate) {
           toast.error("Coupon is not active yet");
           return;
         }
       }
       if (couponRecord.end_date) {
-        const endDate = new Date(couponRecord.end_date as any);
-        if (now > endDate) {
+        const endDate = toJsDate(couponRecord.end_date as any);
+        if (nowJs > endDate) {
           toast.error("Coupon has expired");
           return;
         }
@@ -494,7 +496,7 @@ export const OrderPayment = ({
         const [created] = await db.create(Tables.order_coupons, {
           coupon: coupon.id,
           discount: couponAmount,
-          created_at: new Date(),
+          created_at: nowSurrealDateTime(),
         });
         orderCouponId = (created as any)?.id ?? created.id;
       }

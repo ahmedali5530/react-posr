@@ -6,6 +6,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faDownload, faFile} from "@fortawesome/free-solid-svg-icons";
 import {downloadArrayBuffer} from "@/utils/files.ts";
 import {Button} from "@/components/common/input/button.tsx";
+import { toJsDate } from "@/lib/datetime.ts";
 
 interface Props {
   open: boolean;
@@ -67,7 +68,7 @@ export const InventoryPurchaseViewModal = ({open, purchase, onClose}: Props) => 
                 Invoice #{viewPurchase.invoice_number}
               </div>
               <div className="text-xs text-neutral-500">
-                {viewPurchase.created_at ? new Date(viewPurchase.created_at).toLocaleString() : "—"}
+                {viewPurchase.created_at ? toJsDate(viewPurchase.created_at).toLocaleString() : "—"}
               </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-neutral-700">

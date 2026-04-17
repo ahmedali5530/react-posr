@@ -10,9 +10,9 @@ import {MenuDishModifiers} from "@/components/menu/modifiers.tsx";
 import {Input} from "@/components/common/input/input.tsx";
 import {VirtualKeyboard} from "@/components/common/input/virtual.keyboard.tsx";
 import {useDB} from "@/api/db/db.ts";
-import {DateTime} from "luxon";
 import {Tables} from "@/api/db/tables.ts";
 import {StringRecordId} from "surrealdb";
+import { nowSurrealDateTime } from "@/lib/datetime.ts";
 
 interface Props {
   item: MenuItem
@@ -38,13 +38,13 @@ export const CartItem = ({ item, index }: Props) => {
   const deleteOrderItem = async (item: MenuItem) => {
     // TODO: ask for pin to confirm deletion
     await db.merge(item.id, {
-      deleted_at: DateTime.now().toJSDate()
+      deleted_at: nowSurrealDateTime()
     });
 
     // TODO: ask for reason and comments
     await db.create(Tables.order_voids, {
       comments: deleteComments,
-      created_at: new Date(),
+      created_at: nowSurrealDateTime(),
       deleted_by: new StringRecordId(page.user.id),
       items: [item.id],
       quantity: item.quantity,
@@ -56,7 +56,7 @@ export const CartItem = ({ item, index }: Props) => {
       ...prev,
       cart: prev.cart.map((_item) => {
         if( item.id === _item.id ) {
-          _item.deleted_at = (new Date()).toISOString();
+          _item.deleted_at = nowSurrealDateTime();
         }
 
         return _item;

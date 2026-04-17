@@ -7,6 +7,7 @@ import {calculateOrderItemPrice} from "@/lib/cart.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
 import {OrderItem} from "@/api/model/order_item.ts";
 import {OrderPayment} from "@/api/model/order_payment.ts";
+import { toJsDate } from "@/lib/datetime.ts";
 
 type DayPartLabel = 'Breakfast' | 'Lunch' | 'Evening';
 
@@ -390,7 +391,7 @@ export const SalesServerReport = () => {
       const categoryTotals = collectCategoryTotals(order);
       const orderNet = Array.from(categoryTotals.values()).reduce((sum, row) => sum + row.netSales, 0);
       const covers = safeNumber(order.covers);
-      const dayPart = ensureDayPartEntry(entry.dayPartMap, getDayPart(new Date(order.created_at)));
+      const dayPart = ensureDayPartEntry(entry.dayPartMap, getDayPart(toJsDate(order.created_at)));
 
       dayPart.netSales += orderNet;
       dayPart.guests += covers;

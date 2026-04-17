@@ -4,12 +4,13 @@ import { DishModifierGroup } from "@/api/model/dish_modifier_group.ts";
 import { MenuItemType } from "@/api/model/cart_item.ts";
 import {User} from "@/api/model/user.ts";
 import {Category} from "@/api/model/category.ts";
+import { DateTime } from "surrealdb";
 
 export interface OrderItem extends ID {
   comments?: string
-  created_at: string
-  updated_at?: string
-  deleted_at?: string
+  created_at: DateTime
+  updated_at?: DateTime
+  deleted_at?: DateTime
   discount?: number
   item: Dish
   modifiers: OrderItemModifier[]

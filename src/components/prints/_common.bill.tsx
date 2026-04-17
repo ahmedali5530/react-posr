@@ -2,9 +2,9 @@ import {Order} from "@/api/model/order.ts";
 import {withCurrency} from "@/lib/utils.ts";
 import React from "react";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
-import {DateTime} from "luxon";
 import {DiscountType} from "@/api/model/discount.ts";
 import {getOrderFilteredItems} from "@/lib/order.ts";
+import { toLuxonDateTime } from "@/lib/datetime.ts";
 
 interface Props {
   order: Order
@@ -19,7 +19,7 @@ export const CommonBillParts = ({
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
         <span>Invoice# {order.invoice_number}</span>
-        <span>{DateTime.fromJSDate(order.created_at).toFormat('y-MM-dd hh:mm a')}</span>
+        <span>{toLuxonDateTime(order.created_at).toFormat('y-MM-dd hh:mm a')}</span>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
         <span>{order?.table?.name}{order?.table?.number}</span>

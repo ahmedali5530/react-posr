@@ -3,6 +3,7 @@ import { Category } from "@/api/model/category.ts";
 import { PaymentType } from "@/api/model/payment_type.ts";
 import { OrderType } from "@/api/model/order_type.ts";
 import { Floor } from "@/api/model/floor.ts";
+import { DateTime } from "surrealdb";
 
 export interface Table extends ID, Name, Priority {
   number: string
@@ -29,7 +30,7 @@ export interface Table extends ID, Name, Priority {
   block_source?: string
 
   is_locked?: boolean
-  locked_at?: string
+  locked_at?: DateTime
   locked_by?: string
 }
 

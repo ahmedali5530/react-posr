@@ -4,6 +4,7 @@ import {useDB} from "@/api/db/db.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {InventoryWaste} from "@/api/model/inventory_waste.ts";
 import {formatNumber} from "@/lib/utils.ts";
+import { toJsDate } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -194,7 +195,7 @@ export const WasteReport = () => {
                   </tr>
                 ) : (
                   wastes.flatMap(waste => {
-                    const date = new Date(waste.created_at);
+                    const date = toJsDate(waste.created_at);
                     const dateStr = date.toLocaleDateString();
                     const createdByName = waste.created_by
                       ? `${waste.created_by.first_name ?? ''} ${waste.created_by.last_name ?? ''}`.trim() || waste.created_by.login || 'Unknown'

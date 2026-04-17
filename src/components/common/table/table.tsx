@@ -3,11 +3,13 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  RowSelectionState,
+  Updater,
   PaginationState,
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import React, { FC, ReactNode, useEffect, useState, } from "react";
+import React, {FC, ReactNode, useEffect, useState,} from "react";
 import { useTranslation } from "react-i18next";
 import _ from "lodash";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -32,15 +34,26 @@ interface DropdownFilter {
 
 interface TableComponentProps {
   columns: any;
-  sort?: SortingState;
+  defaultSort?: SortingState;
+
   buttons?: ReactNode[];
   dropdownFilters?: DropdownFilter[]
-  // selectionButtons?: ButtonProps[];
+
   enableSearch?: boolean;
   enableRefresh?: boolean
+
+  enableSelection?: boolean
+  selectionButtons?: ReactNode[];
+  rowSelection?: RowSelectionState
+  onRowSelectionChange?: (state: RowSelectionState, selectedRows: any[]) => void
+
   loaderHook: UseApiResult;
+
   loaderLines?: number
   loaderLineItems?: number
+
+  customSearch?: boolean
+  customSearchHandler?: () => void
 }
 
 export const TableComponent: FC<TableComponentProps> = ({
@@ -48,11 +61,14 @@ export const TableComponent: FC<TableComponentProps> = ({
   buttons, dropdownFilters,
   enableSearch,
   loaderHook,
-  loaderLines, loaderLineItems, enableRefresh = true
+  loaderLines, loaderLineItems, enableRefresh = true,
+  enableSelection, selectionButtons, rowSelection: controlledRowSelection, onRowSelectionChange,
+  customSearchHandler: _customSearchHandler, customSearch: _customSearch,
+  defaultSort = []
 }) => {
   const { t } = useTranslation();
 
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>(defaultSort);
   useEffect(() => {
     if( sorting.length === 1 && sorting[0]?.id !== '' ) {
       handleSortChange!([`${sorting[0].id} ${sorting[0].desc === true ? 'DESC' : 'ASC'}`]);
@@ -71,8 +87,6 @@ export const TableComponent: FC<TableComponentProps> = ({
     handlePageChange!(pageIndex * pageSize);
     handleLimitChange!(pageSize);
   }, [pageIndex, pageSize]);
-
-  const [rowSelection, setRowSelection] = React.useState({});
 
   const pagination = React.useMemo(
     () => ({
@@ -97,38 +111,55 @@ export const TableComponent: FC<TableComponentProps> = ({
 
   const total = data?.total || 0;
 
+  const [internalRowSelection, setInternalRowSelection] = useState<RowSelectionState>({});
+  const rowSelection = controlledRowSelection ?? internalRowSelection;
+  const tableData = data?.data || [];
+
+  const getSelectionRowId = (originalRow: any, index: number) =>
+    originalRow?.id ?? originalRow?.uuid ?? `${index}`;
+
+  const handleSelectionStateChange = (updater: Updater<RowSelectionState>) => {
+    const nextState =
+      typeof updater === "function" ? updater(rowSelection) : updater;
+
+    if (controlledRowSelection === undefined) {
+      setInternalRowSelection(nextState);
+    }
+
+    if (!onRowSelectionChange) {
+      return;
+    }
+
+    const selectedRows = tableData.filter((row: any, index: number) => {
+      const rowId = getSelectionRowId(row, index);
+      return nextState[rowId] === true;
+    });
+
+    onRowSelectionChange(nextState, selectedRows);
+  };
+
   const table = useReactTable({
-    data: data?.data || [], //data.data[0],
+    data: tableData,
     pageCount: Math.ceil(total / pageSize), // total pages
     columns,
     getCoreRowModel: getCoreRowModel(),
     state: {
       sorting,
       pagination,
-      rowSelection,
+      rowSelection
     },
-    onRowSelectionChange: setRowSelection,
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
+    onRowSelectionChange: handleSelectionStateChange,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     manualPagination: true,
     enableMultiSort: false,
     manualSorting: true,
     manualFiltering: true,
+    enableRowSelection: enableSelection,
+    getRowId: getSelectionRowId,
   });
-
-  // const ids = useMemo(() => {
-  // return table.getSelectedRowModel().rows.map(item => (item.original as any).uuid)
-
-  // return [];
-  // }, [rowSelection]);
-
-  // const renderButton = (button: ButtonProps) => {
-  //   if( button.html ) {
-  //     return button.html;
-  //   }
-  // };
 
   const pageSizes: { [key: string | number]: any } = {
     10: 10,
@@ -136,6 +167,7 @@ export const TableComponent: FC<TableComponentProps> = ({
     25: 25,
     50: 50,
     100: 100,
+    500: 500
   };
 
   const {
@@ -261,11 +293,11 @@ export const TableComponent: FC<TableComponentProps> = ({
               </button>
             )}
 
-            {Object.keys(rowSelection).length > 0 && (
+            {(table.getIsSomeRowsSelected() || table.getIsAllRowsSelected()) && selectionButtons && (
               <>
-                {/*{selectionButtons?.map((button) => (*/}
-                {/*  <>{button}</>*/}
-                {/*))}*/}
+                {selectionButtons?.map((button, buttonIdx) => (
+                  <React.Fragment key={buttonIdx}>{button}</React.Fragment>
+                ))}
               </>
             )}
             <>

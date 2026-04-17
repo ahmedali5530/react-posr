@@ -25,6 +25,7 @@ import {fetchNetQuantity} from "@/utils/inventory.ts";
 import {DatePicker} from "@/components/common/react-aria/datepicker.tsx";
 import {DateValue} from "react-aria-components";
 import {dateToCalendarDate, calendarDateToDate, getToday} from "@/utils/date.ts";
+import { nowSurrealDateTime, toJsDate, toSurrealDateTime } from "@/lib/datetime.ts";
 
 
 interface Props {
@@ -164,7 +165,7 @@ export const InventoryPurchaseReturnForm = ({open, onClose, data}: Props) => {
           label: `Invoice #${data.purchase.invoice_number}`,
           value: data.purchase.id
         } : null,
-        date: data.created_at ? dateToCalendarDate(data.created_at) : getToday(),
+        date: data.created_at ? dateToCalendarDate(toJsDate(data.created_at)) : getToday(),
         documents: undefined,
         items: data.items?.map(item => ({
           store: (item.store || item.purchase_item?.store) ? {
@@ -287,7 +288,7 @@ export const InventoryPurchaseReturnForm = ({open, onClose, data}: Props) => {
         purchase: values.purchase ? toRecordId(values.purchase.value) : undefined,
         documents: documentRefs.length > 0 ? documentRefs : undefined,
         items: [],
-        created_at: values.date ? calendarDateToDate(values.date) || new Date() : new Date(),
+        created_at: values.date ? toSurrealDateTime(calendarDateToDate(values.date) || undefined) : nowSurrealDateTime(),
         created_by: toRecordId(state.user.id)
       };
 

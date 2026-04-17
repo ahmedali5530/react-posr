@@ -9,11 +9,12 @@ import { User } from "@/api/model/user.ts";
 import { Table } from "@/api/model/table.ts";
 import { OrderPayment } from "@/api/model/order_payment.ts";
 import { OrderCoupon } from "@/api/model/order_coupon.ts";
+import { DateTime } from "surrealdb";
 
 export interface Order extends ID{
   covers?: number
-  created_at: Date
-  completed_at?: Date
+  created_at: DateTime
+  completed_at?: DateTime
   customer?: Customer
   floor: Floor
   table: Table

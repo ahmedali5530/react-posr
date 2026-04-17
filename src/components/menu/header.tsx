@@ -11,6 +11,7 @@ import {Payment} from "@/components/payment/payment.tsx";
 import {Customers} from "@/components/customer/customer.tsx";
 import {getInvoiceNumber} from "@/lib/order.ts";
 import ScrollContainer from "react-indiana-drag-scroll";
+import { nowSurrealDateTime } from "@/lib/datetime.ts";
 
 export const MenuHeader = () => {
   const db = useDB();
@@ -40,7 +41,7 @@ export const MenuHeader = () => {
     // heartbeat of table
     const heartBeat = async () => {
       await db.merge(toRecordId(state.table.id), {
-        locked_at: new Date()
+        locked_at: nowSurrealDateTime()
       })
     }
 

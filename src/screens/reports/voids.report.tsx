@@ -4,6 +4,7 @@ import {useDB} from "@/api/db/db.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {OrderVoid} from "@/api/model/order_void.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
+import { toJsDate } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -366,7 +367,7 @@ export const VoidsReport = () => {
                   </tr>
                 ) : (
                   orderVoids.map((voidItem) => {
-                    const date = new Date(voidItem.created_at);
+                    const date = toJsDate(voidItem.created_at);
                     const dateStr = date.toLocaleDateString();
                     const timeStr = date.toLocaleTimeString();
                     const managerName = voidItem.deleted_by 

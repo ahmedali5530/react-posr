@@ -26,6 +26,7 @@ import {DatePicker} from "@/components/common/react-aria/datepicker.tsx";
 import {DateValue} from "react-aria-components";
 import {dateToCalendarDate, calendarDateToDate, getToday} from "@/utils/date.ts";
 import {Switch} from "@/components/common/input/switch.tsx";
+import { nowSurrealDateTime, toJsDate, toSurrealDateTime } from "@/lib/datetime.ts";
 
 interface InventoryIssueItemFormValue {
   store: { label: string; value: string } | null;
@@ -254,7 +255,7 @@ export const InventoryIssueForm = ({open, onClose, data}: Props) => {
           label: data.kitchen.name,
           value: data.kitchen.id
         } : null,
-        date: data.created_at ? dateToCalendarDate(data.created_at) : getToday(),
+        date: data.created_at ? dateToCalendarDate(toJsDate(data.created_at)) : getToday(),
         documents: undefined,
         update_item_cost: false,
         items: data.items?.map(item => ({
@@ -451,7 +452,7 @@ export const InventoryIssueForm = ({open, onClose, data}: Props) => {
       };
 
       if (!data?.id) {
-        payload.created_at = values.date ? calendarDateToDate(values.date) || new Date() : new Date();
+        payload.created_at = values.date ? toSurrealDateTime(calendarDateToDate(values.date) || undefined) : nowSurrealDateTime();
         if (state?.user?.id) {
           payload.created_by = toRecordId(state.user.id);
         }

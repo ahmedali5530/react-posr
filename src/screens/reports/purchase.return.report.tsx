@@ -4,6 +4,7 @@ import {useDB} from "@/api/db/db.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {InventoryPurchaseReturn} from "@/api/model/inventory_purchase_return.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
+import { toJsDate } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -223,7 +224,7 @@ export const PurchaseReturnReport = () => {
                   </tr>
                 ) : (
                   purchaseReturns.flatMap(purchaseReturn => {
-                    const date = new Date(purchaseReturn.created_at);
+                    const date = toJsDate(purchaseReturn.created_at);
                     const dateStr = date.toLocaleDateString();
                     const storeName = purchaseReturn.store?.name || 'N/A';
                     const createdByName = purchaseReturn.created_by

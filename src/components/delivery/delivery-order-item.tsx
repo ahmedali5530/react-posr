@@ -3,10 +3,10 @@ import { Order, OrderStatus } from "@/api/model/order.ts";
 import { getInvoiceNumber, getOrderFilteredItems } from "@/lib/order.ts";
 import { calculateOrderTotal } from "@/lib/cart.ts";
 import { withCurrency } from "@/lib/utils.ts";
-import { DateTime } from "luxon";
 import { cn } from "@/lib/utils.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMapMarkerAlt, faClock, faShoppingBag, faBiking, faUser, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { toLuxonDateTime } from "@/lib/datetime.ts";
 
 interface DeliveryOrderItemProps {
   order: Order;
@@ -91,7 +91,7 @@ export const DeliveryOrderItem: React.FC<DeliveryOrderItemProps> = ({
           <div className="flex items-center gap-2 mt-1">
             <FontAwesomeIcon icon={faClock} className="text-xs text-neutral-500" />
             <span className="text-xs text-neutral-500">
-              {DateTime.fromJSDate(new Date(order.created_at)).toFormat("hh:mm a")}
+              {toLuxonDateTime(order.created_at).toFormat("hh:mm a")}
             </span>
           </div>
         </div>

@@ -9,6 +9,7 @@ import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { TableComponent } from "@/components/common/table/table.tsx";
 import { MenuForm } from "@/components/settings/menu/menu.form.tsx";
 import { MenuItems } from "@/components/settings/menu/menu.items.tsx";
+import { toJsDate } from "@/lib/datetime.ts";
 
 export const AdminMenus = () => {
   const loadHook = useApi<SettingsData<Menu>>(Tables.menus, [], [], 0, 10, ['items', 'items.menu_item', 'items.tax']);
@@ -21,9 +22,9 @@ export const AdminMenus = () => {
   const columnHelper = createColumnHelper<Menu>();
 
   // Helper function to format Date to time string (HH:mm)
-  const formatTime = (date: Date | string | undefined): string => {
+  const formatTime = (date: unknown): string => {
     if (!date) return '-';
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const dateObj = toJsDate(date as any);
     if (isNaN(dateObj.getTime())) return '-';
     const hours = dateObj.getHours().toString().padStart(2, '0');
     const minutes = dateObj.getMinutes().toString().padStart(2, '0');

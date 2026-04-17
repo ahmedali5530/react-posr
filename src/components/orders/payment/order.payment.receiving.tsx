@@ -24,6 +24,7 @@ import {StringRecordId} from "surrealdb";
 import {createPaymentIntent, GatewayType, verifyPayment} from "@/lib/payment.service.ts";
 import {calculateChangeDue, calculateOrderGrandTotal} from "@/lib/cart.ts";
 import {useSecurity} from "@/hooks/useSecurity.ts";
+import { nowSurrealDateTime } from "@/lib/datetime.ts";
 
 interface Props {
   order: Order
@@ -167,7 +168,7 @@ export const OrderPaymentReceiving = ({
         service_charge_type: serviceChargeType,
         cashier: new StringRecordId(page?.user?.id.toString()),
         notes: notes,
-        completed_at: new Date()
+        completed_at: nowSurrealDateTime()
       });
 
       if (coupon && couponAmount && couponAmount > 0) {
@@ -176,7 +177,7 @@ export const OrderPaymentReceiving = ({
           user: page?.user?.id ? new StringRecordId(page.user.id.toString()) : null,
           order: order.id,
           discount_amount: couponAmount,
-          redeemed_at: new Date(),
+          redeemed_at: nowSurrealDateTime(),
         });
       }
 

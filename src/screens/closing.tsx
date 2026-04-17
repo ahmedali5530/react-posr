@@ -14,6 +14,7 @@ import {toast} from "sonner";
 import {Input} from "@/components/common/input/input.tsx";
 import {Textarea} from "@/components/common/input/textarea.tsx";
 import ScrollContainer from "react-indiana-drag-scroll";
+import { nowSurrealDateTime } from "@/lib/datetime.ts";
 
 export const Closing = () => {
   const db = useDB();
@@ -195,7 +196,7 @@ export const Closing = () => {
         total_expenses: totalExpenses,
         net_amount: netAmount,
         notes: notes,
-        created_at: new Date().toISOString(),
+        created_at: nowSurrealDateTime(),
         status: 'completed'
       };
 

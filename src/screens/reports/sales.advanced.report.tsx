@@ -5,6 +5,7 @@ import {Tables} from "@/api/db/tables.ts";
 import {Order, OrderStatus} from "@/api/model/order.ts";
 import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
+import { toJsDate } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -408,7 +409,7 @@ export const SalesAdvancedReport = () => {
               <tbody className="divide-y divide-neutral-100 bg-white">
                 {filteredOrders.map(order => {
                   const orderTotals = calculateOrderTotals(order);
-                  const orderDate = new Date(order.created_at);
+                  const orderDate = toJsDate(order.created_at);
                   const dateStr = orderDate.toLocaleDateString();
                   const orderTakerName = order.user
                     ? `${order.user.first_name ?? ''} ${order.user.last_name ?? ''}`.trim() || order.user.login || 'Unknown'

@@ -14,6 +14,7 @@ import {getOrderFilteredItems} from "@/lib/order.ts";
 import {dispatchPrint} from "@/lib/print.service.ts";
 import {Kitchen} from "@/api/model/kitchen.ts";
 import ScrollContainer from "react-indiana-drag-scroll";
+import { nowSurrealDateTime } from "@/lib/datetime.ts";
 
 interface OrderCancelModalProps {
   order: OrderModel
@@ -128,7 +129,7 @@ export const OrderCancelModal = ({
     try {
       const userId = new StringRecordId(page.user.id.toString());
       const orderId = new StringRecordId(order.id.toString());
-      const now = new Date();
+      const now = nowSurrealDateTime();
 
       if (allSelected) {
         await db.merge(orderId, {

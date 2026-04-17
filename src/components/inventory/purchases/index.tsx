@@ -10,6 +10,7 @@ import {faFile, faPencil, faPlus, faUpload} from "@fortawesome/free-solid-svg-ic
 import {InventoryPurchaseForm} from "@/components/inventory/purchases/form.tsx";
 import {InventoryPurchaseUpload} from "@/components/inventory/purchases/upload.tsx";
 import {InventoryPurchaseViewModal} from "@/components/inventory/purchases/view.modal.tsx";
+import { toJsDate } from "@/lib/datetime.ts";
 
 export const InventoryPurchases = () => {
   const loadHook = useApi<SettingsData<InventoryPurchase>>(
@@ -43,7 +44,7 @@ export const InventoryPurchases = () => {
     }),
     columnHelper.accessor("created_at", {
       header: "Created at",
-      cell: info => info.getValue() ? new Date(info.getValue() as string).toLocaleString() : ""
+      cell: info => info.getValue() ? toJsDate(info.getValue() as any).toLocaleString() : ""
     }),
     columnHelper.accessor("items", {
       header: "Items",

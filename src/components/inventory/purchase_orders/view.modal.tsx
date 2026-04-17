@@ -6,6 +6,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faDownload, faFile} from "@fortawesome/free-solid-svg-icons";
 import {downloadArrayBuffer} from "@/utils/files.ts";
 import {Button} from "@/components/common/input/button.tsx";
+import { toJsDate } from "@/lib/datetime.ts";
 
 interface Props {
   open: boolean;
@@ -79,7 +80,7 @@ export const InventoryPurchaseOrderViewModal = ({open, order, onClose}: Props) =
               </div>
               <div>
                 <div className="text-neutral-500 text-xs uppercase">Created at</div>
-                <div>{viewOrder.created_at ? new Date(viewOrder.created_at).toLocaleString() : "—"}</div>
+                <div>{viewOrder.created_at ? toJsDate(viewOrder.created_at).toLocaleString() : "—"}</div>
               </div>
             </div>
           </div>

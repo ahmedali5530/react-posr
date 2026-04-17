@@ -10,6 +10,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import React, { useEffect } from "react";
 import { Switch } from "@/components/common/input/switch.tsx";
+import { nowSurrealDateTime, toJsDate, toSurrealDateTime } from "@/lib/datetime.ts";
 
 interface Props {
   open: boolean
@@ -29,9 +30,9 @@ export const MenuForm = ({
   open, onClose, data
 }: Props) => {
   // Helper function to convert Date to time string (HH:mm)
-  const dateToTimeString = (date: Date | string | undefined): string | null => {
+  const dateToTimeString = (date: unknown): string | null => {
     if (!date) return null;
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const dateObj = toJsDate(date as any);
     if (isNaN(dateObj.getTime())) return null;
     const hours = dateObj.getHours().toString().padStart(2, '0');
     const minutes = dateObj.getMinutes().toString().padStart(2, '0');
@@ -39,13 +40,13 @@ export const MenuForm = ({
   };
 
   // Helper function to convert time string (HH:mm) to Date (using today's date)
-  const timeStringToDate = (timeString: string | null | undefined): Date | null => {
+  const timeStringToDate = (timeString: string | null | undefined) => {
     if (!timeString) return null;
     const [hours, minutes] = timeString.split(':').map(Number);
     if (isNaN(hours) || isNaN(minutes)) return null;
-    const date = new Date();
+    const date = toJsDate(nowSurrealDateTime());
     date.setHours(hours, minutes, 0, 0);
-    return date;
+    return toSurrealDateTime(date);
   };
 
   const closeModal = () => {

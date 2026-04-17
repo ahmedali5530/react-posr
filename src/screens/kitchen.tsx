@@ -16,6 +16,7 @@ import {cn, formatNumber, safeNumber, toRecordId} from "@/lib/utils.ts";
 import {Customers} from "@/components/customer/customer.tsx";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {LiveSubscription} from "surrealdb";
+import { nowSurrealDateTime, toSurrealDateTime } from "@/lib/datetime.ts";
 
 
 
@@ -51,7 +52,7 @@ export const KitchenScreen = () => {
       fetch order_item, order_item.item, order_item.order, order_item.order.table, order_item.order.user, order_item.order.order_type
     `, {
       kitchen: toRecordId(kitchenId),
-      startDate: DateTime.now().startOf('day').toJSDate()
+      startDate: toSurrealDateTime(DateTime.now().startOf('day'))
     });
 
     const groupedOrders = new Map<string, KitchenOrderModel>();
@@ -131,7 +132,7 @@ export const KitchenScreen = () => {
   const completeAllOrders = async () => {
     await db.query(`update ${Tables.order_items_kitchen} set completed_at = $time where kitchen = $kitchen and completed_at = None`, {
       kitchen: kitchen.id,
-      time: DateTime.now().toJSDate()
+      time: nowSurrealDateTime()
     });
   }
 

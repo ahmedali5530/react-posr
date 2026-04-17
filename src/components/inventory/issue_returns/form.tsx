@@ -25,6 +25,7 @@ import {fetchNextSequentialNumber, isUniqueRecordNumber} from "@/utils/recordNum
 import {DatePicker} from "@/components/common/react-aria/datepicker.tsx";
 import {DateValue} from "react-aria-components";
 import {dateToCalendarDate, calendarDateToDate, getToday} from "@/utils/date.ts";
+import { nowSurrealDateTime, toJsDate, toSurrealDateTime } from "@/lib/datetime.ts";
 
 interface InventoryIssueReturnItemFormValue {
   item: { label: string; value: string } | null;
@@ -209,7 +210,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
           label: data.kitchen.name,
           value: data.kitchen.id
         } : null,
-        date: data.created_at ? dateToCalendarDate(data.created_at) : getToday(),
+        date: data.created_at ? dateToCalendarDate(toJsDate(data.created_at)) : getToday(),
         documents: undefined,
         items: data.items?.map(item => ({
           item: item.item ? {
@@ -381,7 +382,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
         store: values.store ? toRecordId(values.store.value) : undefined,
         items: [],
         documents: documentRefs.length > 0 ? documentRefs : undefined,
-        created_at: values.date ? calendarDateToDate(values.date) || new Date() : new Date(),
+        created_at: values.date ? toSurrealDateTime(calendarDateToDate(values.date) || undefined) : nowSurrealDateTime(),
         created_by: toRecordId(state.user.id)
       };
 

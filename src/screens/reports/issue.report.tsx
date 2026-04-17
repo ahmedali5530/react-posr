@@ -4,6 +4,7 @@ import {useDB} from "@/api/db/db.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {InventoryIssue} from "@/api/model/inventory_issue.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
+import { toJsDate } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -222,7 +223,7 @@ export const IssueReport = () => {
                   </tr>
                 ) : (
                   issues.flatMap(issue => {
-                    const date = new Date(issue.created_at);
+                    const date = toJsDate(issue.created_at);
                     const dateStr = date.toLocaleDateString();
                     const kitchenName = issue.kitchen?.name || 'N/A';
                     const storeName = issue.store?.name || 'N/A';

@@ -24,6 +24,7 @@ import {fetchNextSequentialNumber, isUniqueRecordNumber} from "@/utils/recordNum
 import {DatePicker} from "@/components/common/react-aria/datepicker.tsx";
 import {DateValue} from "react-aria-components";
 import {dateToCalendarDate, calendarDateToDate, getToday} from "@/utils/date.ts";
+import { nowSurrealDateTime, toJsDate, toSurrealDateTime } from "@/lib/datetime.ts";
 
 type SourceType = "purchase" | "issue";
 
@@ -137,7 +138,7 @@ export const InventoryWasteForm = ({open, onClose, data}: Props) => {
     if (data) {
       reset({
         invoice_number: data.invoice_number,
-        date: data.created_at ? dateToCalendarDate(data.created_at) : getToday(),
+        date: data.created_at ? dateToCalendarDate(toJsDate(data.created_at)) : getToday(),
         documents: undefined,
         items: data.items?.map(item => ({
           source_type: data.purchase ? "purchase" : data.issue ? "issue" : "purchase",
@@ -230,7 +231,7 @@ export const InventoryWasteForm = ({open, onClose, data}: Props) => {
         issue: issueId ? toRecordId(issueId) : undefined,
         documents: documentRefs.length > 0 ? documentRefs : undefined,
         items: [],
-        created_at: values.date ? calendarDateToDate(values.date) || new Date() : new Date(),
+        created_at: values.date ? toSurrealDateTime(calendarDateToDate(values.date) || undefined) : nowSurrealDateTime(),
         created_by: toRecordId(state.user.id),
       };
 
