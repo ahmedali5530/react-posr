@@ -16,7 +16,8 @@ import {cn, formatNumber, safeNumber, toRecordId} from "@/lib/utils.ts";
 import {Customers} from "@/components/customer/customer.tsx";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import {LiveSubscription} from "surrealdb";
-import { nowSurrealDateTime, toSurrealDateTime } from "@/lib/datetime.ts";
+import { nowSurrealDateTime, toLuxonDateTime, toSurrealDateTime } from "@/lib/datetime.ts";
+import { getInvoiceNumber } from "@/lib/order.ts";
 
 
 
@@ -36,6 +37,32 @@ export const KitchenScreen = () => {
     })
   }, [allOrders]);
   const [avgTime, setAvgTime] = useState('-');
+  const [showCompletedOrdersModal, setShowCompletedOrdersModal] = useState(false);
+  const [completedOrders, setCompletedOrders] = useState<KitchenOrderModel[]>([]);
+  const [loadingCompletedOrders, setLoadingCompletedOrders] = useState(false);
+  const [recallingOrderKey, setRecallingOrderKey] = useState<string | null>(null);
+
+  const groupKitchenOrderItems = useCallback((records: OrderItemKitchen[] = []) => {
+    const groupedOrders = new Map<string, KitchenOrderModel>();
+
+    for (const item of records ?? []) {
+      const order = item.order_item?.order as Order | undefined;
+      const orderId = order?.id ?? String(item.order_item?.order ?? '');
+      const createdAtKey = (item as any).batch_created_at ?? '';
+      const groupKey = `${orderId}_${createdAtKey}`;
+
+      if (!groupedOrders.has(groupKey)) {
+        groupedOrders.set(groupKey, {
+          order,
+          items: []
+        });
+      }
+
+      groupedOrders.get(groupKey)?.items.push(item);
+    }
+
+    return Array.from(groupedOrders.values());
+  }, []);
 
   const loadOrders = useCallback(async (kitchenId: string) => {
     const [kitchenOrderItemsRecord]: any = await db.query(`
@@ -55,27 +82,73 @@ export const KitchenScreen = () => {
       startDate: toSurrealDateTime(DateTime.now().startOf('day'))
     });
 
-    const groupedOrders = new Map<string, KitchenOrderModel>();
-    for (const item of kitchenOrderItemsRecord ?? []) {
-      const order = item.order_item?.order as Order | undefined;
-      const orderId = order?.id ?? String(item.order_item?.order ?? '');
-      const createdAtKey = item.batch_created_at ?? '';
-      const groupKey = `${orderId}_${createdAtKey}`;
-
-      if (!groupedOrders.has(groupKey)) {
-        groupedOrders.set(groupKey, {
-          order,
-          items: []
-        });
-      }
-
-      groupedOrders.get(groupKey)?.items.push(item);
-    }
-
-    setOrders(Array.from(groupedOrders.values()));
+    setOrders(groupKitchenOrderItems(kitchenOrderItemsRecord ?? []));
 
     await calculateAverageTime(kitchenId);
-  }, []);
+  }, [groupKitchenOrderItems]);
+
+  const loadCompletedOrders = useCallback(async (kitchenId: string) => {
+    setLoadingCompletedOrders(true);
+
+    try {
+      const [kitchenOrderItemsRecord]: any = await db.query(`
+      select *,
+             time::format(created_at, '%F %T') as batch_created_at
+      from ${Tables.order_items_kitchen}
+      where
+          kitchen = $kitchen
+        and completed_at != None
+        and created_at >= $startDate
+        and order_item.is_suspended != true
+      order by completed_at desc
+      fetch order_item, order_item.item, order_item.order, order_item.order.table, order_item.order.user, order_item.order.order_type
+    `, {
+        kitchen: toRecordId(kitchenId),
+        startDate: toSurrealDateTime(DateTime.now().startOf('day'))
+      });
+
+      const groupedCompletedOrders = groupKitchenOrderItems(kitchenOrderItemsRecord ?? []);
+      setCompletedOrders(groupedCompletedOrders);
+    } finally {
+      setLoadingCompletedOrders(false);
+    }
+  }, [groupKitchenOrderItems]);
+
+  const openCompletedOrdersModal = async () => {
+    if(!kitchen?.id){
+      return;
+    }
+
+    setShowCompletedOrdersModal(true);
+    await loadCompletedOrders(kitchen.id);
+  }
+
+  const recallCompletedOrder = async (order: KitchenOrderModel, index: number) => {
+    if(!kitchen?.id){
+      return;
+    }
+
+    const recallableItems = order.items.filter(item => !!item.completed_at);
+    if(recallableItems.length === 0){
+      return;
+    }
+
+    const orderKey = `${order.order?.id ?? index}_${order.items[0]?.created_at?.toString() ?? ''}`;
+    setRecallingOrderKey(orderKey);
+
+    try {
+      await Promise.all(recallableItems.map((item) => {
+        return db.query(`update $item set completed_at = None`, {
+          item: toRecordId(item.id)
+        });
+      }));
+
+      await loadOrders(kitchen.id);
+      await loadCompletedOrders(kitchen.id);
+    } finally {
+      setRecallingOrderKey(null);
+    }
+  }
 
   useEffect(() => {
     if(!kitchen && kitchens?.total > 0){
@@ -170,6 +243,7 @@ export const KitchenScreen = () => {
           </div>
           <div className="flex gap-3">
             <Button variant="warning" size="lg" filled onClick={completeAllOrders}>Complete all open orders</Button>
+            <Button variant="success" size="lg" onClick={openCompletedOrdersModal}>Completed Orders</Button>
             <Button variant="warning" size="lg" filled onClick={() => setDishesModal(!dishesModal)}>View all dishes</Button>
           </div>
           <div className="input-group flex-1 justify-end flex gap-3 items-center h-full">
@@ -208,6 +282,52 @@ export const KitchenScreen = () => {
           )}
         </div>
       </div>
+      <Modal
+        open={showCompletedOrdersModal}
+        onClose={() => {
+          setShowCompletedOrdersModal(false); 
+          setCompletedOrders([]);
+        }}
+        title={`${kitchen?.name ?? ''} Completed Orders (Today)`}
+        size="lg"
+      >
+        <div className="space-y-3 max-h-[70vh] overflow-auto">
+          {!loadingCompletedOrders && completedOrders.length === 0 && (
+            <div className="p-4 rounded bg-white text-center text-neutral-600">
+              No completed orders found for today.
+            </div>
+          )}
+
+          {completedOrders.map((item, index) => {
+            const orderKey = `${item.order?.id ?? index}_${item.items[0]?.created_at?.toString() ?? ''}`;
+            const completedAt = item.items?.[0]?.completed_at ?? item.items?.[0]?.created_at;
+
+            return (
+              <div key={orderKey} className="bg-white rounded-lg p-4 flex justify-between gap-4 items-center">
+                <div className="flex flex-col">
+                  <strong className="text-lg">
+                    {item.order?.order_type?.name} / {item.order ? getInvoiceNumber(item.order) : '-'}
+                  </strong>
+                  <span className="text-neutral-600">
+                    Completed: {toLuxonDateTime(completedAt).toFormat('hh:mm a')}
+                  </span>
+                  <span className="text-neutral-600">
+                    Items: {item.items.length}
+                  </span>
+                </div>
+                <Button
+                  variant="warning"
+                  filled
+                  isLoading={recallingOrderKey === orderKey}
+                  onClick={() => recallCompletedOrder(item, index)}
+                >
+                  Recall
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      </Modal>
     </Layout>
   )
 }

@@ -5,6 +5,7 @@ import { MenuItemType } from "@/api/model/cart_item.ts";
 import {User} from "@/api/model/user.ts";
 import {Category} from "@/api/model/category.ts";
 import { DateTime } from "surrealdb";
+import {Order} from "@/api/model/order.ts";
 
 export interface OrderItem extends ID {
   comments?: string
@@ -27,6 +28,8 @@ export interface OrderItem extends ID {
   is_addition?: boolean
   is_refunded?: boolean
   created_by?: User
+
+  order?: Order
 }
 
 export interface OrderItemModifier extends ID, DishModifierGroup{
