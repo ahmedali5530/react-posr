@@ -21,16 +21,20 @@ export interface Expense {
 }
 
 export interface Closing extends ID {
-  date: string;
-  previous_day_balance: number;
-  petty_cash: number;
-  terminal_cash: TerminalCash[];
-  payment_summaries: PaymentSummary[];
-  expenses: Expense[];
-  total_cash: number;
-  total_other_payments: number;
-  total_expenses: number;
-  net_amount: number;
+  date_from: Date;
+  date_to: Date;
+  previous_day_balance?: number;
+  cash_added: number;
+  cash_withdrawn: number;
+  closing_balance: number;
+  denominations?: object
+  terminal_cash?: TerminalCash[];
+  payments_data: PaymentSummary[];
+  expenses: number;
+  expenses_data: Expense[];
+  total_cash?: number;
+  total_other_payments?: number;
+  net_amount?: number;
   notes?: string;
   created_by?: string;
   created_at: DateTime;

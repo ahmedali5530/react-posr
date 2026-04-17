@@ -1,3 +1,20 @@
-DEFINE FIELD OVERWRITE deleted_at ON TABLE menu_item TYPE none | datetime | null PERMISSIONS FOR create FULL FOR select FULL FOR update FULL
-DEFINE FIELD OVERWRITE created_at ON TABLE menu_item TYPE none | datetime | null DEFAULT time::now() PERMISSIONS FOR create FULL FOR select FULL FOR update FULL
-DEFINE FIELD OVERWRITE updated_at ON TABLE order TYPE none | datetime | null DEFAULT time::now() PERMISSIONS FOR create FULL FOR select FULL FOR update FULL
+DEFINE FIELD OVERWRITE deleted_at ON TABLE menu_item TYPE none | datetime | null PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE created_at ON TABLE menu_item TYPE none | datetime | null DEFAULT time::now() PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE updated_at ON TABLE order TYPE none | datetime | null DEFAULT time::now() PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+
+DEFINE FIELD OVERWRITE cash_added ON TABLE day_closing TYPE float PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE cash_withdrawn ON TABLE day_closing TYPE option<float|null> PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE closed_at ON TABLE day_closing TYPE none | datetime | null PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE closed_by ON TABLE day_closing TYPE none | record<user> | null PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE closing_balance ON TABLE day_closing TYPE option<float|null> PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE created_at ON TABLE day_closing TYPE datetime PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE date_from ON TABLE day_closing TYPE none | datetime | null PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE date_to ON TABLE day_closing TYPE none | datetime | null PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE denominations ON TABLE day_closing TYPE option<object|null> PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE expenses ON TABLE day_closing TYPE float PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE expenses_data ON TABLE day_closing TYPE array<object> PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE opened_by ON TABLE day_closing TYPE none | record<user> | null PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE opening_balance ON TABLE day_closing TYPE option<float|null> PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE payments_data ON TABLE day_closing TYPE array<object> PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE notes ON TABLE day_closing TYPE string | null PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;
+DEFINE FIELD OVERWRITE terminal_cash ON TABLE day_closing TYPE string | null PERMISSIONS FOR create FULL FOR select FULL FOR update FULL;

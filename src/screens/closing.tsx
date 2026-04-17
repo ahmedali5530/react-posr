@@ -14,7 +14,9 @@ import {toast} from "sonner";
 import {Input} from "@/components/common/input/input.tsx";
 import {Textarea} from "@/components/common/input/textarea.tsx";
 import ScrollContainer from "react-indiana-drag-scroll";
-import { nowSurrealDateTime } from "@/lib/datetime.ts";
+import {nowSurrealDateTime, toLuxonDateTime} from "@/lib/datetime.ts";
+import {DateTime as LuxonDateTime} from "luxon";
+import {DateTime} from "surrealdb";
 
 export const Closing = () => {
   const db = useDB();
@@ -43,22 +45,22 @@ export const Closing = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [notes, setNotes] = useState<string>("");
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = LuxonDateTime.now().toFormat(import.meta.env.VITE_DATE_FORMAT);
 
   // Fetch today's order payments
   const fetchTodaysPayments = async () => {
     try {
 
-      const result: any = await db.query(`
+      const [result] = await db.query(`
           SELECT payments.*
           FROM order
-          WHERE time::format(created_at, "%Y-%m-%d") = $today
+          WHERE time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") = $today
             AND status = 'Paid'
               FETCH payments
               , payments.payment_type
-      `, {today});
+      `, {today: toLuxonDateTime().toFormat(import.meta.env.VITE_DATE_FORMAT)});
 
-      const orders = (result?.[0] && (result[0] as any).result) || [];
+      const orders = result;
 
       const paymentTotals = new Map<string, number>();
 
@@ -66,7 +68,7 @@ export const Closing = () => {
       orders.forEach((order: any) => {
         if (order.payments) {
           order.payments.forEach((payment: any) => {
-            const paymentTypeId = payment.payment_type?.id;
+            const paymentTypeId = payment.payment_type?.id.toString();
             if (paymentTypeId) {
               const current = paymentTotals.get(paymentTypeId) || 0;
               paymentTotals.set(paymentTypeId, current + payment.amount);
@@ -75,7 +77,7 @@ export const Closing = () => {
         }
       });
 
-      return paymentTotals;
+      return paymentTotals
     } catch (error) {
       console.error("Error fetching today's payments:", error);
       return new Map();
@@ -91,7 +93,7 @@ export const Closing = () => {
         setPaymentSummaries(
           paymentTypes.map(pt => ({
             payment_type: pt,
-            amount: todaysPayments.get(pt.id) || 0
+            amount: todaysPayments.get(pt.id.toString()) || 0
           }))
         );
       };
@@ -105,9 +107,19 @@ export const Closing = () => {
     return terminalCash.reduce((sum, terminal) => sum + terminal.cash_amount, 0);
   }, [terminalCash]);
 
+  const totalSystemCash = useMemo(() => {
+    return paymentSummaries
+      .filter(ps => ps.payment_type.type?.toLowerCase() === 'cash')
+      .reduce((sum, ps) => sum + ps.amount, 0);
+  }, [paymentSummaries]);
+
+  const cashDifference = useMemo(() => {
+    return totalCash - totalSystemCash;
+  }, [totalCash, totalSystemCash]);
+
   const totalOtherPayments = useMemo(() => {
     return paymentSummaries
-      .filter(ps => ps.payment_type.type !== 'Cash')
+      .filter(ps => ps.payment_type.type?.toLowerCase() !== 'cash')
       .reduce((sum, ps) => sum + ps.amount, 0);
   }, [paymentSummaries]);
 
@@ -181,35 +193,56 @@ export const Closing = () => {
     setExpenses(prev => prev.filter(expense => expense.id !== id));
   };
 
-  const saveClosing = async () => {
+  const getTodayClosing = async () => {
+    const [result] = await db.query<ClosingModel[][]>(
+      `
+      SELECT *
+      FROM ${Tables.closings}
+      WHERE date_from = $start and date_to = $end and status = $status
+      ORDER BY created_at DESC
+      LIMIT 1
+      `,
+      {
+        start: LuxonDateTime.now().startOf('day').toJSDate(),
+        end: LuxonDateTime.now().endOf('day').toJSDate(),
+        status: 'draft'
+      }
+    );
+
+    return result?.[0];
+  };
+
+  const saveClosing = async (complete: boolean = false) => {
     setSaving(true);
     try {
-      const closingData: Omit<ClosingModel, 'id'> = {
-        date: new Date().toISOString().split('T')[0],
-        previous_day_balance: previousDayBalance,
-        petty_cash: pettyCash,
+      const existingClosing = await getTodayClosing();
+      const closingData: Omit<ClosingModel, 'id' | 'status'> & {status: ClosingModel['status']} = {
+        date_from: LuxonDateTime.now().startOf('day').toJSDate(),
+        date_to: LuxonDateTime.now().endOf('day').toJSDate(),
+        // previous_day_balance: previousDayBalance,
+        cash_added: pettyCash,
+        cash_withdrawn: 0, // TODO: map it later
+        closing_balance: 0, // TODO: map it later
+        denominations: {},
         terminal_cash: terminalCash,
-        payment_summaries: paymentSummaries,
-        expenses: expenses,
-        total_cash: totalCash,
-        total_other_payments: totalOtherPayments,
-        total_expenses: totalExpenses,
-        net_amount: netAmount,
+        payments_data: paymentSummaries,
+        expenses_data: expenses,
+        // total_cash: totalCash,
+        // total_other_payments: totalOtherPayments,
+        expenses: totalExpenses,
+        // net_amount: netAmount,
         notes: notes,
         created_at: nowSurrealDateTime(),
-        status: 'completed'
+        status: complete ? 'completed' : 'draft'
       };
 
-      await db.create(Tables.closings, closingData);
-      toast.success("Closing saved successfully!");
+      if (existingClosing?.id) {
+        await db.update(existingClosing.id, closingData);
+      } else {
+        await db.create(Tables.closings, closingData);
+      }
 
-      // Reset form
-      setPreviousDayBalance(0);
-      setPettyCash(0);
-      setTerminalCash(prev => prev.map(t => ({...t, cash_amount: 0})));
-      setPaymentSummaries(prev => prev.map(ps => ({...ps, amount: 0})));
-      setExpenses([]);
-      setNotes("");
+      toast.success(complete ? "Closing completed successfully!" : "Closing saved as draft successfully!");
 
     } catch (error) {
       console.error("Error saving closing:", error);
@@ -265,28 +298,45 @@ export const Closing = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {terminalCash.map((terminal) => (
-                <div key={terminal.terminal_id} className="border rounded-lg p-4">
-                  <Input
-                    label={terminal.terminal_name}
-                    type="number"
-                    value={terminal.cash_amount}
-                    onChange={(e) => updateTerminalCash(terminal.terminal_id, Number(e.target.value))}
-                    placeholder="0.00"
-                    step="0.01"
-                    enableKeyboard
-                    inputSize="lg"
-                  />
+                <div>
+                  <label htmlFor="">{terminal.terminal_name}</label>
+                  <div key={terminal.terminal_id} className="input-group">
+                    <Input
+                      type="number"
+                      value={terminal.cash_amount}
+                      onChange={(e) => updateTerminalCash(terminal.terminal_id, Number(e.target.value))}
+                      placeholder={terminal.terminal_name}
+                      enableKeyboard
+                      inputSize="lg"
+                    />
+                    <Button
+                      icon={faTrash}
+                      size="lg"
+                      iconButton
+                      variant="danger"
+                      onClick={() => removeTerminal(terminal.terminal_id)}
+                    ></Button>
+                  </div>
                 </div>
               ))}
             </div>
             <div className="mt-4 p-4 bg-gray-100 rounded-lg">
               <span className="text-lg font-semibold">Total Cash: {withCurrency(totalCash)}</span>
             </div>
+            <div className="mt-4 p-4 bg-gray-100 rounded-lg">
+              <div className="text-sm text-gray-600">Cash from payment summary</div>
+              <div className="text-lg font-semibold">{withCurrency(totalSystemCash)}</div>
+              <div
+                className={`mt-2 text-lg font-semibold ${cashDifference === 0 ? 'text-gray-700' : cashDifference > 0 ? 'text-success-600' : 'text-danger-600'}`}
+              >
+                Difference: {withCurrency(cashDifference)}
+              </div>
+            </div>
           </div>
 
           {/* Payment Summaries */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Payment Types Summary</h2>
+            <h2 className="text-xl font-semibold mb-4">Payment Types Summary from system</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {paymentSummaries.map((ps) => (
                 <div key={ps.payment_type.id} className="border rounded-lg p-4">
@@ -295,10 +345,9 @@ export const Closing = () => {
                     type="number"
                     value={ps.amount}
                     onChange={(e) => updatePaymentSummary(ps.payment_type.id, Number(e.target.value))}
-                    placeholder="0.00"
-                    step="0.01"
-                    enableKeyboard
+                    placeholder={ps.payment_type.name}
                     inputSize="lg"
+                    disabled
                   />
                 </div>
               ))}
@@ -403,16 +452,27 @@ export const Closing = () => {
             </div>
           </div>
 
-          {/* Save Button */}
-          <div className="text-center">
+          {/* Save/Close Buttons */}
+          <div className="text-center flex justify-center items-center gap-4">
             <Button
-              onClick={saveClosing}
+              onClick={() => saveClosing(false)}
               disabled={saving}
-              variant="primary"
+              variant="secondary"
               size="lg"
+              type="button"
             >
               <FontAwesomeIcon icon={faSave} className="mr-2"/>
               {saving ? 'Saving...' : 'Save Closing'}
+            </Button>
+            <Button
+              onClick={() => saveClosing(true)}
+              disabled={saving}
+              variant="primary"
+              size="lg"
+              type="button"
+            >
+              <FontAwesomeIcon icon={faSave} className="mr-2"/>
+              {saving ? 'Saving...' : 'Close Closing'}
             </Button>
           </div>
         </div>

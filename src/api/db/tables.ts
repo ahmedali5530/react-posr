@@ -1,6 +1,6 @@
 export enum Tables {
   categories = 'category',
-  closings = 'closing',
+  closings = 'day_closing',
   customers = 'customer',
   discounts = 'discount',
   coupons = 'coupon',
