@@ -287,6 +287,9 @@ export const CartItemName = ({ item }: Omit<Props, "index">) => {
         <span>{item.dish.name}</span>
         <span>{formatNumber(item.price * item.quantity)}</span>
       </div>
+      {item.comments && (
+        <div className="italic text-sm">({item.comments})</div>
+      )}
       {item?.selectedGroups?.map(group =>
         <div className="border-[3px] border-l-warning-500 border-r-0 border-y-0 mb-2" key={group.out?.id}>
           {group?.selectedModifiers?.map(modifier => (

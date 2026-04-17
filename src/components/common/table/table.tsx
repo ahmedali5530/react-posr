@@ -53,7 +53,7 @@ interface TableComponentProps {
   loaderLineItems?: number
 
   customSearch?: boolean
-  customSearchHandler?: () => void
+  customSearchHandler?: (value?: string) => void
 }
 
 export const TableComponent: FC<TableComponentProps> = ({
@@ -63,7 +63,8 @@ export const TableComponent: FC<TableComponentProps> = ({
   loaderHook,
   loaderLines, loaderLineItems, enableRefresh = true,
   enableSelection, selectionButtons, rowSelection: controlledRowSelection, onRowSelectionChange,
-  customSearchHandler: _customSearchHandler, customSearch: _customSearch,
+  customSearchHandler,
+  customSearch = false,
   defaultSort = []
 }) => {
   const { t } = useTranslation();
@@ -219,54 +220,78 @@ export const TableComponent: FC<TableComponentProps> = ({
     }
   };
 
+  const handleCustomSearch = (values: any) => {
+    customSearchHandler?.(values?.customSearchValue);
+  };
+
   return (
     <>
       <div className="my-5 flex justify-between">
         <div className="inline-flex justify-start">
-          {enableSearch !== false && (
+          {(customSearch || enableSearch !== false) && (
             <form
               className="flex gap-3"
-              onSubmit={handleSubmit(handleColumnFilter)}>
-              <Controller
-                render={({ field }) => (
-                  <Input
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder="Search..."
-                    type="search"
-                  />
-                )}
-                name="value"
-                control={control}
-              />
-
-              <Controller
-                name="column"
-                render={({ field }) => (
-                  <ReactSelect
-                    onChange={field.onChange}
-                    options={filterOptions}
-                    className="w-72"
-                    value={field.value}
-                  />
-                )}
-                control={control}
-              />
-
-              {dropdownFilters && dropdownFilters.map(item => (
+              onSubmit={handleSubmit(customSearch ? handleCustomSearch : handleColumnFilter)}>
+              {customSearch ? (
                 <Controller
-                  name={item.name}
                   render={({ field }) => (
-                    <ReactSelect
-                      onChange={field.onChange}
-                      options={item.options}
-                      className="w-72"
-                      value={field.value}
-                    />
+                    <div className="relative w-72">
+                      <Input
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Search..."
+                        type="search"
+                        className="pr-10"
+                      />
+                    </div>
                   )}
+                  name="customSearchValue"
                   control={control}
                 />
-              ))}
+              ) : (
+                <>
+                  <Controller
+                    render={({ field }) => (
+                      <Input
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Search..."
+                        type="search"
+                      />
+                    )}
+                    name="value"
+                    control={control}
+                  />
+
+                  <Controller
+                    name="column"
+                    render={({ field }) => (
+                      <ReactSelect
+                        onChange={field.onChange}
+                        options={filterOptions}
+                        className="w-72"
+                        value={field.value}
+                      />
+                    )}
+                    control={control}
+                  />
+
+                  {dropdownFilters && dropdownFilters.map(item => (
+                    <Controller
+                      name={item.name}
+                      render={({ field }) => (
+                        <ReactSelect
+                          onChange={field.onChange}
+                          options={item.options}
+                          className="w-72"
+                          value={field.value}
+                        />
+                      )}
+                      control={control}
+                    />
+                  ))}
+                </>
+              )}
 
               <button className="btn btn-primary w-12" type="submit">
                 <FontAwesomeIcon icon={faSearch}/>
