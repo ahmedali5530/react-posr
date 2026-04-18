@@ -59,24 +59,15 @@ export const MenuDishModifiers = (props: Props) => {
       return true;
     }
 
-    if (!props.editing && selected === 0) {
-      return true;
-    }
+    // Block dismiss only when at least one required group is incomplete.
+    return !groups.some(
+      grp => grp.has_required_modifiers && grp.selectedModifiers.length < grp.required_modifiers
+    );
+  }, [groups]);
 
-    // all required should be selected
-    if (required > 0) {
-      let shouldClose = true;
-      for (const grp of groups) {
-        if (grp.has_required_modifiers && grp.required_modifiers !== grp.selectedModifiers.length) {
-          shouldClose = false;
-        }
-      }
-
-      return shouldClose;
-    }
-
-    return required > 0 && required === selected;
-  }, [groups, selected, required, group, props.editing]);
+  // Keep the close icon behavior aligned with dismiss rules:
+  // show it only when dismiss actions are currently allowed.
+  const hideCloseButton = !isDismissible;
 
   useEffect(() => {
     if (props.dish && !group && groups.length > 0) {
@@ -182,7 +173,7 @@ export const MenuDishModifiers = (props: Props) => {
       title={`Modify ${props.dish.name}`}
       shouldCloseOnOverlayClick={isDismissible}
       shouldCloseOnEsc={isDismissible}
-      hideCloseButton={!isDismissible}
+      hideCloseButton={hideCloseButton}
       onClose={() => {
         // pass groups when required selected modifiers are greater than 0 or optional groups are greater than 0
         props.onClose(selected > 0 || optional > 0 ? groups : []);

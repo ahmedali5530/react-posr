@@ -21,7 +21,9 @@ interface ModalProps extends PropsWithChildren {
   bottomSheet?: boolean
 }
 
-export const Modal: FunctionComponent<ModalProps> = (props) => {
+export const Modal: FunctionComponent<ModalProps> = ({
+  hideCloseButton = false, ...props
+}) => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -76,7 +78,7 @@ export const Modal: FunctionComponent<ModalProps> = (props) => {
                 backgroundColor: props.backgroundColor ?? 'rgb(255, 255, 255)',
                 backdropFilter: 'blur(10px)'
               }} className="rounded-lg">
-                {!props.hideCloseButton && (
+                {hideCloseButton !== true && (
                   <button
                     onClick={() => close(false)}
                     className="btn btn-secondary btn-flat btn-square absolute top-2 right-2 lg rounded inline-flex justify-center items-center"
