@@ -148,14 +148,14 @@ export const MenuHeader = () => {
     }));
   }
 
-  const newCartItems = state.cart.filter(item => item.newOrOld === MenuItemType.new).length;
+  const newCartItems = state?.cart?.filter(item => item.newOrOld === MenuItemType.new).length;
 
   return (
     <>
       <div className="flex justify-between items-center w-full">
         <div className="flex items-center gap-2">
           <Button variant="primary" icon={faArrowLeft} onClick={reset} size="lg">{state?.floor?.name}</Button>
-          {state.orders.length > 0 ? (
+          {state?.orders?.length > 0 ? (
             <>
               <ScrollContainer className="max-w-[380px] flex flex-nowrap gap-3">
                 <div className="input-group">
