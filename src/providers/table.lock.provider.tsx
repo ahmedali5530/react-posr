@@ -57,17 +57,17 @@ export const TableLockProvider: React.FC<TableLockProviderProps> = ({ children }
       }
     };
 
-    void releaseStaleLocks();
-    const interval = setInterval(() => {
-      if (isMounted) {
-        void releaseStaleLocks();
-      }
-    }, CHECK_INTERVAL_MS);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
+    // void releaseStaleLocks();
+    // const interval = setInterval(() => {
+    //   if (isMounted) {
+    //     void releaseStaleLocks();
+    //   }
+    // }, CHECK_INTERVAL_MS);
+    //
+    // return () => {
+    //   isMounted = false;
+    //   clearInterval(interval);
+    // };
   }, []);
 
   return <>{children}</>;

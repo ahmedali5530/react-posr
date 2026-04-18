@@ -30,3 +30,7 @@ export interface MenuItemRecipe extends ID {
   item: InventoryItem
   quantity: number
 }
+
+export const DISH_FETCHES = [
+  'categories', 'modifier_groups', 'tax', 'items'
+]

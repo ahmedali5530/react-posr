@@ -13,3 +13,7 @@ export interface KitchenOrder {
   order: Order
   items: OrderItemKitchen[]
 }
+
+export const KITCHEN_FETCHES = [
+  'items', 'printers'
+]

@@ -1,0 +1,105 @@
+import {useMemo, useState} from "react";
+import {useAtom} from "jotai";
+import {toast} from "sonner";
+import {useDB} from "@/api/db/db.ts";
+import {Tables} from "@/api/db/tables.ts";
+import {appSettings} from "@/store/jotai.ts";
+import {Button} from "@/components/common/input/button.tsx";
+import {TABLE_FETCHES} from "@/api/model/table.ts";
+import {DISH_FETCHES} from "@/api/model/dish.ts";
+import {KITCHEN_FETCHES} from "@/api/model/kitchen.ts";
+import {PAYMENT_TYPE_FETCHES} from "@/api/model/payment_type.ts";
+import {ModifierGroupDish} from "@/api/model/modifier_group_dish.ts";
+
+const toRows = <T,>(result: unknown): T[] => {
+  return Array.isArray(result) ? result as T[] : [];
+};
+
+export const CacheSettings = () => {
+  const db = useDB();
+  const [settings, setSettings] = useAtom(appSettings);
+  const [isReloading, setIsReloading] = useState(false);
+
+  const cacheStats = useMemo(() => ([
+    {label: "Order types", count: settings.order_types.length},
+    {label: "Categories", count: settings.categories.length},
+    {label: "Dishes", count: settings.dishes.length},
+    {label: "Modifier groups", count: settings.modifier_groups.length},
+    {label: "Group dishes", count: settings.groups_dishes.length},
+    {label: "Floors", count: settings.floors.length},
+    {label: "Tables", count: settings.tables.length},
+    {label: "Kitchens", count: settings.kitchens.length},
+    {label: "Payment types", count: settings.payment_types.length},
+  ]), [settings]);
+
+  const reloadCache = async () => {
+    try {
+      setIsReloading(true);
+
+      const [
+        orderTypesResult,
+        categoriesResult,
+        dishesResult,
+        modifierGroupsResult,
+        groupsDishesResult,
+        floorsResult,
+        tablesResult,
+        kitchensResult,
+        paymentTypesResult
+      ] = await Promise.all([
+        db.query(`SELECT * FROM ${Tables.order_types} ORDER BY priority ASC`),
+        db.query(`SELECT * FROM ${Tables.categories} ORDER BY priority ASC`),
+        db.query(`SELECT * FROM ${Tables.dishes} ORDER BY priority ASC FETCH ${DISH_FETCHES.join(', ')}`),
+        db.query(`SELECT * FROM ${Tables.modifier_groups} ORDER BY priority ASC FETCH modifiers`),
+        db.query(`SELECT * FROM ${Tables.dish_modifier_groups} ORDER BY priority ASC FETCH in, out, out.modifiers, out.modifiers.modifier`),
+        db.query(`SELECT * FROM ${Tables.floors} ORDER BY priority ASC`),
+        db.query(`SELECT * FROM ${Tables.tables} ORDER BY priority ASC FETCH ${TABLE_FETCHES.join(', ')}`),
+        db.query(`SELECT * FROM ${Tables.kitchens} ORDER BY priority ASC FETCH ${KITCHEN_FETCHES.join(', ')}`),
+        db.query(`SELECT * FROM ${Tables.payment_types} ORDER BY priority ASC FETCH ${PAYMENT_TYPE_FETCHES.join(', ')}`),
+      ]);
+
+      setSettings(prev => ({
+        ...prev,
+        order_types: toRows(orderTypesResult?.[0]),
+        categories: toRows(categoriesResult?.[0]),
+        dishes: toRows(dishesResult?.[0]),
+        modifier_groups: toRows(modifierGroupsResult?.[0]),
+        groups_dishes: toRows(groupsDishesResult?.[0]),
+        floors: toRows(floorsResult?.[0]),
+        tables: toRows(tablesResult?.[0]),
+        kitchens: toRows(kitchensResult?.[0]),
+        payment_types: toRows(paymentTypesResult?.[0])
+      }));
+
+      toast.success("Cache reloaded from database");
+    } catch (error) {
+      console.error("Failed to reload cache:", error);
+      toast.error("Failed to reload cache");
+    } finally {
+      setIsReloading(false);
+    }
+  };
+
+  return (
+    <div className="shadow p-5 rounded bg-white">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold mb-1">Cache</h2>
+          <p className="text-sm text-neutral-500">Current `appSettings` cache size by dataset.</p>
+        </div>
+        <Button variant="primary" onClick={reloadCache} isLoading={isReloading}>
+          Reload cache
+        </Button>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        {cacheStats.map((item) => (
+          <div key={item.label} className="rounded border border-neutral-200 p-3">
+            <p className="text-xs text-neutral-500">{item.label}</p>
+            <p className="text-lg font-semibold">{item.count}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};

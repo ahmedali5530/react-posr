@@ -3,7 +3,7 @@ import { Dish } from "@/api/model/dish.ts";
 import {detectMimeType, toArrayBuffer} from "@/utils/files.ts";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAtom } from "jotai";
-import { appState } from "@/store/jotai.ts";
+import {appSettings, appState} from "@/store/jotai.ts";
 import { MenuDishModifiers } from "@/components/menu/modifiers.tsx";
 import { CartModifierGroup, MenuItem, MenuItemType } from "@/api/model/cart_item.ts";
 import { nanoid } from "nanoid";
@@ -21,23 +21,19 @@ interface Props {
 }
 
 export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => {
-  const db = useDB();
   const [state] = useAtom(appState);
+  const [{groups_dishes}] = useAtom(appSettings);
 
   const [modifiersModal, setModifiersModal] = useState(false);
 
   const [modifierGroups, setModifierGroups] = useState<DishModifierGroup[]>([]);
   const loadModifierGroups = async () => {
-    const [record]: any = await db.query(`SELECT * from ${Tables.dish_modifier_groups} where in = $item order by priority fetch out, out.modifiers, out.modifiers.modifier`, {
-      item: item.id
-    });
-
-    setModifierGroups(record);
+    setModifierGroups(groups_dishes.filter(a => a.in.id.toString() === item.id.toString()) ?? [])
   }
 
   useEffect(() => {
     loadModifierGroups();
-  }, [item.id]);
+  }, [item.id, groups_dishes]);
 
   const hasAutoOpen = useMemo(() => {
     return modifierGroups.filter(m => m.has_required_modifiers || m.should_auto_open).length > 0;

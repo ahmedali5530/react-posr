@@ -26,3 +26,7 @@ export interface PaymentType extends ID, Name, Priority{
   gateway_mode?: PaymentGatewayMode
   gateway_config?: PaymentTypeGatewayConfig | string
 }
+
+export const PAYMENT_TYPE_FETCHES = [
+  'discounts', 'tax'
+];
