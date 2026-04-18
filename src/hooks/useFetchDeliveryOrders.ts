@@ -1,16 +1,23 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDB } from "@/api/db/db.ts";
 import { Tables } from "@/api/db/tables.ts";
 import { Order, OrderStatus, ORDER_FETCHES } from "@/api/model/order.ts";
 
-export const useFetchDeliveryOrders = () => {
+export interface UseFetchDeliveryOrdersOptions {
+  enabled?: boolean;
+}
+
+export const useFetchDeliveryOrders = (options: UseFetchDeliveryOrdersOptions = {}) => {
+  const { enabled = true } = options;
   const db = useDB();
 
   const [deliveryOrders, setDeliveryOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchDeliveryOrders = async () => {
+  const fetchDeliveryOrders = useCallback(async () => {
+    if (!enabled) return;
+
     try {
       setLoading(true);
       setError(null);
@@ -44,11 +51,17 @@ export const useFetchDeliveryOrders = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [db, enabled]);
 
   useEffect(() => {
-    fetchDeliveryOrders();
-  }, []);
+    if (!enabled) {
+      setDeliveryOrders([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+    void fetchDeliveryOrders();
+  }, [enabled, fetchDeliveryOrders]);
 
   return {
     deliveryOrders,

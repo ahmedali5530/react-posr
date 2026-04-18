@@ -6,9 +6,10 @@ import { useFetchDeliveryOrders } from "@/hooks/useFetchDeliveryOrders.ts";
 import { dispatchPrint } from "@/lib/print.service.ts";
 import { PRINT_TYPE } from "@/lib/print.registry.tsx";
 import { useAtom } from "jotai";
-import { appPage, appState } from "@/store/jotai";
+import { appPage } from "@/store/jotai";
 import { LiveSubscription } from "surrealdb";
 import { toJsDate } from "@/lib/datetime.ts";
+import { getUserModules } from "@/lib/access.rules.ts";
 
 export interface DeliveryOrdersProviderState {
   deliveryOrders: Order[];
@@ -31,17 +32,43 @@ export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ 
   const db = useDB();
   const dbRef = useRef(db);
   dbRef.current = db;
-  const [{user}] = useAtom(appPage);
+  const [{ user }] = useAtom(appPage);
 
-  const { deliveryOrders, refetch: fetchDeliveryOrders } = useFetchDeliveryOrders();
+  const canUseDeliveryOrders = Boolean(
+    user && getUserModules(user).includes("Delivery")
+  );
+
+  const { deliveryOrders, refetch: fetchDeliveryOrders } = useFetchDeliveryOrders({
+    enabled: canUseDeliveryOrders,
+  });
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [liveQuery, setLiveQuery] = useState<LiveSubscription | null>(null);
   const processedOrderIdsRef = useRef<Set<string>>(new Set());
   const initialLoadDoneRef = useRef(false);
 
+  const openOrderPopup = useCallback((order: Order) => {
+    setSelectedOrder(order);
+    setIsPopupOpen(true);
+  }, []);
+
+  const closeOrderPopup = useCallback(() => {
+    setIsPopupOpen(false);
+    setSelectedOrder(null);
+  }, []);
+
+  useEffect(() => {
+    if (!canUseDeliveryOrders) {
+      processedOrderIdsRef.current = new Set();
+      initialLoadDoneRef.current = false;
+      setSelectedOrder(null);
+      setIsPopupOpen(false);
+    }
+  }, [canUseDeliveryOrders]);
+
   // Update selectedOrder when deliveryOrders updates (if popup is open)
   useEffect(() => {
+    if (!canUseDeliveryOrders) return;
     if (isPopupOpen && selectedOrder) {
       const selectedOrderId = selectedOrder.id.toString();
       const updatedOrder = deliveryOrders.find(
@@ -52,11 +79,12 @@ export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ 
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deliveryOrders, isPopupOpen]);
+  }, [deliveryOrders, isPopupOpen, canUseDeliveryOrders]);
 
   // Track processed orders — on first load mark all existing as processed (no auto-popup),
   // on subsequent fetches only open popup for genuinely new orders.
   useEffect(() => {
+    if (!canUseDeliveryOrders) return;
     if (!initialLoadDoneRef.current) {
       deliveryOrders.forEach(order => {
         processedOrderIdsRef.current.add(order.id.toString());
@@ -82,10 +110,12 @@ export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ 
       setSelectedOrder(newestOrder);
       setIsPopupOpen(true);
     }
-  }, [deliveryOrders]);
+  }, [deliveryOrders, canUseDeliveryOrders]);
 
   // Set up live query to watch for new delivery orders
   useEffect(() => {
+    if (!canUseDeliveryOrders) return;
+
     let isMounted = true;
     let querySubscription: LiveSubscription | null = null;
 
@@ -133,17 +163,7 @@ export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ 
       isMounted = false;
       querySubscription?.kill().catch(console.error);
     };
-  }, []);
-
-  const openOrderPopup = useCallback((order: Order) => {
-    setSelectedOrder(order);
-    setIsPopupOpen(true);
-  }, []);
-
-  const closeOrderPopup = useCallback(() => {
-    setIsPopupOpen(false);
-    setSelectedOrder(null);
-  }, []);
+  }, [canUseDeliveryOrders, fetchDeliveryOrders, user?.id, openOrderPopup]);
 
   const value: DeliveryOrdersProviderState = useMemo(
     () => ({
