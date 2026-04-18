@@ -272,7 +272,9 @@ export const Payment = () => {
       seats: [],
       cart: prev.cart.filter(item => item.newOrOld === MenuItemType.old),
       seat: undefined
-    }))
+    }));
+
+    await reset();
   }
 
   return (

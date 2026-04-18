@@ -10,7 +10,7 @@ import {Floor} from "@/api/model/floor.ts";
 import {ReactSelect} from "@/components/common/input/custom.react.select.tsx";
 import {User} from "@/api/model/user.ts";
 import {useAtom} from "jotai";
-import {appAlert, appPage, appSettings} from "@/store/jotai.ts";
+import {appAlert, appPage, appState, AppStateInterface} from "@/store/jotai.ts";
 import {OrderType} from "@/api/model/order_type.ts";
 import {DatePicker} from "@/components/common/react-aria/datepicker.tsx";
 import {getLocalTimeZone, today} from '@internationalized/date';
@@ -25,15 +25,22 @@ import {LiveSubscription, RecordId, StringRecordId} from "surrealdb";
 import {toast} from "sonner";
 import {useQueryBuilder} from "@/api/db/query-builder.ts";
 import {useFetchRow} from "@/hooks/useFetchRow.ts";
+import {LabelValue} from "@/api/model/common.ts";
 
 export const Orders = () => {
   const db = useDB();
   const [liveQuery, setLiveQuery] = useState<LiveSubscription | null>(null);
   const fetchHook = useFetchRow();
 
-  const [params, setParams] = useAtom(appSettings);
+  const [state, setState] = useAtom(appState);
   const [date, setDate] = useState<DateValue>(today(getLocalTimeZone()));
   const [view, setView] = useState<'row' | 'column'>('column');
+  const selectedOrderFilters = useMemo(() => ({
+    users: state?.ordersFilters?.users ?? [],
+    floors: state?.ordersFilters?.floors ?? [],
+    statuses: state?.ordersFilters?.statuses ?? [],
+    orderTypes: state?.ordersFilters?.orderTypes ?? [],
+  }), [state?.ordersFilters]);
 
   const [merging, setMerging] = useState<boolean>(false);
   const [mergingOrders, setMergingOrders] = useState<OrderModel[]>([]);
@@ -44,6 +51,21 @@ export const Orders = () => {
 
   const [orders, setOrders] = useState<OrderModel[]>([]);
 
+  const updateOrderFilter = useCallback((key: keyof AppStateInterface['ordersFilters'], value: LabelValue[]) => {
+    setState(prev => ({
+      ...prev,
+      ordersFilters: {
+        users: prev?.ordersFilters?.users ?? [],
+        floors: prev?.ordersFilters?.floors ?? [],
+        statuses: prev?.ordersFilters?.statuses ?? [],
+        orderTypes: prev?.ordersFilters?.orderTypes ?? [],
+        [key]: value ?? [],
+      }
+    }));
+  }, [setState]);
+
+
+
   const orderFilters = useMemo(() => {
     const floorFilters = [];
     const userFilters = [];
@@ -52,28 +74,28 @@ export const Orders = () => {
 
     const f = [];
 
-    params.ordersFilters.floors.forEach(floor => {
+    selectedOrderFilters?.floors?.forEach(floor => {
       floorFilters.push(`floor = ${floor.value}`);
     });
     if (floorFilters.length > 0) {
       f.push(`(${floorFilters.join(' or ')})`);
     }
 
-    params.ordersFilters.users.forEach(user => {
+    selectedOrderFilters?.users?.forEach(user => {
       userFilters.push(`user = ${user.value}`);
     });
     if (userFilters.length > 0) {
       f.push(`(${userFilters.join(' or ')})`);
     }
 
-    params.ordersFilters.statuses.forEach(status => {
+    selectedOrderFilters?.statuses?.forEach(status => {
       statusFilters.push(`status = "${status.value}"`);
     });
     if (statusFilters.length > 0) {
       f.push(`(${statusFilters.join(' or ')})`);
     }
 
-    params.ordersFilters.orderTypes.forEach(order_type => {
+    selectedOrderFilters?.orderTypes?.forEach(order_type => {
       orderTypeFilters.push(`order_type = ${order_type.value}`);
     });
     if (orderTypeFilters.length > 0) {
@@ -85,7 +107,9 @@ export const Orders = () => {
     }
 
     return f;
-  }, [params.ordersFilters, date]);
+  }, [selectedOrderFilters, date]);
+
+  console.log(selectedOrderFilters)
 
 
   const ordersQb = useQueryBuilder(
@@ -251,16 +275,8 @@ export const Orders = () => {
               }))}
               isMulti
               placeholder="Select order status"
-              value={params.ordersFilters.statuses}
-              onChange={(value: any) => {
-                setParams(prev => ({
-                  ...prev,
-                  ordersFilters: {
-                    ...prev.ordersFilters,
-                    statuses: value,
-                  }
-                }))
-              }}
+              value={selectedOrderFilters.statuses}
+              onChange={(value: LabelValue[]) => updateOrderFilter('statuses', value)}
             />
           </div>
           <div className="min-w-[200px]">
@@ -271,16 +287,8 @@ export const Orders = () => {
               }))}
               isMulti
               placeholder="Select order types"
-              value={params.ordersFilters.orderTypes}
-              onChange={(value: any) => {
-                setParams(prev => ({
-                  ...prev,
-                  ordersFilters: {
-                    ...prev.ordersFilters,
-                    orderTypes: value,
-                  }
-                }))
-              }}
+              value={selectedOrderFilters.orderTypes}
+              onChange={(value: LabelValue[]) => updateOrderFilter('orderTypes', value)}
             />
           </div>
           <div className="min-w-[200px]">
@@ -291,16 +299,8 @@ export const Orders = () => {
               }))}
               isMulti
               placeholder="Select floors"
-              value={params.ordersFilters.floors}
-              onChange={(value: any) => {
-                setParams(prev => ({
-                  ...prev,
-                  ordersFilters: {
-                    ...prev.ordersFilters,
-                    floors: value,
-                  }
-                }))
-              }}
+              value={selectedOrderFilters.floors}
+              onChange={(value: LabelValue[]) => updateOrderFilter('floors', value)}
             />
           </div>
           <div className="min-w-[200px]">
@@ -311,16 +311,8 @@ export const Orders = () => {
               }))}
               isMulti
               placeholder="Select users"
-              value={params.ordersFilters.users}
-              onChange={(value: any) => {
-                setParams(prev => ({
-                  ...prev,
-                  ordersFilters: {
-                    ...prev.ordersFilters,
-                    users: value,
-                  }
-                }))
-              }}
+              value={selectedOrderFilters.users}
+              onChange={(value: LabelValue[]) => updateOrderFilter('users', value)}
             />
           </div>
           <div>

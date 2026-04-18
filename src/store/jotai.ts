@@ -1,19 +1,20 @@
-import { atomWithStorage } from "jotai/utils";
+import {atomWithStorage, createJSONStorage, unwrap} from "jotai/utils";
 import {atom} from 'jotai';
-import { Dish } from "@/api/model/dish.ts";
-import { Table } from "@/api/model/table.ts";
-import { Category } from "@/api/model/category.ts";
-import { ModifierGroup } from "@/api/model/modifier_group.ts";
-import { ModifierGroupDish } from "@/api/model/modifier_group_dish.ts";
-import { Floor } from "@/api/model/floor.ts";
-import { Customer } from "@/api/model/customer.ts";
-import { Order } from "@/api/model/order.ts";
-import { MenuItem } from "@/api/model/cart_item.ts";
-import { OrderType } from "@/api/model/order_type.ts";
-import { User } from "@/api/model/user.ts";
-import { LabelValue } from "@/api/model/common.ts";
-import { DateValue } from "react-aria-components";
-import {undefined} from "zod";
+import {Dish} from "@/api/model/dish.ts";
+import {Table} from "@/api/model/table.ts";
+import {Category} from "@/api/model/category.ts";
+import {ModifierGroup} from "@/api/model/modifier_group.ts";
+import {ModifierGroupDish} from "@/api/model/modifier_group_dish.ts";
+import {Floor} from "@/api/model/floor.ts";
+import {Customer} from "@/api/model/customer.ts";
+import {Order} from "@/api/model/order.ts";
+import {MenuItem} from "@/api/model/cart_item.ts";
+import {OrderType} from "@/api/model/order_type.ts";
+import {User} from "@/api/model/user.ts";
+import {LabelValue} from "@/api/model/common.ts";
+import {Kitchen} from "@/api/model/kitchen.ts";
+import {createStore, del, get, set} from 'idb-keyval'
+
 
 export interface AppStateInterface {
   loggedIn: boolean
@@ -25,7 +26,7 @@ export interface AppStateInterface {
   category?: Category
   dish?: Dish
   order?: {
-    id?: string|'new'
+    id?: string | 'new'
     order?: Order
   }
   orders: Order[]
@@ -35,6 +36,12 @@ export interface AppStateInterface {
   seats: string[]
   seat?: string
   switchTable?: boolean
+  ordersFilters: {
+    users: LabelValue[]
+    floors: LabelValue[]
+    statuses: LabelValue[]
+    orderTypes: LabelValue[]
+  }
 }
 
 export const appState = atomWithStorage<AppStateInterface>(
@@ -45,7 +52,13 @@ export const appState = atomWithStorage<AppStateInterface>(
     orders: [],
     showFloor: true,
     cart: [],
-    seats: []
+    seats: [],
+    ordersFilters: {
+      users: [],
+      floors: [],
+      statuses: [],
+      orderTypes: [],
+    }
   }
 );
 
@@ -63,39 +76,92 @@ export const appPage = atomWithStorage<AppPageInterface>(
   }
 );
 
+const appStorageStore = createStore('posr-react', 'jotai-storage')
+
+export const indexedDBStorage = {
+  getItem: async (key: string) => {
+    const storedValue = await get<string>(key, appStorageStore)
+    if (storedValue !== undefined) {
+      return storedValue
+    }
+
+    if (typeof window === 'undefined') {
+      return null
+    }
+
+    const legacyValue = window.localStorage.getItem(key)
+    if (legacyValue !== null) {
+      await set(key, legacyValue, appStorageStore)
+      window.localStorage.removeItem(key)
+    }
+
+    return legacyValue
+  },
+  setItem: async (key: string, value: string) => {
+    await set(key, value, appStorageStore)
+  },
+  removeItem: async (key: string) => {
+    await del(key, appStorageStore)
+  },
+}
+
 export interface AppSettingsInterface {
   order_types: OrderType[]
   categories: Category[]
+  dishes: Dish[]
   modifier_groups: ModifierGroup[]
-  groups_dishes:  ModifierGroupDish[]
-  ordersFilters: {
-    users: LabelValue[]
-    floors: LabelValue[]
-    statuses: LabelValue[]
-    orderTypes: LabelValue[],
-  }
+  groups_dishes: ModifierGroupDish[]
+  floors: Floor[]
+  tables: Table[]
+  kitchens: Kitchen[]
 }
 
-export const appSettings = atomWithStorage<AppSettingsInterface>(
+const defaultAppSettings: AppSettingsInterface = {
+  order_types: [],
+  categories: [],
+  modifier_groups: [],
+  groups_dishes: [],
+  floors: [],
+  tables: [],
+  kitchens: [],
+  dishes: [],
+}
+
+const normalizeAppSettings = (settings?: Partial<AppSettingsInterface>): AppSettingsInterface => ({
+  ...defaultAppSettings,
+  ...settings
+})
+
+const appSettingsStorageAtom = atomWithStorage<AppSettingsInterface>(
   'app-settings',
-  {
-    order_types: [],
-    categories: [],
-    modifier_groups: [],
-    groups_dishes: [],
-    ordersFilters: {
-      users: [],
-      floors: [],
-      statuses: [],
-      orderTypes: [],
-    },
+  defaultAppSettings,
+  createJSONStorage<AppSettingsInterface>(() => indexedDBStorage),
+  {getOnInit: true}
+);
+
+const appSettingsStorageAtomUnwrapped = unwrap(
+  appSettingsStorageAtom, () => defaultAppSettings
+)
+
+export const appSettings = atom(
+  (get) => normalizeAppSettings(get(appSettingsStorageAtomUnwrapped)),
+  (
+    get,
+    set,
+    update: AppSettingsInterface | ((prev: AppSettingsInterface) => AppSettingsInterface)
+  ) => {
+    const current = normalizeAppSettings(get(appSettingsStorageAtomUnwrapped))
+    const nextValue =
+      typeof update === 'function' ? update(current) : update
+
+    set(appSettingsStorageAtom, normalizeAppSettings(nextValue))
   }
 );
 
 export interface AppAlertInterface {
   opened: boolean
   message: string
-  type: "info"|"error"|"warning"|"success"
+  type: "info" | "error" | "warning" | "success"
 }
 
 export const appAlert = atom<AppAlertInterface>({
