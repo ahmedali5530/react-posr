@@ -51,6 +51,7 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
   const image = useMemo(() => {
     try {
       if (item!.dish_photo) {
+        // fetch item photo
         if (item.dish_photo instanceof ArrayBuffer) {
           const buffer = item.dish_photo;
           const mimeType = detectMimeType(buffer, "image/png");
@@ -99,13 +100,13 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
             '--padding': '0',
           } as any}
         >
-          <div className="flex-shrink-0 flex justify-start">
-            <img
-              loading="lazy"
-              src={image}
-              alt="card-image"
-              className="rounded-xl rounded-r-none pointer-events-none h-full w-[60px] xl:w-[90px] object-contain"/>
-          </div>
+          {/*<div className="flex-shrink-0 flex justify-start">*/}
+          {/*  <img*/}
+          {/*    loading="lazy"*/}
+          {/*    src={image}*/}
+          {/*    alt="card-image"*/}
+          {/*    className="rounded-xl rounded-r-none pointer-events-none h-full w-[60px] xl:w-[90px] object-contain"/>*/}
+          {/*</div>*/}
           <div className="flex flex-col px-3 py-2">
             <span className="flex flex-row gap-2 mb-1">
               <span
