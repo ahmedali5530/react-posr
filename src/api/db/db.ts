@@ -43,7 +43,7 @@ const toThing = (value: DbThing): AnyRecordId | RecordIdRange | Table => {
 export const useDB = () => {
   const databaseContext = useDatabase();
   const { client, isConnected, isConnecting } = databaseContext;
-  
+
   // Only throw error if we're not connecting and not connected
   // The provider ensures children only render when connected, so this should rarely happen
   if (!isConnected && !isConnecting) {
@@ -52,8 +52,13 @@ export const useDB = () => {
 
   const query = async <R extends unknown[] = any[]>(sql: string, parameters?: QueryBindings): Promise<R> => {
     try {
-      // Perform a custom advanced query
+      // start performance timer
+      const t0 = performance.now();
+
       const result = await client.query<R>(sql, parameters).collect<R>();
+
+      // end performance timer
+      const t1 = performance.now();
 
       // log sql in dev mode
       if(import.meta.env.DEV) {
@@ -61,6 +66,7 @@ export const useDB = () => {
         console.info(sql.trim());
         console.info(parameters);
         console.info(result);
+        console.info(`Query fetch time: ${t1 - t0}ms`);
         console.groupEnd()
       }
 

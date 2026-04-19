@@ -150,6 +150,8 @@ export const MenuHeader = () => {
 
   const newCartItems = state?.cart?.filter(item => item.newOrOld === MenuItemType.new).length;
 
+  console.log(setting.dishes)
+
   return (
     <>
       <div className="flex justify-between items-center w-full">
