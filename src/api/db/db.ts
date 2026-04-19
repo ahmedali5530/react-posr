@@ -61,14 +61,14 @@ export const useDB = () => {
       const t1 = performance.now();
 
       // log sql in dev mode
-      if(import.meta.env.DEV) {
+      // if(import.meta.env.DEV) {
         console.group('DB Debug')
-        console.info(sql.trim());
-        console.info(parameters);
+        // console.info(sql.trim());
+        // console.info(parameters);
         console.info(result);
         console.info(`Query fetch time: ${t1 - t0}ms`);
         console.groupEnd()
-      }
+      // }
 
       return result as R;
     } catch ( e ) {
