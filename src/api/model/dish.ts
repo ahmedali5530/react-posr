@@ -4,6 +4,7 @@ import { Tax } from "@/api/model/tax.ts";
 import { DishModifierGroup } from "@/api/model/dish_modifier_group.ts";
 import {InventoryItem} from "@/api/model/inventory_item.ts";
 import { DateTime } from "surrealdb";
+import {Document} from '@/api/model/document.ts'
 
 export interface Dish extends ID, Name, Priority {
   allow_half?: boolean
@@ -13,6 +14,7 @@ export interface Dish extends ID, Name, Priority {
   position?: number
   price: number
   photo?: ArrayBuffer
+  dish_photo?: Document
   modifier_groups?: DishModifierGroup[]
   items?: MenuItemRecipe[]
   allow_service_charges?: boolean

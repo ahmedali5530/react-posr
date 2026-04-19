@@ -50,17 +50,17 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
 
   const image = useMemo(() => {
     try {
-      if (item!.photo) {
-        if (item.photo instanceof ArrayBuffer) {
-          const buffer = item.photo;
+      if (item!.dish_photo) {
+        if (item.dish_photo instanceof ArrayBuffer) {
+          const buffer = item.dish_photo;
           const mimeType = detectMimeType(buffer, "image/png");
           const blob = new Blob([buffer], { type: mimeType });
           return URL.createObjectURL(blob);
         }
 
-        if (typeof item.photo === "string") {
+        if (typeof item.dish_photo === "string") {
           // could be a data URL or a base64 string; try to use as-is
-          return item.photo;
+          return item.dish_photo;
         }
       }
     } catch (e) {

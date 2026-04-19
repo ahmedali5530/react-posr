@@ -3,7 +3,7 @@ import {Dish} from "@/api/model/dish.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {Button} from "@/components/common/input/button.tsx";
 import {DishForm} from "@/components/settings/dishes/dish.form.tsx";
-import {faImage, faPencil, faPlus, faTrash, faUpload} from "@fortawesome/free-solid-svg-icons";
+import {faImage, faPencil, faPlus, faPhotoFilm, faUpload} from "@fortawesome/free-solid-svg-icons";
 import {createColumnHelper} from "@tanstack/react-table";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import useApi, {SettingsData} from "@/api/db/use.api.ts";
@@ -35,14 +35,11 @@ export const AdminDishes = () => {
   }>();
 
   const columns: any = [
-    columnHelper.accessor("photo", {
+    columnHelper.accessor("dish_photo", {
       header: 'Photo',
       cell: info => {
         if(info.getValue()) {
-          const buffer = info.getValue();
-          const mimeType = detectMimeType(buffer, "image/png");
-          const blob = new Blob([buffer], { type: mimeType });
-          return <a href={URL.createObjectURL(blob)} target="_blank"><img alt={info.row.original.name} src={URL.createObjectURL(blob)} className="w-[50px] h-[50px]" /></a>
+          return <FontAwesomeIcon icon={faPhotoFilm} />
         }
       },
       enableColumnFilter: false,

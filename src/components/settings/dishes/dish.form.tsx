@@ -258,9 +258,7 @@ export const DishForm = ({
         categories: formData.categories,
       };
 
-      if (photoData) {
-        dishData.photo = photoData;
-      }
+
 
       let menuId: any;
       if( data?.id ) {
@@ -269,6 +267,16 @@ export const DishForm = ({
       } else {
         const [record] = await db.create(Tables.dishes, dishData);
         menuId = record.id;
+      }
+
+      if (photoData) {
+        const [photoId] = await db.create(Tables.documents, {
+          content: photoData
+        });
+
+        await db.merge(menuId, {
+          dish_photo: photoId.id
+        });
       }
 
       if( formData.modifier_groups ) {

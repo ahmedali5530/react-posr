@@ -57,7 +57,8 @@ export const FloorLayout = () => {
   const {
     data: orders,
     fetchData: fetchOrders
-  } = useApi<SettingsData<Order>>(Tables.orders, [`status = "${OrderStatus["In Progress"]}"`], ['created_at asc'], undefined, undefined, ORDER_FETCHES);
+  } = useApi<SettingsData<Order>>(Tables.orders, [`status = "${OrderStatus["In Progress"]}"`], ['created_at asc'],
+    undefined, undefined, ['customer', 'items', 'items.item', 'order_type', 'table', 'user']);
 
   const fetchTables = async () => {
     const [t] = await db.query<Table[]>(
