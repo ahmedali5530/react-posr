@@ -2,7 +2,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import _ from "lodash";
 import { cn } from "@/lib/utils.ts";
 import { useAtom } from "jotai/index";
-import { appState } from "@/store/jotai.ts";
+import {appSettings, appState} from "@/store/jotai.ts";
 import { useEffect, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
 import { MenuDish } from "@/components/menu/dish.tsx";
@@ -19,18 +19,15 @@ export const MenuDishes = () => {
   }, [isTablet]);
 
   const [state, setState] = useAtom(appState);
-
-  const {
-    data: allDishes,
-  } = useApi<SettingsData<Dish>>(Tables.dishes, [], ['priority asc'], 0, 99999, ['categories']);
+  const [{dishes: allDishes}] = useAtom(appSettings);
 
   const dishes = useMemo(() => {
     if( state.category ) {
-      return allDishes?.data.filter(item => item.categories.filter(cat => cat.id.toString() === state?.category?.id.toString()).length > 0);
+      return allDishes?.filter(item => item.categories.filter(cat => cat.id.toString() === state?.category?.id.toString()).length > 0);
     }
 
-    return allDishes?.data || [];
-  }, [allDishes?.data, state.category]);
+    return allDishes || [];
+  }, [allDishes, state.category]);
 
   const slides = Math.ceil(dishes?.length / (ITEMS_PER_SLIDE));
 

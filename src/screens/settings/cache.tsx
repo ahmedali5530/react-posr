@@ -54,7 +54,7 @@ export const CacheSettings = () => {
       ] = await Promise.all([
         db.query(`SELECT * FROM ${Tables.order_types} ORDER BY priority ASC`),
         db.query(`SELECT * FROM ${Tables.categories} ORDER BY priority ASC`),
-        db.query(`SELECT * omit photo FROM ${Tables.dishes} ORDER BY priority ASC FETCH ${DISH_FETCHES.join(', ')}`),
+        db.query(`SELECT * FROM ${Tables.dishes} ORDER BY priority ASC FETCH ${DISH_FETCHES.join(', ')}`),
         db.query(`SELECT * FROM ${Tables.modifier_groups} ORDER BY priority ASC FETCH modifiers`),
         db.query(`SELECT * FROM ${Tables.dish_modifier_groups} ORDER BY priority ASC FETCH in, out, out.modifiers, out.modifiers.modifier`),
         db.query(`SELECT * FROM ${Tables.floors} ORDER BY priority ASC`),
