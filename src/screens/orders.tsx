@@ -24,13 +24,11 @@ import {Dropdown, DropdownItem} from "@/components/common/react-aria/dropdown.ts
 import {LiveSubscription, RecordId, StringRecordId} from "surrealdb";
 import {toast} from "sonner";
 import {useQueryBuilder} from "@/api/db/query-builder.ts";
-import {useFetchRow} from "@/hooks/useFetchRow.ts";
 import {LabelValue} from "@/api/model/common.ts";
 
 export const Orders = () => {
   const db = useDB();
   const [liveQuery, setLiveQuery] = useState<LiveSubscription | null>(null);
-  const fetchHook = useFetchRow();
 
   const [state, setState] = useAtom(appState);
   const [date, setDate] = useState<DateValue>(today(getLocalTimeZone()));
@@ -63,7 +61,6 @@ export const Orders = () => {
       }
     }));
   }, [setState]);
-
 
 
   const orderFilters = useMemo(() => {

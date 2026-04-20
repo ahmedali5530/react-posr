@@ -1,8 +1,8 @@
-import React, { ReactNode, useEffect, useRef } from "react";
-import { useDB } from "@/api/db/db.ts";
-import { Tables } from "@/api/db/tables.ts";
-import { Table } from "@/api/model/table.ts";
-import { toJsDate } from "@/lib/datetime.ts";
+import React, {ReactNode, useEffect, useRef} from "react";
+import {useDB} from "@/api/db/db.ts";
+import {Tables} from "@/api/db/tables.ts";
+import {Table} from "@/api/model/table.ts";
+import {toJsDate} from "@/lib/datetime.ts";
 
 interface TableLockProviderProps {
   children: ReactNode;
@@ -11,7 +11,7 @@ interface TableLockProviderProps {
 const STALE_LOCK_THRESHOLD_MS = 15_000;
 const CHECK_INTERVAL_MS = 30_000;
 
-export const TableLockProvider: React.FC<TableLockProviderProps> = ({ children }) => {
+export const TableLockProvider: React.FC<TableLockProviderProps> = ({children}) => {
   const db = useDB();
   const dbRef = useRef(db);
   dbRef.current = db;
@@ -22,7 +22,10 @@ export const TableLockProvider: React.FC<TableLockProviderProps> = ({ children }
     const releaseStaleLocks = async () => {
       try {
         const [lockedTables] = await dbRef.current.query<[Table[]]>(
-          `SELECT id, locked_at FROM ${Tables.tables} WHERE is_locked = true AND locked_at != NONE`
+          `SELECT id, locked_at
+           FROM ${Tables.tables}
+           WHERE is_locked = true
+             AND locked_at != NONE`
         );
 
         if (!Array.isArray(lockedTables) || lockedTables.length === 0) {

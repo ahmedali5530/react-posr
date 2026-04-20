@@ -4,7 +4,6 @@ import {Dish} from "@/api/model/dish.ts";
 import {Table} from "@/api/model/table.ts";
 import {Category} from "@/api/model/category.ts";
 import {ModifierGroup} from "@/api/model/modifier_group.ts";
-import {ModifierGroupDish} from "@/api/model/modifier_group_dish.ts";
 import {Floor} from "@/api/model/floor.ts";
 import {Customer} from "@/api/model/customer.ts";
 import {Order} from "@/api/model/order.ts";

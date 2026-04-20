@@ -1,28 +1,27 @@
-import { Modal } from "@/components/common/react-aria/modal.tsx";
-import { Dish } from "@/api/model/dish.ts";
-import { Input, InputError } from "@/components/common/input/input.tsx";
-import { Button } from "@/components/common/input/button.tsx";
-import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
-import { ReactSelect } from "@/components/common/input/custom.react.select.tsx";
-import { useDB } from "@/api/db/db.ts";
-import React, { useCallback, useEffect, useState } from "react";
-import { Tables } from "@/api/db/tables.ts";
-import { Category } from "@/api/model/category.ts";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { CategoryForm } from "@/components/settings/categories/category.form.tsx";
+import {Modal} from "@/components/common/react-aria/modal.tsx";
+import {Dish} from "@/api/model/dish.ts";
+import {Input, InputError} from "@/components/common/input/input.tsx";
+import {Button} from "@/components/common/input/button.tsx";
+import {Controller, useFieldArray, useForm, useWatch} from "react-hook-form";
+import {ReactSelect} from "@/components/common/input/custom.react.select.tsx";
+import {useDB} from "@/api/db/db.ts";
+import React, {useCallback, useEffect, useState} from "react";
+import {Tables} from "@/api/db/tables.ts";
+import {Category} from "@/api/model/category.ts";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faPlus, faTrash} from "@fortawesome/free-solid-svg-icons";
+import {CategoryForm} from "@/components/settings/categories/category.form.tsx";
 import * as yup from 'yup';
-import { yupResolver } from "@hookform/resolvers/yup";
-import { toast } from "sonner";
-import useApi, { SettingsData } from "@/api/db/use.api.ts";
-import { ModifierGroup } from "@/api/model/modifier_group.ts";
-import { Switch } from "@/components/common/input/switch.tsx";
+import {yupResolver} from "@hookform/resolvers/yup";
+import {toast} from "sonner";
+import useApi, {SettingsData} from "@/api/db/use.api.ts";
+import {ModifierGroup} from "@/api/model/modifier_group.ts";
+import {Switch} from "@/components/common/input/switch.tsx";
 import _ from "lodash";
-import { ModifierGroupForm } from "@/components/settings/modifier_groups/modifier_group.form.tsx";
-import { RecordId, StringRecordId } from "surrealdb";
-import { InventoryItem } from "@/api/model/inventory_item.ts";
-import { MenuItemRecipe } from "@/api/model/dish.ts";
-import { detectMimeType } from "@/utils/files";
+import {ModifierGroupForm} from "@/components/settings/modifier_groups/modifier_group.form.tsx";
+import {RecordId, StringRecordId} from "surrealdb";
+import {InventoryItem} from "@/api/model/inventory_item.ts";
+import {detectMimeType} from "@/utils/files";
 
 interface Props {
   open: boolean
@@ -48,7 +47,7 @@ const validationSchema = yup.object({
     }).required('This is required'),
     has_required_modifiers: yup.boolean(),
     required_modifiers: yup.number().when('has_required_modifiers', (has_required_modifiers, schema) => {
-      if( has_required_modifiers[0] ) {
+      if (has_required_modifiers[0]) {
         return schema.min(1, 'This must be greater then 0').required('This is required');
       }
 
@@ -67,7 +66,7 @@ const validationSchema = yup.object({
     cost: yup.number().required('This is required').min(0, 'Cost must be greater than or equal to 0'),
     is_price_locked: yup.boolean(),
     id: yup.string().nullable().optional()
-  })).test('unique-items', 'Each item can only be added once', function(recipes) {
+  })).test('unique-items', 'Each item can only be added once', function (recipes) {
     if (!recipes || recipes.length === 0) return true;
     const itemValues = recipes.map(r => r?.item?.value).filter(Boolean);
     return itemValues.length === new Set(itemValues).size;
@@ -100,7 +99,7 @@ export const DishForm = ({
   }
 
   useEffect(() => {
-    if( data ) {
+    if (data) {
       reset({
         ...data,
         categories: data.categories.map(item => ({
@@ -121,10 +120,10 @@ export const DishForm = ({
 
       setPhotoFile(null);
       setPhotoData(null);
-      if(data.photo) {
+      if (data.photo) {
         const buffer = data.photo;
         const mimeType = detectMimeType(buffer, "image/png");
-        const blob = new Blob([buffer], { type: mimeType });
+        const blob = new Blob([buffer], {type: mimeType});
         setPhotoPreview(URL.createObjectURL(blob));
       }
 
@@ -162,7 +161,7 @@ export const DishForm = ({
   });
 
   useEffect(() => {
-    if( open ) {
+    if (open) {
       fetchCategories();
       fetchModifierGroups();
       fetchInventoryItems();
@@ -171,8 +170,8 @@ export const DishForm = ({
 
   const getModifierGroups = async (id) => {
     const [record]: any = await db.query(`SELECT *
-                                        from ${Tables.dish_modifier_groups}
-                                        where in = ${id} fetch out, out.modifiers, out.modifiers.modifier`);
+                                          from ${Tables.dish_modifier_groups}
+                                          where in = ${id} fetch out, out.modifiers, out.modifiers.modifier`);
 
 
     replace(record.map(item => ({
@@ -190,9 +189,11 @@ export const DishForm = ({
 
   const getRecipes = async (id) => {
     try {
-      const record: any = await db.query(`SELECT * FROM ${Tables.dishes_recipes} WHERE dish = $dish FETCH item`, { dish: id });
+      const record: any = await db.query(`SELECT *
+                                          FROM ${Tables.dishes_recipes}
+                                          WHERE dish = $dish FETCH item`, {dish: id});
       if (record[0] && record[0].length > 0) {
-        for ( const rec of record[0] ) {
+        for (const rec of record[0]) {
           appendRecipe({
             item: {
               label: rec.item.name,
@@ -216,7 +217,7 @@ export const DishForm = ({
 
   const db = useDB();
 
-  const { register, control, handleSubmit, formState: { errors }, reset, watch, getValues, setValue } = useForm({
+  const {register, control, handleSubmit, formState: {errors}, reset, watch, getValues, setValue} = useForm({
     resolver: yupResolver(validationSchema)
   });
 
@@ -259,9 +260,8 @@ export const DishForm = ({
       };
 
 
-
       let menuId: any;
-      if( data?.id ) {
+      if (data?.id) {
         menuId = data.id;
         await db.merge(data.id, dishData);
       } else {
@@ -279,11 +279,11 @@ export const DishForm = ({
         });
       }
 
-      if( formData.modifier_groups ) {
+      if (formData.modifier_groups) {
         // delete graph edges and create again
         await db.query(`DELETE ${menuId}->${Tables.dish_modifier_groups} where in = ${menuId}`);
 
-        for ( const modifierGroup of formData.modifier_groups ) {
+        for (const modifierGroup of formData.modifier_groups) {
           await db.query(`RELATE ${menuId}->${Tables.dish_modifier_groups}->${modifierGroup.modifier_group.value} set has_required_modifiers = $has_required_modifiers, should_auto_open = $should_auto_open, required_modifiers = $required_modifiers, should_auto_select = $should_auto_select, priority = $priority`, {
             has_required_modifiers: modifierGroup.has_required_modifiers,
             should_auto_open: modifierGroup.should_auto_open,
@@ -295,13 +295,13 @@ export const DishForm = ({
       }
 
       // Save recipes as separate records in dishes_recipes table
-      if( formData.recipes ) {
+      if (formData.recipes) {
         // Delete existing recipe records
-        await db.query(`DELETE ${Tables.dishes_recipes} WHERE menu_item = $dish`, { dish: menuId });
+        await db.query(`DELETE ${Tables.dishes_recipes} WHERE menu_item = $dish`, {dish: menuId});
 
         // Create new recipe records and collect their IDs
         const recipeIds: RecordId[] = [];
-        for ( const recipe of formData.recipes ) {
+        for (const recipe of formData.recipes) {
           const recipeData = {
             menu_item: menuId,
             item: new StringRecordId(recipe.item.value.toString()),
@@ -319,7 +319,7 @@ export const DishForm = ({
         });
       } else {
         // Clear recipes if none provided
-        await db.query(`DELETE ${Tables.dishes_recipes} WHERE menu_item = $dish`, { dish: menuId });
+        await db.query(`DELETE ${Tables.dishes_recipes} WHERE menu_item = $dish`, {dish: menuId});
         await db.merge(menuId, {
           items: []
         });
@@ -328,7 +328,7 @@ export const DishForm = ({
 
       closeModal();
       toast.success(`Dish ${values.name} saved`);
-    } catch ( e ) {
+    } catch (e) {
       toast.error(e);
       console.log(e)
     }
@@ -362,7 +362,7 @@ export const DishForm = ({
       const buffer = await file.arrayBuffer();
       setPhotoData(buffer);
 
-      const blob = new Blob([buffer], { type: file.type || 'application/octet-stream' });
+      const blob = new Blob([buffer], {type: file.type || 'application/octet-stream'});
       const objectUrl = URL.createObjectURL(blob);
       setPhotoPreview(objectUrl);
     } catch (err) {
@@ -382,8 +382,8 @@ export const DishForm = ({
         }
         return sum;
       }, 0);
-      
-      setValue('cost', totalCost, { shouldValidate: false, shouldDirty: false });
+
+      setValue('cost', totalCost, {shouldValidate: false, shouldDirty: false});
     } else {
       // If no recipes, keep the current cost value (don't reset to 0)
       // User can still manually set the cost
@@ -410,7 +410,7 @@ export const DishForm = ({
               <Controller
                 name="priority"
                 control={control}
-                render={({ field }) => (
+                render={({field}) => (
                   <Input
                     value={field.value}
                     onChange={field.onChange}
@@ -445,7 +445,7 @@ export const DishForm = ({
               <Controller
                 name="price"
                 control={control}
-                render={({ field }) => (
+                render={({field}) => (
                   <Input
                     value={field.value}
                     onChange={field.onChange}
@@ -460,7 +460,7 @@ export const DishForm = ({
               <Controller
                 name="cost"
                 control={control}
-                render={({ field }) => (
+                render={({field}) => (
                   <Input
                     value={field.value}
                     onChange={field.onChange}
@@ -478,7 +478,7 @@ export const DishForm = ({
               <label>Categories</label>
               <Controller
                 name="categories"
-                render={({ field }) => (
+                render={({field}) => (
                   <ReactSelect
                     options={categories?.data?.map(item => ({
                       label: item.name,
@@ -517,7 +517,8 @@ export const DishForm = ({
               />
             </div>
             {photoPreview && (
-              <div className="w-24 h-24 rounded-lg overflow-hidden border border-neutral-300 flex items-center justify-center bg-neutral-100">
+              <div
+                className="w-24 h-24 rounded-lg overflow-hidden border border-neutral-300 flex items-center justify-center bg-neutral-100">
                 <img
                   src={photoPreview}
                   alt="Dish photo preview"
@@ -555,7 +556,7 @@ export const DishForm = ({
                     <Controller
                       name={`modifier_groups.${index}.modifier_group`}
                       control={control}
-                      render={({ field }) => (
+                      render={({field}) => (
                         <ReactSelect
                           value={field.value}
                           onChange={field.onChange}
@@ -574,7 +575,7 @@ export const DishForm = ({
                     <Controller
                       name={`modifier_groups.${index}.should_auto_select`}
                       control={control}
-                      render={({ field }) => (
+                      render={({field}) => (
                         <Switch checked={field.value} onChange={field.onChange}>
                           Auto select modifiers?
                         </Switch>
@@ -585,7 +586,7 @@ export const DishForm = ({
                     <Controller
                       name={`modifier_groups.${index}.should_auto_open`}
                       control={control}
-                      render={({ field }) => (
+                      render={({field}) => (
                         <Switch checked={field.value} onChange={field.onChange}>
                           Auto open modifiers?
                         </Switch>
@@ -596,7 +597,7 @@ export const DishForm = ({
                     <Controller
                       name={`modifier_groups.${index}.has_required_modifiers`}
                       control={control}
-                      render={({ field }) => (
+                      render={({field}) => (
                         <Switch checked={field.value} onChange={field.onChange}>
                           Has required modifiers
                         </Switch>
@@ -607,7 +608,7 @@ export const DishForm = ({
                     <Controller
                       name={`modifier_groups.${index}.required_modifiers`}
                       control={control}
-                      render={({ field }) => (
+                      render={({field}) => (
                         <Input
                           type="number" value={field.value} onChange={field.onChange}
                           label="Required modifiers"
@@ -621,7 +622,7 @@ export const DishForm = ({
                     <Controller
                       name={`modifier_groups.${index}.priority`}
                       control={control}
-                      render={({ field }) => (
+                      render={({field}) => (
                         <Input
                           type="number" value={field.value} onChange={field.onChange}
                           label="Priority"
@@ -678,7 +679,7 @@ export const DishForm = ({
                       <Controller
                         name={`recipes.${index}.item`}
                         control={control}
-                        render={({ field }) => (
+                        render={({field}) => (
                           <ReactSelect
                             value={field.value}
                             onChange={(selected) => {
@@ -702,7 +703,7 @@ export const DishForm = ({
                       <Controller
                         name={`recipes.${index}.quantity`}
                         control={control}
-                        render={({ field }) => (
+                        render={({field}) => (
                           <Input
                             type="number"
                             value={field.value}
@@ -717,7 +718,7 @@ export const DishForm = ({
                       <Controller
                         name={`recipes.${index}.cost`}
                         control={control}
-                        render={({ field }) => (
+                        render={({field}) => (
                           <Input
                             type="number"
                             value={field.value}
@@ -732,7 +733,7 @@ export const DishForm = ({
                       <Controller
                         name={`recipes.${index}.is_price_locked`}
                         control={control}
-                        render={({ field }) => (
+                        render={({field}) => (
                           <Switch checked={field.value} onChange={field.onChange}>
                             Price locked
                           </Switch>

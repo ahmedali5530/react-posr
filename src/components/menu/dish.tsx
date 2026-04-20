@@ -1,16 +1,12 @@
-import { withCurrency } from "@/lib/utils.ts";
-import { Dish } from "@/api/model/dish.ts";
-import {detectMimeType, toArrayBuffer} from "@/utils/files.ts";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAtom } from "jotai";
+import {withCurrency} from "@/lib/utils.ts";
+import {Dish} from "@/api/model/dish.ts";
+import {useCallback, useEffect, useMemo, useState} from "react";
+import {useAtom} from "jotai";
 import {appSettings, appState} from "@/store/jotai.ts";
-import { MenuDishModifiers } from "@/components/menu/modifiers.tsx";
-import { CartModifierGroup, MenuItem, MenuItemType } from "@/api/model/cart_item.ts";
-import { nanoid } from "nanoid";
-import { Tables } from "@/api/db/tables.ts";
-import { useDB } from "@/api/db/db.ts";
-import { DishModifierGroup } from "@/api/model/dish_modifier_group.ts";
-import defaultImage from "@/assets/images/default-image.png";
+import {MenuDishModifiers} from "@/components/menu/modifiers.tsx";
+import {CartModifierGroup, MenuItem, MenuItemType} from "@/api/model/cart_item.ts";
+import {nanoid} from "nanoid";
+import {DishModifierGroup} from "@/api/model/dish_modifier_group.ts";
 
 interface Props {
   onClick: (item: MenuItem, groups?: CartModifierGroup[], price?: number) => void
@@ -20,7 +16,7 @@ interface Props {
   price: number
 }
 
-export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => {
+export const MenuDish = ({onClick, item, level, isModifier, price}: Props) => {
   const [state] = useAtom(appState);
   const [{groups_dishes}] = useAtom(appSettings);
 
@@ -41,35 +37,35 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
 
 
   const dishCount = useCallback((dish: Dish) => {
-    if(isModifier){
+    if (isModifier) {
       return null;
     }
 
     return state.cart.filter(item => item.dish === dish).reduce((prev, item) => prev + item.quantity, 0)
   }, [state.cart]);
 
-  const image = useMemo(() => {
-    try {
-      if (item!.dish_photo) {
-        // fetch item photo
-        if (item.dish_photo instanceof ArrayBuffer) {
-          const buffer = item.dish_photo;
-          const mimeType = detectMimeType(buffer, "image/png");
-          const blob = new Blob([buffer], { type: mimeType });
-          return URL.createObjectURL(blob);
-        }
-
-        if (typeof item.dish_photo === "string") {
-          // could be a data URL or a base64 string; try to use as-is
-          return item.dish_photo;
-        }
-      }
-    } catch (e) {
-      console.log("Failed to prepare dish image", e);
-    }
-
-    return defaultImage;
-  }, [item]);
+  // const image = useMemo(() => {
+  //   try {
+  //     if (item!.dish_photo) {
+  //       // fetch item photo
+  //       if (item.dish_photo instanceof ArrayBuffer) {
+  //         const buffer = item.dish_photo;
+  //         const mimeType = detectMimeType(buffer, "image/png");
+  //         const blob = new Blob([buffer], {type: mimeType});
+  //         return URL.createObjectURL(blob);
+  //       }
+  //
+  //       if (typeof item.dish_photo === "string") {
+  //         // could be a data URL or a base64 string; try to use as-is
+  //         return item.dish_photo;
+  //       }
+  //     }
+  //   } catch (e) {
+  //     console.log("Failed to prepare dish image", e);
+  //   }
+  //
+  //   return defaultImage;
+  // }, [item]);
 
   return (
     <>
@@ -78,7 +74,7 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
         role="button"
         tabIndex={0}
         onClick={() => {
-          if( modifierGroups.length > 0 && hasAutoOpen ) {
+          if (modifierGroups.length > 0 && hasAutoOpen) {
             setModifiersModal(true)
           } else {
             onClick({
@@ -140,7 +136,7 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
             }))]
           }))]}
           onClose={(payload) => {
-            if(payload.length > 0) {
+            if (payload.length > 0) {
               onClick({
                 dish: item,
                 seat: state.seat,

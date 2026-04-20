@@ -1,23 +1,18 @@
-import { useAtom } from "jotai";
+import {useAtom} from "jotai";
 import {appAlert, appPage, appSettings, appState} from "@/store/jotai.ts";
-import {CSSProperties, useCallback, useEffect, useMemo, useState} from "react";
-import { Button } from "@/components/common/input/button.tsx";
+import {CSSProperties, useEffect, useMemo, useState} from "react";
+import {Button} from "@/components/common/input/button.tsx";
 import {cn, toRecordId} from "@/lib/utils.ts";
-import useApi, { SettingsData } from "@/api/db/use.api.ts";
-import { Floor } from "@/api/model/floor.ts";
-import { Tables } from "@/api/db/tables.ts";
-import {Table, TABLE_FETCHES} from "@/api/model/table.ts";
-import { FloorTable } from "@/components/settings/floors/layout/table.tsx";
-import { Category } from "@/api/model/category.ts";
-import { OrderType } from "@/api/model/order_type.ts";
-import { PaymentType } from "@/api/model/payment_type.ts";
-import { useDB } from "@/api/db/db.ts";
-import {Order, ORDER_FETCHES, OrderStatus} from "@/api/model/order.ts";
-import { toast } from "sonner";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChair, faTable } from "@fortawesome/free-solid-svg-icons";
-import { LiveSubscription } from "surrealdb";
-import { nowSurrealDateTime } from "@/lib/datetime.ts";
+import useApi, {SettingsData} from "@/api/db/use.api.ts";
+import {Tables} from "@/api/db/tables.ts";
+import {Table} from "@/api/model/table.ts";
+import {FloorTable} from "@/components/settings/floors/layout/table.tsx";
+import {useDB} from "@/api/db/db.ts";
+import {Order, OrderStatus} from "@/api/model/order.ts";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faChair} from "@fortawesome/free-solid-svg-icons";
+import {LiveSubscription} from "surrealdb";
+import {nowSurrealDateTime} from "@/lib/datetime.ts";
 
 
 export const FloorLayout = () => {
@@ -35,7 +30,7 @@ export const FloorLayout = () => {
   }, [settings.floors]);
 
   const tables = useMemo(() => {
-    if(state.floor){
+    if (state.floor) {
       return settings.tables.filter(item => item.floor.id.toString() === state.floor.id.toString());
     }
 
@@ -64,7 +59,9 @@ export const FloorLayout = () => {
 
   const fetchTables = async () => {
     const [t] = await db.query<Table[]>(
-      `SELECT id, locked_at, locked_by, is_locked, priority FROM ${Tables.tables} ORDER BY priority ASC`
+      `SELECT id, locked_at, locked_by, is_locked, priority
+       FROM ${Tables.tables}
+       ORDER BY priority ASC`
     );
 
     const tableLocks = Array.isArray(t) ? t : [];
@@ -118,7 +115,7 @@ export const FloorLayout = () => {
   }, []);
 
   useEffect(() => {
-    if( !state.floor && floors?.length > 0 ) {
+    if (!state.floor && floors?.length > 0) {
       setState(prev => ({
         ...prev,
         floor: floors[0]
@@ -137,7 +134,7 @@ export const FloorLayout = () => {
   }
 
   const onClick = async (item: Table) => {
-    if( item.is_locked ) {
+    if (item.is_locked) {
       setAlert(prev => ({
         ...prev,
         message: `${item.locked_by} is already taking order on this table`,
@@ -146,12 +143,12 @@ export const FloorLayout = () => {
       }))
     }
 
-    if( !item.is_block && !item.is_locked ) {
+    if (!item.is_block && !item.is_locked) {
       const order = tableOrder(item.id);
       let cart = state.cart;
 
-      if(state.switchTable){
-        if(state.order.id !== 'new') {
+      if (state.switchTable) {
+        if (state.order.id !== 'new') {
           // update new table in order
           await db.merge(toRecordId(state.order.id), {
             table: toRecordId(item.id),
@@ -160,7 +157,7 @@ export const FloorLayout = () => {
         cart = [];
       }
 
-      if(order){
+      if (order) {
         cart = [];
       }
 
@@ -215,7 +212,8 @@ export const FloorLayout = () => {
         background: state.floor?.background
       }}>
         <div className="h-[80px] bg-white p-3 flex items-center">
-          {state.switchTable && <div className="text-xl"><FontAwesomeIcon icon={faChair} /> Switch from Table {state?.table?.name}{state?.table?.number} to another</div>}
+          {state.switchTable && <div className="text-xl"><FontAwesomeIcon icon={faChair}/> Switch from
+              Table {state?.table?.name}{state?.table?.number} to another</div>}
         </div>
         <div className="layout relative h-[calc(100vh_-_80px_-_80px)] p-3 overflow-hidden">
           {state.floor && (

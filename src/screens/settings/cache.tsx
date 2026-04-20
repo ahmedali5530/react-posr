@@ -9,14 +9,13 @@ import {Table, TABLE_FETCHES} from "@/api/model/table.ts";
 import {Dish, DISH_FETCHES} from "@/api/model/dish.ts";
 import {Kitchen, KITCHEN_FETCHES} from "@/api/model/kitchen.ts";
 import {PAYMENT_TYPE_FETCHES, PaymentType} from "@/api/model/payment_type.ts";
-import {ModifierGroupDish} from "@/api/model/modifier_group_dish.ts";
 import {OrderType} from "@/api/model/order_type.ts";
 import {Category} from "@/api/model/category.ts";
 import {ModifierGroup} from "@/api/model/modifier_group.ts";
 import {DishModifierGroup} from "@/api/model/dish_modifier_group.ts";
 import {Floor} from "@/api/model/floor.ts";
 
-const toRows = <T,>(result: unknown): T[] => {
+const toRows = <T, >(result: unknown): T[] => {
   return Array.isArray(result) ? result as T[] : [];
 };
 
@@ -52,15 +51,33 @@ export const CacheSettings = () => {
         kitchensResult,
         paymentTypesResult
       ] = await Promise.all([
-        db.query(`SELECT * FROM ${Tables.order_types} ORDER BY priority ASC`),
-        db.query(`SELECT * FROM ${Tables.categories} ORDER BY priority ASC`),
-        db.query(`SELECT * FROM ${Tables.dishes} ORDER BY priority ASC FETCH ${DISH_FETCHES.join(', ')}`),
-        db.query(`SELECT * FROM ${Tables.modifier_groups} ORDER BY priority ASC FETCH modifiers`),
-        db.query(`SELECT * FROM ${Tables.dish_modifier_groups} ORDER BY priority ASC FETCH in, out, out.modifiers, out.modifiers.modifier`),
-        db.query(`SELECT * FROM ${Tables.floors} ORDER BY priority ASC`),
-        db.query(`SELECT * FROM ${Tables.tables} ORDER BY priority ASC FETCH ${TABLE_FETCHES.join(', ')}`),
-        db.query(`SELECT * FROM ${Tables.kitchens} ORDER BY priority ASC FETCH ${KITCHEN_FETCHES.join(', ')}`),
-        db.query(`SELECT * FROM ${Tables.payment_types} ORDER BY priority ASC FETCH ${PAYMENT_TYPE_FETCHES.join(', ')}`),
+        db.query(`SELECT *
+                  FROM ${Tables.order_types}
+                  ORDER BY priority ASC`),
+        db.query(`SELECT *
+                  FROM ${Tables.categories}
+                  ORDER BY priority ASC`),
+        db.query(`SELECT *
+                  FROM ${Tables.dishes}
+                  ORDER BY priority ASC FETCH ${DISH_FETCHES.join(', ')}`),
+        db.query(`SELECT *
+                  FROM ${Tables.modifier_groups}
+                  ORDER BY priority ASC FETCH modifiers`),
+        db.query(`SELECT *
+                  FROM ${Tables.dish_modifier_groups}
+                  ORDER BY priority ASC FETCH in, out, out.modifiers, out.modifiers.modifier`),
+        db.query(`SELECT *
+                  FROM ${Tables.floors}
+                  ORDER BY priority ASC`),
+        db.query(`SELECT *
+                  FROM ${Tables.tables}
+                  ORDER BY priority ASC FETCH ${TABLE_FETCHES.join(', ')}`),
+        db.query(`SELECT *
+                  FROM ${Tables.kitchens}
+                  ORDER BY priority ASC FETCH ${KITCHEN_FETCHES.join(', ')}`),
+        db.query(`SELECT *
+                  FROM ${Tables.payment_types}
+                  ORDER BY priority ASC FETCH ${PAYMENT_TYPE_FETCHES.join(', ')}`),
       ]);
 
       setSettings(prev => ({

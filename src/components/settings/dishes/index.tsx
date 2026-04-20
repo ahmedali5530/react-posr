@@ -3,12 +3,11 @@ import {Dish} from "@/api/model/dish.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {Button} from "@/components/common/input/button.tsx";
 import {DishForm} from "@/components/settings/dishes/dish.form.tsx";
-import {faImage, faPencil, faPlus, faPhotoFilm, faUpload} from "@fortawesome/free-solid-svg-icons";
+import {faPencil, faPhotoFilm, faPlus, faUpload} from "@fortawesome/free-solid-svg-icons";
 import {createColumnHelper} from "@tanstack/react-table";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import useApi, {SettingsData} from "@/api/db/use.api.ts";
 import {TableComponent} from "@/components/common/table/table.tsx";
-import {detectMimeType} from "@/utils/files.ts";
 import {CsvUploadModal} from "@/components/common/table/csv.uploader.tsx";
 import {useDB} from "@/api/db/db.ts";
 import {toRecordId} from "@/lib/utils.ts";
@@ -38,8 +37,8 @@ export const AdminDishes = () => {
     columnHelper.accessor("dish_photo", {
       header: 'Photo',
       cell: info => {
-        if(info.getValue()) {
-          return <FontAwesomeIcon icon={faPhotoFilm} />
+        if (info.getValue()) {
+          return <FontAwesomeIcon icon={faPhotoFilm}/>
         }
       },
       enableColumnFilter: false,
@@ -124,20 +123,32 @@ export const AdminDishes = () => {
     const dishId = toRecordId(id);
 
     const [orderItems] = await db.query<[{ count?: number }[]]>(
-      `SELECT count() AS count FROM ${Tables.order_items} WHERE item = $dish GROUP ALL`,
-      { dish: dishId }
+      `SELECT count() AS count
+       FROM ${Tables.order_items}
+       WHERE item = $dish
+       GROUP ALL`,
+      {dish: dishId}
     );
     const [menuItems] = await db.query<[{ count?: number }[]]>(
-      `SELECT count() AS count FROM ${Tables.menu_menu_items} WHERE menu_item = $dish GROUP ALL`,
-      { dish: dishId }
+      `SELECT count() AS count
+       FROM ${Tables.menu_menu_items}
+       WHERE menu_item = $dish
+       GROUP ALL`,
+      {dish: dishId}
     );
     const [modifierGroups] = await db.query<[{ count?: number }[]]>(
-      `SELECT count() AS count FROM ${Tables.modifier_groups} WHERE array::any(modifiers.modifier.id ?? [], $dish) GROUP ALL`,
-      { dish: dishId }
+      `SELECT count() AS count
+       FROM ${Tables.modifier_groups}
+       WHERE array:: any (modifiers.modifier.id ?? [], $dish)
+       GROUP ALL`,
+      {dish: dishId}
     );
     const [kitchens] = await db.query<[{ count?: number }[]]>(
-      `SELECT count() AS count FROM ${Tables.kitchens} WHERE items ?= $dish GROUP ALL`,
-      { dish: dishId }
+      `SELECT count() AS count
+       FROM ${Tables.kitchens}
+       WHERE items ?= $dish
+       GROUP ALL`,
+      {dish: dishId}
     );
 
     const isInUse = (orderItems?.[0]?.count ?? 0) > 0
@@ -146,14 +157,14 @@ export const AdminDishes = () => {
       || (kitchens?.[0]?.count ?? 0) > 0;
 
     if (isInUse) {
-      await db.merge(id, { deleted_at: new Date() });
+      await db.merge(id, {deleted_at: new Date()});
       loadHook.fetchData();
       return;
     }
 
-    await db.query(`DELETE ${Tables.dishes_recipes} WHERE menu_item = $dish`, { dish: dishId });
-    await db.query(`DELETE ${Tables.dish_modifier_groups} WHERE in = $dish`, { dish: dishId });
-    await db.query(`DELETE ${Tables.menu_menu_items} WHERE menu_item = $dish`, { dish: dishId });
+    await db.query(`DELETE ${Tables.dishes_recipes} WHERE menu_item = $dish`, {dish: dishId});
+    await db.query(`DELETE ${Tables.dish_modifier_groups} WHERE in = $dish`, {dish: dishId});
+    await db.query(`DELETE ${Tables.menu_menu_items} WHERE menu_item = $dish`, {dish: dishId});
     await db.delete(id);
     loadHook.fetchData();
   }
@@ -190,29 +201,31 @@ export const AdminDishes = () => {
           fields={[{
             name: 'name',
             label: 'Name'
-          },{
+          }, {
             name: 'number',
             label: 'Number'
-          },{
+          }, {
             name: 'priority',
             label: 'Priority'
-          },{
+          }, {
             name: 'sale_price',
             label: 'Sale price'
-          },{
+          }, {
             name: 'cost_price',
             label: 'Cost price'
-          },{
+          }, {
             name: 'categories',
             label: 'Categories'
           }]}
           onCreateRow={async (rowData) => {
-            try{
-              const [categories] = await db.query(`SELECT id from ${Tables.categories} where name IN $names`, {
+            try {
+              const [categories] = await db.query(`SELECT id
+                                                   from ${Tables.categories}
+                                                   where name IN $names`, {
                 names: rowData.categories.split('|')
               });
 
-              if(categories.length !== rowData?.categories?.split('|')?.filter(item => item !== '')?.length){
+              if (categories.length !== rowData?.categories?.split('|')?.filter(item => item !== '')?.length) {
                 throw new Error('Categories are invalid');
               }
 
@@ -228,7 +241,7 @@ export const AdminDishes = () => {
 
               await db.insert(Tables.dishes, dishData);
 
-            }catch(e){
+            } catch (e) {
               throw new Error(e)
             }
           }}

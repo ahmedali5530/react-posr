@@ -13,7 +13,6 @@ import {StringRecordId} from "surrealdb";
 import {MenuItemType} from "@/api/model/cart_item.ts";
 import {dispatchPrint} from "@/lib/print.service.ts";
 import {DiscountType} from "@/api/model/discount.ts";
-import { nowSurrealDateTime } from "@/lib/datetime.ts";
 import {DateTime} from "luxon";
 
 export const Payment = () => {
@@ -188,7 +187,7 @@ export const Payment = () => {
       const normalizedOrder = isNewOrder ? orderObj[0] : orderObj;
       const [kitchens]: any = await db.query(`SELECT *
                                               from ${Tables.kitchens} FETCH printers`);
-      if(kitchens.length > 0) {
+      if (kitchens.length > 0) {
         for (const k of kitchens) {
           if (kitchenItems[k.id.toString()]) {
             void dispatchPrint(db, 'kitchen', {

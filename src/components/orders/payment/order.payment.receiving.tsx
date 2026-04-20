@@ -11,7 +11,7 @@ import {useDB} from "@/api/db/db.ts";
 import {Table} from "@/api/model/table.ts";
 import {Tax} from "@/api/model/tax.ts";
 import {Discount, DiscountType} from "@/api/model/discount.ts";
-import { Coupon } from "@/api/model/coupon.ts";
+import {Coupon} from "@/api/model/coupon.ts";
 import {OrderPayment} from "@/api/model/order_payment.ts";
 import {nanoid} from "nanoid";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
@@ -24,7 +24,7 @@ import {StringRecordId} from "surrealdb";
 import {createPaymentIntent, GatewayType, verifyPayment} from "@/lib/payment.service.ts";
 import {calculateChangeDue, calculateOrderGrandTotal} from "@/lib/cart.ts";
 import {useSecurity} from "@/hooks/useSecurity.ts";
-import { nowSurrealDateTime } from "@/lib/datetime.ts";
+import {nowSurrealDateTime} from "@/lib/datetime.ts";
 
 interface Props {
   order: Order
@@ -75,13 +75,34 @@ type PendingRemoteIntent = {
 }
 
 export const OrderPaymentReceiving = ({
-  total, order, onComplete, extras, setTax, tax, taxAmount, discount, discountAmount, setDiscount, setDiscountAmount, tipType, tip, tipAmount,
-  payments, setPayments, itemsTotal, serviceChargeAmount, serviceCharge, serviceChargeType, notes, coupon, couponAmount
+  total,
+  order,
+  onComplete,
+  extras,
+  setTax,
+  tax,
+  taxAmount,
+  discount,
+  discountAmount,
+  setDiscount,
+  setDiscountAmount,
+  tipType,
+  tip,
+  tipAmount,
+  payments,
+  setPayments,
+  itemsTotal,
+  serviceChargeAmount,
+  serviceCharge,
+  serviceChargeType,
+  notes,
+  coupon,
+  couponAmount
 }: Props) => {
   const db = useDB();
   const {protectAction} = useSecurity();
 
-  const [alert, setAlert] = useAtom(appAlert);
+  const [, setAlert] = useAtom(appAlert);
 
   const {
     data: allPaymentTypes
@@ -109,7 +130,7 @@ export const OrderPaymentReceiving = ({
   const [remoteProcessing, setRemoteProcessing] = useState(false);
   const [verifyingIntentId, setVerifyingIntentId] = useState<string | null>(null);
   const [pendingRemoteIntents, setPendingRemoteIntents] = useState<PendingRemoteIntent[]>([]);
-  const [page, setPage] = useAtom(appPage);
+  const [page,] = useAtom(appPage);
 
   const isTaxObject = (value: unknown): value is Tax => {
     return (
@@ -211,18 +232,18 @@ export const OrderPaymentReceiving = ({
       // find largest tax and apply it
       const paymentsWithTaxes = payments.filter(item => !!getPaymentTypeTax(item.payment_type));
       let tax: Tax | undefined;
-      if(paymentsWithTaxes.length > 0){
+      if (paymentsWithTaxes.length > 0) {
         paymentsWithTaxes.forEach(pt => {
           const paymentTax = getPaymentTypeTax(pt.payment_type);
-          if(!paymentTax){
+          if (!paymentTax) {
             return;
           }
 
-          if(!tax){
+          if (!tax) {
             tax = paymentTax;
           }
 
-          if(tax.rate < paymentTax.rate){
+          if (tax.rate < paymentTax.rate) {
             tax = paymentTax;
           }
         });
@@ -246,7 +267,7 @@ export const OrderPaymentReceiving = ({
     return String(paymentType.type || '').toLowerCase() === 'remote';
   }
 
-  const addRemotePayment = async (amount: string|number, paymentType: PaymentType, payable: number) => {
+  const addRemotePayment = async (amount: string | number, paymentType: PaymentType, payable: number) => {
     const numericAmount = Number(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
       return;
@@ -312,8 +333,8 @@ export const OrderPaymentReceiving = ({
     }
   }
 
-  const addPayment = async (amount: string|number, paymentType: PaymentType, payable: number) => {
-    if(amount.toString().length === 0){
+  const addPayment = async (amount: string | number, paymentType: PaymentType, payable: number) => {
+    if (amount.toString().length === 0) {
       return;
     }
 
@@ -325,7 +346,7 @@ export const OrderPaymentReceiving = ({
     // Compute change due relative to this payable (may include tax for selected payment type)
     const localChangeDue = tendered - payable;
 
-    if(paymentType.type === 'Card' && localChangeDue >= 0){
+    if (paymentType.type === 'Card' && localChangeDue >= 0) {
       setAlert(prev => ({
         ...prev,
         opened: true,
@@ -336,7 +357,7 @@ export const OrderPaymentReceiving = ({
       return;
     }
 
-    if(paymentType.type === 'Card' && Number(amount) > Number(-1 * localChangeDue)){
+    if (paymentType.type === 'Card' && Number(amount) > Number(-1 * localChangeDue)) {
       setAlert(prev => ({
         ...prev,
         opened: true,
@@ -376,7 +397,7 @@ export const OrderPaymentReceiving = ({
       if (result.status !== 'paid' && result.status !== 'authorized') {
         toast.warning(`Payment is ${result.status}. It must be paid/authorized before adding.`);
         setPendingRemoteIntents(prev => prev.map(item => (
-          item.id === pendingIntent.id ? { ...item, status: result.status } : item
+          item.id === pendingIntent.id ? {...item, status: result.status} : item
         )));
         return;
       }
@@ -444,8 +465,8 @@ export const OrderPaymentReceiving = ({
     let highest: Tax | undefined = existingTaxes.length > 0
       ? existingTaxes.reduce((acc, t) => (acc.rate >= t.rate ? acc : t))
       : undefined;
-    if(candidate){
-      if(!highest || candidate.rate >= highest.rate){
+    if (candidate) {
+      if (!highest || candidate.rate >= highest.rate) {
         highest = candidate;
       }
     }
@@ -453,32 +474,33 @@ export const OrderPaymentReceiving = ({
   }
 
   const selectBestDiscount = (discounts?: Discount[]): Discount | undefined => {
-    if(!discounts || discounts.length === 0){
+    if (!discounts || discounts.length === 0) {
       return undefined;
     }
     // Prefer lowest priority value if provided, fallback to first
-    const withPriority = discounts.filter(d => (d as any).priority !== undefined) as (Discount & {priority: number})[];
-    if(withPriority.length > 0){
-      return withPriority.sort((a,b) => a.priority - b.priority)[0];
+    const withPriority = discounts.filter(d => (d as any).priority !== undefined) as (Discount & {
+      priority: number
+    })[];
+    if (withPriority.length > 0) {
+      return withPriority.sort((a, b) => a.priority - b.priority)[0];
     }
     return discounts[0];
   }
 
   const computeDiscountAmountFor = (d?: Discount): number => {
-    if(!d){
+    if (!d) {
       return 0;
     }
     const hasVariableRates = (d.min_rate ?? 0) !== (d.max_rate ?? 0);
-    let computed = 0;
-    if(d.type === DiscountType.Percent){
+    let computed: number;
+    if (d.type === DiscountType.Percent) {
       // Use min_rate as default for auto-apply if variable
       const rate = hasVariableRates ? (d.min_rate ?? 0) : (d.min_rate ?? 0);
       computed = (rate * itemsTotal) / 100;
-    }else{ // Fixed
-      const base = d.min_rate ?? 0;
-      computed = base;
+    } else { // Fixed
+      computed = d.min_rate ?? 0;
     }
-    if(d.max_cap !== undefined && d.max_cap !== null){
+    if (d.max_cap !== undefined && d.max_cap !== null) {
       computed = Math.min(computed, d.max_cap);
     }
     // Never exceed itemsTotal
@@ -487,7 +509,7 @@ export const OrderPaymentReceiving = ({
   }
 
   const clearAutoDiscountIfNeeded = (newPaymentTypeId?: string) => {
-    if(autoDiscountMeta?.paymentTypeId && autoDiscountMeta.paymentTypeId !== newPaymentTypeId){
+    if (autoDiscountMeta?.paymentTypeId && autoDiscountMeta.paymentTypeId !== newPaymentTypeId) {
       setDiscount && setDiscount(undefined);
       setDiscountAmount && setDiscountAmount(0);
       setAutoDiscountMeta(undefined);
@@ -498,13 +520,13 @@ export const OrderPaymentReceiving = ({
     clearAutoDiscountIfNeeded(paymentType.id.toString());
     const d = selectBestDiscount(paymentType.discounts);
     const amount = computeDiscountAmountFor(d);
-    if(d){
+    if (d) {
       setDiscount && setDiscount(d);
       setDiscountAmount && setDiscountAmount(amount);
-      setAutoDiscountMeta({ paymentTypeId: paymentType.id.toString(), discountId: d.id.toString() });
-    }else{
+      setAutoDiscountMeta({paymentTypeId: paymentType.id.toString(), discountId: d.id.toString()});
+    } else {
       // If no discount on this PT, and previous was auto, ensure cleared
-      if(autoDiscountMeta){
+      if (autoDiscountMeta) {
         setDiscount && setDiscount(undefined);
         setDiscountAmount && setDiscountAmount(0);
         setAutoDiscountMeta(undefined);
@@ -537,14 +559,14 @@ export const OrderPaymentReceiving = ({
           <span
             className="btn btn-primary w-[100px] lg"
             onClick={() => {
-              if(!paymentTypes || paymentTypes.length === 0){
+              if (!paymentTypes || paymentTypes.length === 0) {
                 return;
               }
               const pt = paymentTypes[0];
               const paymentTypeTax = getPaymentTypeTax(pt);
               const hasTax = !!paymentTypeTax;
               const highestTax = hasTax ? getHighestTaxObject(paymentTypeTax) : getHighestTaxObject(undefined);
-              if(hasTax){
+              if (hasTax) {
                 setTax && setTax(highestTax);
               }
               const highestRate = hasTax ? (highestTax ? highestTax.rate : 0) : (tax ? tax.rate : getHighestTaxRate());
@@ -559,14 +581,14 @@ export const OrderPaymentReceiving = ({
                 key={item}
                 className="btn btn-primary w-[100px] lg"
                 onClick={() => {
-                  if(!paymentTypes || paymentTypes.length === 0){
+                  if (!paymentTypes || paymentTypes.length === 0) {
                     return;
                   }
                   const pt = paymentTypes[0];
                   const paymentTypeTax = getPaymentTypeTax(pt);
                   const hasTax = !!paymentTypeTax;
                   const highestTax = hasTax ? getHighestTaxObject(paymentTypeTax) : getHighestTaxObject(undefined);
-                  if(hasTax){
+                  if (hasTax) {
                     setTax && setTax(highestTax);
                   }
                   const highestRate = hasTax ? (highestTax ? highestTax.rate : 0) : (tax ? tax.rate : getHighestTaxRate());
@@ -606,16 +628,16 @@ export const OrderPaymentReceiving = ({
 
                 const payable = calculateTotal(highestRate, autoDiscountAmount);
 
-                if(selectedAmount.trim().length > 0){
+                if (selectedAmount.trim().length > 0) {
                   // Respect typed amount; add with proper payable (includes highest tax)
                   void addPayment(selectedAmount, item, payable)
-                }else if(changeDue < 0) {
+                } else if (changeDue < 0) {
                   // No typed amount: auto-fill remaining for convenience
                   const remaining = payable - tendered;
                   const amt = remaining.toString();
                   setSelectedAmount(amt);
                   void addPayment(amt, item, payable)
-                }else {
+                } else {
                   // Nothing typed and no remaining due – do nothing (card will be blocked inside addPayment)
                 }
               }}
@@ -663,7 +685,10 @@ export const OrderPaymentReceiving = ({
                 size="lg"
                 onClick={() => {
                   protectAction(() => {
-                    void dispatchPrint(db, PRINT_TYPE.presale_bill, { order, taxes: allTaxes?.data }, { userId: page?.user?.id });
+                    void dispatchPrint(db, PRINT_TYPE.presale_bill, {
+                      order,
+                      taxes: allTaxes?.data
+                    }, {userId: page?.user?.id});
                   }, {
                     module: 'Print temp bill',
                     description: 'Print temp bill'
@@ -710,7 +735,9 @@ export const OrderPaymentReceiving = ({
               <Button
                 size="sm"
                 variant="success"
-                onClick={() => { void verifyRemoteIntent(intent); }}
+                onClick={() => {
+                  void verifyRemoteIntent(intent);
+                }}
                 disabled={verifyingIntentId === intent.id}
               >
                 Verify
@@ -734,7 +761,7 @@ export const OrderPaymentReceiving = ({
             }}
           >
             <strong className="flex gap-3 justify-center items-center">
-              <FontAwesomeIcon icon={faClose} className="text-danger-500 p-2 px-3 rounded border border-danger-500" />
+              <FontAwesomeIcon icon={faClose} className="text-danger-500 p-2 px-3 rounded border border-danger-500"/>
               {payment.payment_type.name}
             </strong>
             <span>{withCurrency(payment.amount)}</span>

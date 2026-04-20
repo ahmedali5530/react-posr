@@ -1,18 +1,15 @@
-import { Swiper, SwiperSlide } from "swiper/react";
+import {Swiper, SwiperSlide} from "swiper/react";
 import _ from "lodash";
-import { cn } from "@/lib/utils.ts";
-import { useAtom } from "jotai/index";
+import {cn} from "@/lib/utils.ts";
+import {useAtom} from "jotai";
 import {appSettings, appState} from "@/store/jotai.ts";
-import { useEffect, useMemo } from "react";
-import { useMediaQuery } from "react-responsive";
-import { MenuDish } from "@/components/menu/dish.tsx";
-import { CartModifierGroup, MenuItem } from "@/api/model/cart_item.ts";
-import useApi, { SettingsData } from "@/api/db/use.api.ts";
-import { Dish } from "@/api/model/dish.ts";
-import { Tables } from "@/api/db/tables.ts";
+import {useEffect, useMemo} from "react";
+import {useMediaQuery} from "react-responsive";
+import {MenuDish} from "@/components/menu/dish.tsx";
+import {CartModifierGroup, MenuItem} from "@/api/model/cart_item.ts";
 
 export const MenuDishes = () => {
-  const isTablet = useMediaQuery({ maxWidth: 1024 });
+  const isTablet = useMediaQuery({maxWidth: 1024});
 
   const ITEMS_PER_SLIDE = useMemo(() => {
     return isTablet ? 15 : 20;
@@ -22,7 +19,7 @@ export const MenuDishes = () => {
   const [{dishes: allDishes}] = useAtom(appSettings);
 
   const dishes = useMemo(() => {
-    if( state.category ) {
+    if (state.category) {
       return allDishes?.filter(item => item.categories.filter(cat => cat.id.toString() === state?.category?.id.toString()).length > 0);
     }
 

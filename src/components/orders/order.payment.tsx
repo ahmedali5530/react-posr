@@ -24,13 +24,13 @@ import {getOrderFilteredItems} from "@/lib/order.ts";
 import {useAtom} from "jotai";
 import {appPage} from "@/store/jotai.ts";
 import {Tables} from "@/api/db/tables.ts";
-import useApi, { SettingsData } from "@/api/db/use.api.ts";
-import { Extra } from "@/api/model/extra.ts";
-import { Coupon, CouponRedemption, WeekDay } from "@/api/model/coupon.ts";
-import { OrderPaymentCoupon } from "@/components/orders/payment/order.payment.coupon.tsx";
+import useApi, {SettingsData} from "@/api/db/use.api.ts";
+import {Extra} from "@/api/model/extra.ts";
+import {Coupon, WeekDay} from "@/api/model/coupon.ts";
+import {OrderPaymentCoupon} from "@/components/orders/payment/order.payment.coupon.tsx";
 import {toast} from "sonner";
 import {useSecurity} from "@/hooks/useSecurity.ts";
-import { nowSurrealDateTime, toJsDate } from "@/lib/datetime.ts";
+import {nowSurrealDateTime, toJsDate} from "@/lib/datetime.ts";
 
 interface Props {
   order: Order
@@ -173,29 +173,29 @@ export const OrderPayment = ({
   }, [defaultExtras, extraToggles]);
 
   useEffect(() => {
-    if(tax){
+    if (tax) {
       setTaxAmount(itemsTotal * tax.rate / 100)
-    }else{
+    } else {
       setTaxAmount(0);
     }
   }, [tax, itemsTotal]);
 
   useEffect(() => {
-    if(tipType === DiscountType.Fixed){
+    if (tipType === DiscountType.Fixed) {
       setTipAmount(tip);
-    }else{
+    } else {
       setTipAmount(itemsTotal * tip / 100);
     }
   }, [tip, itemsTotal, tipType]);
 
   useEffect(() => {
-    if(serviceCharge){
+    if (serviceCharge) {
       setServiceChargeAmount(
         serviceChargeType === DiscountType.Percent ?
           itemsTotal * serviceCharge / 100 :
           serviceCharge
       )
-    }else{
+    } else {
       setServiceChargeAmount(0);
     }
   }, [serviceCharge, itemsTotal, serviceChargeType]);
@@ -232,7 +232,7 @@ export const OrderPayment = ({
       return acc;
     }, {} as Record<string, number>);
     setExtraToggles(prev => {
-      const next = { ...prev };
+      const next = {...prev};
       Object.keys(orderExtraMap).forEach(extraName => {
         next[extraName] = orderExtraMap[extraName] > 0;
       });
@@ -268,8 +268,12 @@ export const OrderPayment = ({
       const nowJs = now.toDate();
 
       const [coupons] = await db.query<Coupon[]>(
-        `SELECT * FROM ${Tables.coupons} WHERE code = $code AND is_active = true ORDER BY priority ASC LIMIT 1`,
-        { code }
+        `SELECT *
+         FROM ${Tables.coupons}
+         WHERE code = $code
+           AND is_active = true
+         ORDER BY priority ASC LIMIT 1`,
+        {code}
       );
 
       const couponRecord = (coupons || [])[0];
@@ -349,8 +353,10 @@ export const OrderPayment = ({
         couponRecord.usage_limit !== null
       ) {
         const [allRedemptions] = await db.query(
-          `SELECT * FROM ${Tables.coupon_redemptions} WHERE coupon = $couponId`,
-          { couponId: couponRecord.id }
+          `SELECT *
+           FROM ${Tables.coupon_redemptions}
+           WHERE coupon = $couponId`,
+          {couponId: couponRecord.id}
         );
         if ((allRedemptions || []).length >= Number(couponRecord.usage_limit)) {
           toast.error("Coupon usage limit reached");
@@ -364,7 +370,10 @@ export const OrderPayment = ({
         page?.user?.id
       ) {
         const [userRedemptions] = await db.query(
-          `SELECT * FROM ${Tables.coupon_redemptions} WHERE coupon = $couponId AND user = $userId`,
+          `SELECT *
+           FROM ${Tables.coupon_redemptions}
+           WHERE coupon = $couponId
+             AND user = $userId`,
           {
             couponId: couponRecord.id,
             userId: page.user.id,
@@ -389,7 +398,7 @@ export const OrderPayment = ({
         return;
       }
 
-      let computed = 0;
+      let computed: number;
       if (couponRecord.discount_type === "fixed") {
         computed = Number(couponRecord.discount_value || 0);
       } else {
@@ -428,11 +437,12 @@ export const OrderPayment = ({
 
   const print = async () => {
     // fetch latest order from database
-    const [o] = await db.query<[Order]>(`select * from only ${order.id} fetch items, items.item, item.item.modifiers, table, user, order_type, customer, discount, tax, payments, payments.payment_type, extras, extras.order_extras`);
+    const [o] = await db.query<[Order]>(`select *
+                                         from only ${order.id} fetch items, items.item, item.item.modifiers, table, user, order_type, customer, discount, tax, payments, payments.payment_type, extras, extras.order_extras`);
 
     void dispatchPrint(db, PRINT_TYPE.final_bill, {
       order: o,
-    }, { userId: page?.user?.id });
+    }, {userId: page?.user?.id});
   }
 
   const onPayment = () => {
@@ -450,7 +460,7 @@ export const OrderPayment = ({
     }
 
     // remove previously attached payments
-    for(const payment of order?.payments ?? []){
+    for (const payment of order?.payments ?? []) {
       await db.delete(payment.id);
     }
 
@@ -467,7 +477,7 @@ export const OrderPayment = ({
     }
 
     // remove previously attached extras from order
-    for(const ext of order?.extras ?? []){
+    for (const ext of order?.extras ?? []) {
       await db.delete(ext.id);
     }
 
@@ -638,7 +648,9 @@ export const OrderPayment = ({
                 description: 'Apply service charges'
               });
             }}>
-              <div>Service charges ({serviceCharge}{serviceChargeType === DiscountType.Percent ? '%' : ''}) <FontAwesomeIcon icon={faPencil}/></div>
+              <div>Service charges
+                ({serviceCharge}{serviceChargeType === DiscountType.Percent ? '%' : ''}) <FontAwesomeIcon
+                  icon={faPencil}/></div>
               <div className="text-right">{withCurrency(serviceChargeAmount)}</div>
             </div>
 
@@ -728,7 +740,7 @@ export const OrderPayment = ({
             <OrderPaymentTip tip={tip} setTip={setTip} tipType={tipType} setTipType={setTipType}/>
           )}
           {mode === PaymentOptions.Notes && (
-            <OrderPaymentNotes setNotes={setNotes} notes={notes} />
+            <OrderPaymentNotes setNotes={setNotes} notes={notes}/>
           )}
         </div>
         <div className="flex flex-col bg-neutral-100 rounded-xl col-span-2">
