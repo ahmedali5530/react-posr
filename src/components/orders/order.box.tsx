@@ -185,7 +185,7 @@ export const OrderBox = ({
 
                   if (key === 'final_bill') {
                     protectAction(() => {
-                      dispatchPrint(db, PRINT_TYPE.final_bill, { order, duplicate: true }, { userId: page?.user?.id });
+                      void dispatchPrint(db, PRINT_TYPE.final_bill, { order, duplicate: true }, { userId: page?.user?.id });
                     }, {
                       module: 'Print final copy',
                       description: 'Print final copy'

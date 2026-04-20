@@ -663,7 +663,7 @@ export const OrderPaymentReceiving = ({
                 size="lg"
                 onClick={() => {
                   protectAction(() => {
-                    dispatchPrint(db, PRINT_TYPE.presale_bill, { order, taxes: allTaxes?.data }, { userId: page?.user?.id });
+                    void dispatchPrint(db, PRINT_TYPE.presale_bill, { order, taxes: allTaxes?.data }, { userId: page?.user?.id });
                   }, {
                     module: 'Print temp bill',
                     description: 'Print temp bill'

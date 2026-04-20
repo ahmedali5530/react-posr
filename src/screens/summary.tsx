@@ -173,7 +173,7 @@ export const Summary = () => {
         }, {text: withCurrency(undefined) + formatNumber(totalSale), align: 'RIGHT', width: 0.50, style: 'B'}],
       ];
 
-      await dispatchPrint(db, PRINT_TYPE.summary, {
+      void dispatchPrint(db, PRINT_TYPE.summary, {
         printType: 'table',
         rows: tableRows,
         cut: true,
@@ -288,7 +288,7 @@ export const Summary = () => {
         }, {text: withCurrency(undefined) + formatNumber(totals.sales), align: 'RIGHT', width: 0.22, style: 'B'}],
       ];
 
-      await dispatchPrint(db, PRINT_TYPE.summary, {
+      void dispatchPrint(db, PRINT_TYPE.summary, {
         printType: 'table',
         rows: tableRows,
         cut: true,

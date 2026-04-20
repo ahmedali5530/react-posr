@@ -109,9 +109,6 @@ export const Orders = () => {
     return f;
   }, [selectedOrderFilters, date]);
 
-  console.log(selectedOrderFilters)
-
-
   const ordersQb = useQueryBuilder(
     Tables.orders, '*', orderFilters.map(item => `and ${item}`), 99999, 0, ['created_at desc'],
     ORDER_FETCHES

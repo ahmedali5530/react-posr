@@ -14,6 +14,7 @@ import {MenuItemType} from "@/api/model/cart_item.ts";
 import {dispatchPrint} from "@/lib/print.service.ts";
 import {DiscountType} from "@/api/model/discount.ts";
 import { nowSurrealDateTime } from "@/lib/datetime.ts";
+import {DateTime} from "luxon";
 
 export const Payment = () => {
   const db = useDB();
@@ -41,7 +42,7 @@ export const Payment = () => {
   const createOrder = async () => {
 
     setLoading(true);
-    const date = nowSurrealDateTime();
+    const date = DateTime.now().toJSDate();
 
     const isNewOrder = state?.order?.id === 'new';
 

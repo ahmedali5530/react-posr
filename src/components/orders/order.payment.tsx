@@ -430,7 +430,7 @@ export const OrderPayment = ({
     // fetch latest order from database
     const [o] = await db.query<[Order]>(`select * from only ${order.id} fetch items, items.item, item.item.modifiers, table, user, order_type, customer, discount, tax, payments, payments.payment_type, extras, extras.order_extras`);
 
-    await dispatchPrint(db, PRINT_TYPE.final_bill, {
+    void dispatchPrint(db, PRINT_TYPE.final_bill, {
       order: o,
     }, { userId: page?.user?.id });
   }

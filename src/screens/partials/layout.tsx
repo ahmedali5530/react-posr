@@ -6,9 +6,12 @@ interface Props extends PropsWithChildren {
   gap?: boolean
   overflowHidden?: boolean
   containerClassName?: string
+  showSidebar?: boolean
 }
 
-export const Layout = (props: Props) => {
+export const Layout = ({
+  showSidebar = true, ...props
+}: Props) => {
   return (
     <div className={
       cn(
@@ -17,9 +20,12 @@ export const Layout = (props: Props) => {
       )
     }>
       <div className="flex">
-        <div className="flex-grow-0 flex-shrink-0 w-[130px]">
-          <Sidebar/>
-        </div>
+        {showSidebar && (
+          <div className="flex-grow-0 flex-shrink-0 w-[130px]">
+            <Sidebar/>
+          </div>
+        )}
+
         <div className={
           cn(
             "flex-auto overflow-auto max-h-[100vh]", props.containerClassName

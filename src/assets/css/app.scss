@@ -887,9 +887,10 @@ table th {
 }
 .pressable {
   --scale: 0.9;
-  transition: 10ms linear all;
+  transition: 100ms linear transform;
+  transform: scale(1);
 
-  &:active {
+  &:active, &.active {
     transform: scale(var(--scale));
   }
 }

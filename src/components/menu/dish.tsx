@@ -76,6 +76,7 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
       <div
         className="flex justify-center p-1 relative select-none"
         role="button"
+        tabIndex={0}
         onClick={() => {
           if( modifierGroups.length > 0 && hasAutoOpen ) {
             setModifiersModal(true)
@@ -95,9 +96,9 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
         }}
       >
         <div
-          className="flex-1 bg-white w-fit rounded-xl shadow-lg pressable cursor-pointer menu-item active:shadow-none flex text-neutral-900 active:text-warning-500"
+          className="flex-1 bg-white w-fit rounded-xl shadow-lg cursor-pointer menu-item active:shadow-none flex text-neutral-900 active:text-warning-500"
           style={{
-            '--padding': '0',
+            '--padding': '0'
           } as any}
         >
           {/*<div className="flex-shrink-0 flex justify-start">*/}
@@ -107,12 +108,12 @@ export const MenuDish = ({ onClick, item, level, isModifier, price }: Props) => 
           {/*    alt="card-image"*/}
           {/*    className="rounded-xl rounded-r-none pointer-events-none h-full w-[60px] xl:w-[90px] object-contain"/>*/}
           {/*</div>*/}
-          <div className="flex flex-col px-3 py-2">
+          <div className="flex flex-1 flex-col px-3 py-2">
             <span className="flex flex-row gap-2 mb-1">
               <span
-                className="rounded-full border border-neutral-700 py-1 px-3 text-xs font-bold text-warning-700">{withCurrency(price)}</span>
+                className="bg-neutral-900 text-warning-500 rounded-full border-2 border-warning-500 py-1 px-3 text-sm font-bold">{withCurrency(price)}</span>
             </span>
-            <h6 className="text-ellipsis line-clamp-2 flex-shrink flex-grow-0 text-pretty"
+            <h6 className="text-ellipsis line-clamp-2 flex-shrink flex-grow-0 text-pretty text-neutral-700"
                 title={item.name}>
               {item.name}
             </h6>

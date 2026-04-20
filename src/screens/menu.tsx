@@ -1,14 +1,14 @@
-import { Layout } from "@/screens/partials/layout.tsx";
-import { MenuCategories } from "@/components/menu/categories.tsx";
-import { MenuDishes } from "@/components/menu/dishes.tsx";
-import { MenuActions } from "@/components/menu/actions.tsx";
-import { MenuCart } from "@/components/cart/cart.tsx";
-import { useMemo } from "react";
-import { FloorLayout } from "@/components/floor/floor.layout.tsx";
-import { MenuHeader } from "@/components/menu/header.tsx";
-import { useAtom } from "jotai";
-import { appState } from "@/store/jotai.ts";
-import { MenuPersons } from "@/components/menu/persons.tsx";
+import {Layout} from "@/screens/partials/layout.tsx";
+import {MenuCategories} from "@/components/menu/categories.tsx";
+import {MenuDishes} from "@/components/menu/dishes.tsx";
+import {MenuActions} from "@/components/menu/actions.tsx";
+import {MenuCart} from "@/components/cart/cart.tsx";
+import {useMemo} from "react";
+import {FloorLayout} from "@/components/floor/floor.layout.tsx";
+import {MenuHeader} from "@/components/menu/header.tsx";
+import {useAtom} from "jotai";
+import {appState} from "@/store/jotai.ts";
+import {MenuPersons} from "@/components/menu/persons.tsx";
 
 import 'swiper/css';
 
@@ -16,11 +16,11 @@ export const Menu = () => {
   const [state] = useAtom(appState);
 
   const screen = useMemo(() => {
-    if( state.showFloor ) {
+    if (state.showFloor) {
       return <FloorLayout/>;
     }
 
-    if( state.showPersons ) {
+    if (state.showPersons) {
       return <MenuPersons/>;
     }
 
@@ -49,7 +49,7 @@ export const Menu = () => {
   }, [state.showFloor, state.showPersons]);
 
   return (
-    <Layout>
+    <Layout showSidebar={state.showFloor === true || state.showPersons === true}>
       {screen}
     </Layout>
   );
