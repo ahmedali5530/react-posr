@@ -389,6 +389,31 @@ export const ProductMixSummaryReport = () => {
     return Array.from(categoryMap.values()).sort((a, b) => b.totals.amount - a.totals.amount);
   }, [filteredOrders, filters.categoryIds, filters.menuItemIds]);
 
+  const grandTotals = useMemo(() => {
+    const totals = categoryGroups.reduce(
+      (acc, category) => ({
+        numSold: acc.numSold + category.totals.numSold,
+        amount: acc.amount + category.totals.amount,
+        cost: acc.cost + category.totals.cost,
+        profit: acc.profit + category.totals.profit,
+        salePercent: acc.salePercent + category.totals.salePercent,
+      }),
+      {
+        numSold: 0,
+        amount: 0,
+        cost: 0,
+        profit: 0,
+        salePercent: 0,
+      }
+    );
+
+    return {
+      ...totals,
+      priceSold: totals.numSold > 0 ? totals.amount / totals.numSold : 0,
+      foodCostPercent: totals.amount > 0 ? (totals.cost / totals.amount) * 100 : 0,
+    };
+  }, [categoryGroups]);
+
   if (loading) {
     return (
       <ReportsLayout title="Product Mix Summary" subtitle={subtitle}>
@@ -498,6 +523,38 @@ export const ProductMixSummaryReport = () => {
               </tr>
             )}
           </tbody>
+          {categoryGroups.length > 0 && (
+            <tfoot className="bg-neutral-100 border-t-2 border-neutral-300">
+              <tr className="font-semibold">
+                <td className="py-3 pl-6 pr-3 text-sm text-neutral-900"></td>
+                <td className="py-3 px-3 text-sm text-neutral-900"></td>
+                <td className="py-3 px-3 text-sm text-neutral-900 uppercase">
+                  TOTAL
+                </td>
+                <td className="py-3 px-3 text-right text-sm text-neutral-900">
+                  {formatNumber(grandTotals.numSold)}
+                </td>
+                <td className="py-3 px-3 text-right text-sm text-neutral-900">
+                  {withCurrency(grandTotals.priceSold)}
+                </td>
+                <td className="py-3 px-3 text-right text-sm text-neutral-900">
+                  {withCurrency(grandTotals.amount)}
+                </td>
+                <td className="py-3 px-3 text-right text-sm text-neutral-900">
+                  {withCurrency(grandTotals.cost)}
+                </td>
+                <td className="py-3 px-3 text-right text-sm text-neutral-900">
+                  {withCurrency(grandTotals.profit)}
+                </td>
+                <td className="py-3 px-3 text-right text-sm text-neutral-900">
+                  {formatNumber(grandTotals.foodCostPercent)}%
+                </td>
+                <td className="py-3 pr-6 text-right text-sm text-neutral-900">
+                  {formatNumber(grandTotals.salePercent)}%
+                </td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
     </ReportsLayout>

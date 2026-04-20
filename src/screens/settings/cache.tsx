@@ -107,17 +107,17 @@ export const CacheSettings = () => {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold mb-1">Cache</h2>
-          <p className="text-sm text-neutral-500">Current `appSettings` cache size by dataset.</p>
+          <p className="text-sm text-neutral-500">Current cache size by dataset.</p>
         </div>
-        <Button variant="primary" onClick={reloadCache} isLoading={isReloading}>
+        <Button variant="success" size="lg" onClick={reloadCache} isLoading={isReloading}>
           Reload cache
         </Button>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <div className="mt-4 grid grid-cols-1">
         {cacheStats.map((item) => (
-          <div key={item.label} className="rounded border border-neutral-200 p-3">
-            <p className="text-xs text-neutral-500">{item.label}</p>
+          <div key={item.label} className="rounded border border-neutral-200 p-3 flex justify-between items-center">
+            <p className="text-sm text-neutral-500">{item.label}</p>
             <p className="text-lg font-semibold">{item.count}</p>
           </div>
         ))}

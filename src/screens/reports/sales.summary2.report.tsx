@@ -65,6 +65,7 @@ export const SalesSummary2Report = () => {
   const db = useDB();
   const queryRef = useRef(db.query);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [statusOrders, setStatusOrders] = useState<Order[]>([]);
   const [orderVoids, setOrderVoids] = useState<OrderVoid[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,6 +95,7 @@ export const SalesSummary2Report = () => {
           orderConditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
           params.endDate = filters.endDate;
         }
+        orderConditions.push(`status = '${OrderStatus.Paid}'`);
 
         const ordersQuery = `
           SELECT * FROM ${Tables.orders}
@@ -103,6 +105,37 @@ export const SalesSummary2Report = () => {
 
         const ordersResult: any = await queryRef.current(ordersQuery, params);
         setOrders((ordersResult?.[0] ?? []) as Order[]);
+
+        // Fetch all orders in range for sections that should include non-paid statuses.
+        const statusOrdersQuery = `
+          SELECT * FROM ${Tables.orders}
+          ${orderConditions.filter(condition => !condition.startsWith("status =")).length
+            ? `WHERE ${orderConditions.filter(condition => !condition.startsWith("status =")).join(" AND ")}`
+            : ""}
+          FETCH payments
+        `;
+        const statusOrdersResult: any = await queryRef.current(statusOrdersQuery, params);
+        const baseStatusOrders = (statusOrdersResult?.[0] ?? []) as Order[];
+
+        // Include carried-over open checks for check status calculations.
+        let carriedOverOrders: Order[] = [];
+        if (filters.startDate) {
+          const carriedOverConditions = [
+            `time::format(created_at, "%Y-%m-%d") < $startDate`,
+            `status = '${OrderStatus["In Progress"]}'`,
+          ];
+          const carriedOverParams = {startDate: filters.startDate};
+
+          const carriedOverQuery = `
+            SELECT * FROM ${Tables.orders}
+            WHERE ${carriedOverConditions.join(" AND ")}
+            FETCH payments
+          `;
+
+          const carriedOverResult: any = await queryRef.current(carriedOverQuery, carriedOverParams);
+          carriedOverOrders = (carriedOverResult?.[0] ?? []) as Order[];
+        }
+        setStatusOrders([...baseStatusOrders, ...carriedOverOrders]);
 
         // Fetch order voids
         const voidConditions: string[] = [];
@@ -127,24 +160,6 @@ export const SalesSummary2Report = () => {
         const voidsResult: any = await queryRef.current(voidsQuery, voidParams);
         setOrderVoids((voidsResult?.[0] ?? []) as OrderVoid[]);
 
-        // Fetch orders created before date range for "carried over" calculation
-        if (filters.startDate) {
-          const carriedOverConditions = [
-            `time::format(created_at, "%Y-%m-%d") < $startDate`,
-            `status = '${OrderStatus["In Progress"]}'`,
-          ];
-          const carriedOverParams = {startDate: filters.startDate};
-
-          const carriedOverQuery = `
-            SELECT * FROM ${Tables.orders}
-            WHERE ${carriedOverConditions.join(" AND ")}
-            FETCH payments, payments.payment_type, discount, order_type, items, items.item, items.item.categories, extras, user, coupon, coupon.coupon
-          `;
-
-          const carriedOverResult: any = await queryRef.current(carriedOverQuery, carriedOverParams);
-          const carriedOverOrders = (carriedOverResult?.[0] ?? []) as Order[];
-          setOrders(prev => [...prev, ...carriedOverOrders]);
-        }
       } catch (err) {
         console.error("Failed to load sales summary 2 report", err);
         setError(err instanceof Error ? err.message : "Unable to load report");
@@ -411,8 +426,25 @@ export const SalesSummary2Report = () => {
 
   // Additional metrics for first section subsections
   const deletionMetrics = useMemo(() => {
-    const refunds = financialMetrics.refunds;
-    const cancelledOrders = orders.filter(order => order.status === OrderStatus.Cancelled).length;
+    const refunds = safeNumber(
+      statusOrders.reduce((sum, order) => {
+        if (order.status === OrderStatus.Cancelled) {
+          return sum + safeNumber(
+            order.payments?.reduce((paySum, payment) => {
+              const amount = safeNumber(payment?.amount);
+              return paySum + Math.abs(Math.min(0, amount));
+            }, 0) ?? 0
+          );
+        }
+        return sum + safeNumber(
+          order.payments?.reduce((paySum, payment) => {
+            const amount = safeNumber(payment?.amount);
+            return paySum + (amount < 0 ? Math.abs(amount) : 0);
+          }, 0) ?? 0
+        );
+      }, 0)
+    );
+    const cancelledOrders = statusOrders.filter(order => order.status === OrderStatus.Cancelled).length;
     const voidsByReason = orderVoids.reduce((acc, voidEntry) => {
       const reason = voidEntry.reason || "Unknown";
       const price = safeNumber(voidEntry?.order_item?.price);
@@ -434,29 +466,47 @@ export const SalesSummary2Report = () => {
       voidsByReason,
       totalDeletion,
     };
-  }, [orders, orderVoids, financialMetrics.refunds]);
+  }, [statusOrders, orderVoids]);
 
   const checkStatusMetrics = useMemo(() => {
     const startDate = filters.startDate ? toJsDate(filters.startDate) : null;
+    const endDate = filters.endDate ? toJsDate(filters.endDate) : null;
+    if (endDate) {
+      endDate.setHours(23, 59, 59, 999);
+    }
+
     const checksCarriedOver = startDate
-      ? orders.filter(order => {
-          const orderDate = toJsDate(order.created_at);
-          return orderDate < startDate && order.status === OrderStatus["In Progress"];
+      ? statusOrders.filter(order => {
+          const orderCreatedAt = toJsDate(order.created_at);
+          if (!(orderCreatedAt < startDate) || !order.completed_at) {
+            return false;
+          }
+
+          const orderCompletedAt = toJsDate(order.completed_at);
+          const completedWithinStart = orderCompletedAt >= startDate;
+          const completedWithinEnd = endDate ? orderCompletedAt <= endDate : true;
+
+          return completedWithinStart && completedWithinEnd;
         }).length
       : 0;
     const checksBegun = filters.startDate && filters.endDate
-      ? orders.filter(order => {
+      ? statusOrders.filter(order => {
           const orderDate = toJsDate(order.created_at);
           const start = toJsDate(filters.startDate!);
           const end = toJsDate(filters.endDate!);
           end.setHours(23, 59, 59, 999);
           return orderDate >= start && orderDate <= end;
         }).length
-      : orders.length;
-    const checksPaid = orders.filter(order => order.status === OrderStatus.Paid).length;
-    const checksCancelled = orders.filter(order => order.status === OrderStatus.Cancelled).length;
-    const checksMerged = orders.filter(order => order.status === OrderStatus.Merged).length;
-    const checksOpen = orders.filter(order => order.status === OrderStatus["In Progress"]).length;
+      : statusOrders.filter(order => {
+          if (!startDate) {
+            return true;
+          }
+          return toJsDate(order.created_at) >= startDate;
+        }).length;
+    const checksPaid = statusOrders.filter(order => order.status === OrderStatus.Paid).length;
+    const checksCancelled = statusOrders.filter(order => order.status === OrderStatus.Cancelled).length;
+    const checksMerged = statusOrders.filter(order => order.status === OrderStatus.Merged).length;
+    const checksOpen = statusOrders.filter(order => order.status === OrderStatus["In Progress"]).length;
     const outstandingChecks = checksOpen;
 
     return {
@@ -468,7 +518,7 @@ export const SalesSummary2Report = () => {
       checksOpen,
       outstandingChecks,
     };
-  }, [orders, filters.startDate, filters.endDate]);
+  }, [statusOrders, filters.startDate, filters.endDate]);
 
   const discountTypesBreakdown = useMemo(() => {
     const discountTypes = new Map<string, {quantity: number; total: number; percent: number}>();
