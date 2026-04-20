@@ -192,9 +192,9 @@ export const Summary = () => {
         `SELECT *
          FROM ${Tables.time_entries}
          WHERE clock_out != NONE
-           AND time::format(clock_in, "%Y-%m-%d") = $date
-           AND time ::format(clock_out
-             , "%Y-%m-%d") = $date
+           AND time::format(clock_in, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") = $date
+           AND time::format(clock_out
+             , "${import.meta.env.VITE_DB_DATABASE_FORMAT}") = $date
              FETCH user`,
         {date: reportDate}
       );
