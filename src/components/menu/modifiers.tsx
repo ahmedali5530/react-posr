@@ -1,21 +1,18 @@
 import {Dish} from "@/api/model/dish.ts";
 import {Modal} from "@/components/common/react-aria/modal.tsx";
 import React, {useEffect, useMemo, useState} from "react";
-import {cn, toRecordId} from "@/lib/utils.ts";
+import {cn} from "@/lib/utils.ts";
 import {MenuDish} from "@/components/menu/dish.tsx";
 import {Swiper, SwiperSlide} from "swiper/react";
 import _ from "lodash";
 import {CartModifierGroup, MenuItem, MenuItemType} from "@/api/model/cart_item.ts";
 import {useAtom} from "jotai";
-import {appState} from "@/store/jotai.ts";
+import {appAlert, appState} from "@/store/jotai.ts";
 import {nanoid} from "nanoid";
 import ScrollContainer from "react-indiana-drag-scroll";
 import {Button} from "@/components/common/input/button.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faPencil, faTimes} from "@fortawesome/free-solid-svg-icons";
-import {Tables} from "@/api/db/tables.ts";
-import {useDB} from "@/api/db/db.ts";
-import {DishModifierGroup} from "@/api/model/dish_modifier_group.ts";
 
 interface Props {
   dish?: Dish
@@ -28,11 +25,11 @@ interface Props {
 
 export const MenuDishModifiers = (props: Props) => {
   const [state] = useAtom(appState);
+  const [, setAlert] = useAtom(appAlert);
+
   const [groups, setGroups] = useState(props.groups);
   const [group, setGroup] = useState<CartModifierGroup>();
   const ITEMS_PER_SLIDE = 18;
-
-  const db = useDB();
 
   const slides = useMemo(() => {
     if (!group) {
@@ -83,15 +80,30 @@ export const MenuDishModifiers = (props: Props) => {
       props.editing !== true &&
       group.should_auto_select
     ) {
-      for(const dish of group.modifiers){
-          onModifierClick(buildModifiersObj(dish.dish, dish.selectedGroups, dish.price));
+      for (const dish of group.modifiers) {
+        onModifierClick(buildModifiersObj(dish.dish, dish.selectedGroups, dish.price));
       }
     }
   }, [props.dish, group, state.seat, props.level, props.editing]);
 
   const onModifierClick = (d: MenuItem, selectedGroups?: CartModifierGroup[], price?: number) => {
-    setGroups(newGroups =>  newGroups.map(grp => {
+    setGroups(
+      newGroups => newGroups.map(grp => {
         if (grp.out.id.toString() === group.out.id.toString()) {
+          if(props.editing && grp.has_required_modifiers && grp.selectedModifiers.length === grp.required_modifiers){
+            // remove last modifier and choose this one
+            grp.selectedModifiers.pop();
+            grp.selectedModifiers.push(buildModifiersObj(d.dish, selectedGroups, price ?? d.price));
+
+            setAlert(prev => ({
+              ...prev,
+              message: 'Last modifier is replaced, to replace any other modifier remove it from right sidebar and choose again.',
+              type: 'warning',
+              opened: true
+            }));
+
+            return grp;
+          }
           if (
             (grp.has_required_modifiers && grp.selectedModifiers.length !== grp.required_modifiers) ||
             (!grp.has_required_modifiers)

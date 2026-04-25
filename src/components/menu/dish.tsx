@@ -7,6 +7,8 @@ import {MenuDishModifiers} from "@/components/menu/modifiers.tsx";
 import {CartModifierGroup, MenuItem, MenuItemType} from "@/api/model/cart_item.ts";
 import {nanoid} from "nanoid";
 import {DishModifierGroup} from "@/api/model/dish_modifier_group.ts";
+import {detectMimeType} from "@/utils/files.ts";
+import defaultImage from '@/assets/images/default-image.png';
 
 interface Props {
   onClick: (item: MenuItem, groups?: CartModifierGroup[], price?: number) => void
@@ -44,28 +46,28 @@ export const MenuDish = ({onClick, item, level, isModifier, price}: Props) => {
     return state.cart.filter(item => item.dish === dish).reduce((prev, item) => prev + item.quantity, 0)
   }, [state.cart]);
 
-  // const image = useMemo(() => {
-  //   try {
-  //     if (item!.dish_photo) {
-  //       // fetch item photo
-  //       if (item.dish_photo instanceof ArrayBuffer) {
-  //         const buffer = item.dish_photo;
-  //         const mimeType = detectMimeType(buffer, "image/png");
-  //         const blob = new Blob([buffer], {type: mimeType});
-  //         return URL.createObjectURL(blob);
-  //       }
-  //
-  //       if (typeof item.dish_photo === "string") {
-  //         // could be a data URL or a base64 string; try to use as-is
-  //         return item.dish_photo;
-  //       }
-  //     }
-  //   } catch (e) {
-  //     console.log("Failed to prepare dish image", e);
-  //   }
-  //
-  //   return defaultImage;
-  // }, [item]);
+  const image = useMemo(() => {
+    try {
+      if (item!.dish_photo) {
+        // fetch item photo
+        if (item.dish_photo.content instanceof ArrayBuffer) {
+          const buffer = item.dish_photo.content;
+          const mimeType = detectMimeType(buffer, "image/png");
+          const blob = new Blob([buffer], {type: mimeType});
+          return URL.createObjectURL(blob);
+        }
+
+        if (typeof item.dish_photo === "string") {
+          // could be a data URL or a base64 string; try to use as-is
+          return item.dish_photo;
+        }
+      }
+    } catch (e) {
+      console.log("Failed to prepare dish image", e);
+    }
+
+    return defaultImage;
+  }, [item]);
 
   return (
     <>
@@ -97,13 +99,13 @@ export const MenuDish = ({onClick, item, level, isModifier, price}: Props) => {
             '--padding': '0'
           } as any}
         >
-          {/*<div className="flex-shrink-0 flex justify-start">*/}
-          {/*  <img*/}
-          {/*    loading="lazy"*/}
-          {/*    src={image}*/}
-          {/*    alt="card-image"*/}
-          {/*    className="rounded-xl rounded-r-none pointer-events-none h-full w-[60px] xl:w-[90px] object-contain"/>*/}
-          {/*</div>*/}
+          <div className="flex-shrink-0 flex justify-start">
+            <img
+              loading="lazy"
+              src={image}
+              alt="card-image"
+              className="rounded-xl rounded-r-none pointer-events-none h-full w-[90px] xl:w-[120px] object-contain"/>
+          </div>
           <div className="flex flex-1 flex-col px-3 py-2">
             <span className="flex flex-row gap-2 mb-1">
               <span

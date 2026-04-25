@@ -14,6 +14,8 @@ import {cn} from "@/lib/utils.ts";
 import {nanoid} from "nanoid";
 import {VirtualKeyboard} from "@/components/common/input/virtual.keyboard.tsx";
 import {useFormContext} from "react-hook-form";
+import {useAtom} from "jotai";
+import {appPage} from "@/store/jotai.ts";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   inputSize?: "lg"
@@ -62,6 +64,8 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
       event.currentTarget.select();
     }
   }, [selectable]);
+
+  const [page] = useAtom(appPage);
 
   // Keyboard functionality
   const [showKeyboard, setShowKeyboard] = useState(false);
@@ -135,12 +139,12 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
           {...inputProps}
           name={name}
           defaultValue={defaultValue as any}
-          {...(enableKeyboard
+          {...(enableKeyboard && page.touch
             ? { value: keyboardValue }
             : resolvedValue !== undefined
               ? { value: resolvedValue as any }
               : {})}
-          onChange={enableKeyboard ? undefined : onChange}
+          onChange={enableKeyboard && page.touch ? undefined : onChange}
           autoComplete="off"
           className={
             cn(
@@ -152,17 +156,17 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
           }
           getInputRef={assignInputRef}
           onClick={onClick}
-          readOnly={enableKeyboard ? true : readOnly}
+          readOnly={enableKeyboard && page.touch ? true : readOnly}
           disabled={disabled}
           placeholder={placeholder}
           autoFocus={autoFocus}
           onFocus={onFocus}
-          onMouseDown={enableKeyboard ? handleMouseDownOpen : undefined}
+          onMouseDown={enableKeyboard && page.touch ? handleMouseDownOpen : undefined}
           onBlur={onBlur}
           id={id}
         />
         {formattedHelp}
-        {enableKeyboard && showKeyboard && (
+        {enableKeyboard && showKeyboard && page.touch && (
           <VirtualKeyboard
             open={showKeyboard}
             onClose={handleKeyboardClose}
@@ -190,11 +194,11 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
           name={name}
           defaultValue={defaultValue}
           {...inputProps}
-          value={enableKeyboard ? keyboardValue : resolvedValue}
-          onChange={enableKeyboard ? undefined : onChange}
+          value={enableKeyboard && page.touch ? keyboardValue : resolvedValue}
+          onChange={enableKeyboard && page.touch ? undefined : onChange}
           onFocus={onFocus}
-          onMouseDown={enableKeyboard ? handleMouseDownOpen : undefined}
-          readOnly={enableKeyboard ? true : readOnly}
+          onMouseDown={enableKeyboard && page.touch ? handleMouseDownOpen : undefined}
+          readOnly={enableKeyboard && page.touch ? true : readOnly}
           className={
             cn(
               'input',
@@ -211,7 +215,7 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
           id={id}
         />
         {formattedHelp}
-        {enableKeyboard && showKeyboard && (
+        {enableKeyboard && showKeyboard && page.touch && (
           <VirtualKeyboard
             open={showKeyboard}
             onClose={handleKeyboardClose}

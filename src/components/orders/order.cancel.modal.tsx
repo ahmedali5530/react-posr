@@ -59,11 +59,13 @@ export const OrderCancelModal = ({
     if (open) {
       setSelectedReason(reasonOptions[0]?.value ?? null);
       setComments('');
-      const all: Record<string, number> = {};
-      for (const item of filteredItems) {
-        all[item.id.toString()] = item.quantity;
-      }
-      setSelectedItems(all);
+      // select all or no selection on start up
+
+      // const all: Record<string, number> = {};
+      // for (const item of filteredItems) {
+      //   all[item.id.toString()] = item.quantity;
+      // }
+      // setSelectedItems(all);
     }
   }, [open, reasonOptions, filteredItems]);
 
@@ -246,7 +248,7 @@ export const OrderCancelModal = ({
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center mb-2 gap-5">
             <label className="block text-sm font-semibold">Items</label>
             <button
               type="button"

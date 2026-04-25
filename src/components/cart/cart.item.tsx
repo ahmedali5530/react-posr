@@ -285,7 +285,7 @@ export const CartItemName = ({ item }: Omit<Props, "index">) => {
         '--padding': (item.level * 0.875) + 'rem'
       } as any}>
         <span>{item.dish.name}</span>
-        <span>{formatNumber(item.price * item.quantity)}</span>
+        <span>{formatNumber(item.price)}</span>
       </div>
       {item.comments && (
         <div className="italic text-sm">({item.comments})</div>

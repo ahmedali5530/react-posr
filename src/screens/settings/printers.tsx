@@ -152,11 +152,12 @@ export const Printersettings = () => {
         const existing = rows.find((r) => (r?.user?.toString()) === recordIdToCompareString(userId.toString()));
 
         if (existing?.id) {
+          console.log(value)
           await db.merge(toRecordId(existing.id), { values: value });
         } else {
           await db.create(Tables.settings, {
             key,
-            user: userRecordId,
+            user: toRecordId(userRecordId),
             values: value,
           });
         }

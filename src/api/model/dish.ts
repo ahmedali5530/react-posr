@@ -34,5 +34,5 @@ export interface MenuItemRecipe extends ID {
 }
 
 export const DISH_FETCHES = [
-  'categories', 'modifier_groups', 'tax', 'items'
+  'categories', 'tax', 'items'
 ]

@@ -68,12 +68,14 @@ export interface AppPageInterface {
   locked?: boolean
   lockedBy?: User
   user?: User
+  touch?: boolean
 }
 
 export const appPage = atomWithStorage<AppPageInterface>(
   "app-page",
   {
-    page: "Login"
+    page: "Login",
+    touch: true
   }
 );
 

@@ -59,13 +59,13 @@ export const CacheSettings = () => {
                   ORDER BY priority ASC`),
         db.query(`SELECT *
                   FROM ${Tables.dishes}
-                  ORDER BY priority ASC FETCH ${DISH_FETCHES.join(', ')}`),
+                  ORDER BY priority ASC FETCH ${DISH_FETCHES.join(', ')}, dish_photo`),
         db.query(`SELECT *
                   FROM ${Tables.modifier_groups}
                   ORDER BY priority ASC FETCH modifiers`),
         db.query(`SELECT *
                   FROM ${Tables.dish_modifier_groups}
-                  ORDER BY priority ASC FETCH in, out, out.modifiers, out.modifiers.modifier`),
+                  ORDER BY priority ASC FETCH in, out, out.modifiers, out.modifiers.modifier, out.modifiers.modifier.dish_photo`),
         db.query(`SELECT *
                   FROM ${Tables.floors}
                   ORDER BY priority ASC`),
