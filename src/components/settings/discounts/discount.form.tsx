@@ -26,7 +26,7 @@ const validationSchema = yup.object({
   min_rate: yup.number().required("This is required"),
   max_rate: yup.number().required("This is required"),
   max_cap: yup.number().nullable(),
-  priority: yup.number().required("This is required").typeError('This should be a number'),
+  priority: yup.string().required("This is required"),
 });
 
 export const DiscountForm = ({
@@ -53,7 +53,7 @@ export const DiscountForm = ({
         max_rate: data.max_rate,
         max_cap: data.max_cap,
         type: { label: data?.type, value: data?.type },
-        priority: data.priority
+        priority: data.priority.toString()
       });
     }
   }, [data]);
@@ -72,8 +72,8 @@ export const DiscountForm = ({
     }
 
     try {
-      if( vals.id ) {
-        await db.update(vals.id, {
+      if( data?.id ) {
+        await db.update(data.id, {
           ...vals
         })
       } else {
@@ -140,7 +140,7 @@ export const DiscountForm = ({
               <Controller
                 render={({ field }) => (
                   <Input
-                    label="Min Rate"
+                    label={`Min ${watch('type')?.value === DiscountType.Percent ? '%' : 'rate'}`}
                     value={field.value}
                     onChange={field.onChange}
                     error={errors?.min_rate?.message}
@@ -155,7 +155,7 @@ export const DiscountForm = ({
               <Controller
                 render={({ field }) => (
                   <Input
-                    label="Max Rate"
+                    label={`Max ${watch('type')?.value === DiscountType.Percent ? '%' : 'rate'}`}
                     value={field.value}
                     onChange={field.onChange}
                     error={errors?.max_rate?.message}

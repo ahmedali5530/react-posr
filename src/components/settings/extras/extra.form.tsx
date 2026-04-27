@@ -130,8 +130,8 @@ export const ExtraForm = ({ open, onClose, data }: Props) => {
     }
 
     try {
-      if (val.id) {
-        await db.update(val.id, val);
+      if (data?.id) {
+        await db.update(data.id, val);
       } else {
         await db.create(Tables.extras, val);
       }

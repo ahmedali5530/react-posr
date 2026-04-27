@@ -19,7 +19,7 @@ interface Props {
 const validationSchema = yup.object({
   name: yup.string().required("This is required"),
   rate: yup.number().required("This is required"),
-  priority: yup.number().required("This is required").typeError('This should be a number'),
+  priority: yup.string().required("This is required"),
 });
 
 export const TaxForm = ({
@@ -40,7 +40,7 @@ export const TaxForm = ({
         ...data,
         name: data.name,
         rate: data.rate,
-        priority: data.priority
+        priority: data.priority.toString()
       });
     }
   }, [data]);
@@ -56,8 +56,8 @@ export const TaxForm = ({
     vals.priority = parseInt(vals.priority);
 
     try {
-      if( vals.id ) {
-        await db.update(vals.id, {
+      if( data?.id ) {
+        await db.update(data.id, {
           ...vals
         })
       } else {

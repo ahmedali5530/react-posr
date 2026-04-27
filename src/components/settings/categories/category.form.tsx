@@ -19,7 +19,7 @@ interface Props {
 
 const validationSchema = yup.object({
   name: yup.string().required("This is required"),
-  priority: yup.number().required("This is required").typeError('This should be a number'),
+  priority: yup.string().required("This is required").typeError('This should be a number'),
   show_in_menu: yup.boolean()
 });
 
@@ -40,7 +40,7 @@ export const CategoryForm = ({
       reset({
         ...data,
         name: data.name,
-        priority: data.priority,
+        priority: data.priority.toString(),
         show_in_menu: data.show_in_menu,
       });
     }
@@ -57,8 +57,8 @@ export const CategoryForm = ({
     vals.priority = parseInt(vals.priority);
 
     try {
-      if(vals.id){
-        await db.update(vals.id, {
+      if(data?.id){
+        await db.update(data.id, {
           ...vals
         })
       }else{

@@ -32,7 +32,7 @@ const validationSchema = z.object({
     label: z.string(),
     value: z.string()
   })),
-  priority: z.number({message: "This is required"}),
+  priority: z.string().min(1, "This is required"),
 });
 
 export const KitchenForm = ({
@@ -53,7 +53,7 @@ export const KitchenForm = ({
       reset({
         ...data,
         name: data.name,
-        priority: data.priority,
+        priority: data.priority.toString(),
         printers: data?.printers?.map(item => ({
           label: item.name,
           value: item.id.toString()
@@ -95,6 +95,8 @@ export const KitchenForm = ({
     if(values.printers){
       vals.printers = values.printers.map(item => new StringRecordId(item.value));
     }
+
+    vals.priority = Number(values.priority);
 
     try {
       if(data?.id){

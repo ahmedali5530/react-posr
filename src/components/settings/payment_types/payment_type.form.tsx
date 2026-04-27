@@ -14,6 +14,7 @@ import useApi, { SettingsData } from "@/api/db/use.api.ts";
 import { Tax } from "@/api/model/tax.ts";
 import { StringRecordId } from "surrealdb";
 import {Discount} from "@/api/model/discount.ts";
+import {toRecordId} from "@/lib/utils.ts";
 
 interface Props {
   open: boolean
@@ -113,7 +114,7 @@ export const PaymentTypeForm = ({
       reset({
         ...data,
         name: data.name,
-        priority: data.priority,
+        priority: String(data.priority),
         type: {
           label: data.type,
           value: data.type
@@ -171,7 +172,7 @@ export const PaymentTypeForm = ({
   const onSubmit = async (values: any) => {
     const vals = {...values};
 
-    vals.priority = parseInt(vals.priority);
+    vals.priority = Number(vals.priority);
     vals.type = values.type.value;
     if (values.type.value === 'Remote') {
       const cleanedGatewayConfig = Object.fromEntries(
@@ -212,8 +213,8 @@ export const PaymentTypeForm = ({
     }
 
     try {
-      if(vals.id){
-        await db.update(vals.id, {
+      if(data?.id){
+        await db.update(toRecordId(data.id), {
           ...vals
         })
       }else{

@@ -93,8 +93,8 @@ export const MenuForm = ({
     }
 
     try {
-      if(vals.id){
-        await db.merge(vals.id, {
+      if(data?.id){
+        await db.merge(data.id, {
           name: vals.name,
           start_from: vals.start_from,
           end_time: vals.end_time,

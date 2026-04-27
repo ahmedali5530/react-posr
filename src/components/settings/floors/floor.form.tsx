@@ -18,7 +18,7 @@ interface Props {
 
 const validationSchema = yup.object({
   name: yup.string().required("This is required"),
-  priority: yup.number().required("This is required").typeError('This should be a number'),
+  priority: yup.string().required("This is required"),
   background: yup.string(),
   color: yup.string(),
 });
@@ -41,7 +41,7 @@ export const FloorForm = ({
       reset({
         ...data,
         name: data.name,
-        priority: data.priority,
+        priority: data.priority.toString(),
         background: data.background,
         color: data.color,
       });
@@ -59,8 +59,8 @@ export const FloorForm = ({
     vals.priority = parseInt(vals.priority);
 
     try {
-      if( vals.id ) {
-        await db.update(vals.id, {
+      if( data?.id ) {
+        await db.update(data.id, {
           ...vals
         })
       } else {

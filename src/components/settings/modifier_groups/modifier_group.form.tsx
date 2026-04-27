@@ -26,7 +26,7 @@ interface Props {
 
 const validationSchema = yup.object({
   name: yup.string().required("This is required"),
-  priority: yup.number().required("This is required").typeError('This should be a number'),
+  priority: yup.string().required("This is required"),
   modifiers: yup.array(yup.object({
     modifier: yup.object({
       label: yup.string(),
@@ -47,7 +47,7 @@ export const ModifierGroupForm = ({
     if( data ) {
       reset({
         name: data.name,
-        priority: data.priority,
+        priority: data.priority.toString(),
         modifiers: data.modifiers.map(item => ({
           modifier: {
             label: `${item.modifier.number}-${item.modifier.name}`,

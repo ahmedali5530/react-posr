@@ -1,9 +1,10 @@
-import { Button } from "@/components/common/input/button.tsx";
+import {Button} from "@/components/common/input/button.tsx";
 import React, {useMemo, useState} from "react";
 import {DiscountType} from "@/api/model/discount.ts";
-import useApi, { SettingsData } from "@/api/db/use.api.ts";
-import { Tables } from "@/api/db/tables.ts";
-import { Setting } from "@/api/model/setting.ts";
+import useApi, {SettingsData} from "@/api/db/use.api.ts";
+import {Tables} from "@/api/db/tables.ts";
+import {Setting} from "@/api/model/setting.ts";
+import {withCurrency} from "@/lib/utils.ts";
 
 interface Props {
   serviceCharge: number
@@ -33,18 +34,24 @@ export const OrderPaymentServiceCharges = ({
     const type = String(typeRaw || DiscountType.Percent);
     const value = Number(valueRaw || 0);
 
-    setQuickPercentOptions(prev => [
-      ...prev, value
-    ]);
+    setQuickPercentOptions(prev => {
+      const optionsSet = new Set(prev);
+      optionsSet.add(value);
 
-    return type === DiscountType.Fixed ? `${value}` : `${value}%`;
+      return Array.from(optionsSet);
+    });
+
+    setServiceCharge(value);
+    setServiceChargeType(type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
+
+    return type === DiscountType.Fixed ? `${withCurrency(value)}` : `${value}%`;
   }, [serviceChargeSettings]);
 
   return (
     <div className="flex flex-col justify-between h-full">
       <div className="mb-5 flex justify-between flex-col gap-5">
-        <div className="text-sm text-neutral-500">
-          Default from settings: <span className="font-semibold text-neutral-700">{settingsLabel}</span>
+        <div className="text-xl bg-warning-500 px-3 py-5 text-white">
+          Default from settings: <span className="font-semibold ">{settingsLabel}</span>
         </div>
         <Button
           className="min-w-[150px]"
@@ -77,15 +84,14 @@ export const OrderPaymentServiceCharges = ({
       <div className="flex flex-wrap gap-3 mb-3 justify-center">
         {quickPercentOptions.map(quickOption => (
           <Button
-            size="lg" variant="primary" flat active={serviceChargeType === DiscountType.Percent && serviceCharge === quickOption}
+            size="lg" variant="primary" flat active={serviceCharge === quickOption}
             onClick={() => {
-              setServiceChargeType(DiscountType.Percent);
               setServiceCharge(quickOption);
             }}
             className="min-w-[100px]"
             key={quickOption}
           >
-            {quickOption}%
+            {quickOption}{serviceChargeType === DiscountType.Percent && '%'}
           </Button>
         ))}
       </div>
