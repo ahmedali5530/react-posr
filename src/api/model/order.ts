@@ -27,6 +27,7 @@ export interface Order extends ID{
 
   discount?: Discount
   discount_amount?: number
+  discount_rate?: number
 
   tax?: Tax
   tax_amount?: number

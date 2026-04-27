@@ -11,10 +11,12 @@ interface Props {
   discountAmount: number
   setDiscountAmount: (d: any) => void
   itemsTotal: number
+  discountRate: number
+  setDiscountRate: (rate?: number) => void
 }
 
 export const OrderPaymentDiscount = ({
-  discount, setDiscount, setDiscountAmount, itemsTotal, discountAmount
+  discount, setDiscount, setDiscountAmount, itemsTotal, discountAmount, setDiscountRate, discountRate
 }: Props) => {
 
   const {
@@ -30,10 +32,13 @@ export const OrderPaymentDiscount = ({
     setKeyboard(false);
     setDiscount(discount);
     setDiscountAmount(discount.min_rate);
+    setDiscountRate(discount.min_rate);
 
     if(discount.type === DiscountType.Fixed){
       if(discount.min_rate === discount.max_rate){
         setDiscountAmount(discount.min_rate);
+
+        setDiscountRate(discount.min_rate);
       }else{
         setKeyboard(true);
         setPercentInput(undefined);
@@ -42,6 +47,8 @@ export const OrderPaymentDiscount = ({
       if(discount.min_rate === discount.max_rate){
         setDiscountAmount(discount.min_rate * itemsTotal / 100);
         setPercentInput(undefined);
+
+        setDiscountRate(discount.min_rate);
       }else{
         setKeyboard(true);
         setPercentInput(discount.min_rate);
@@ -55,20 +62,26 @@ export const OrderPaymentDiscount = ({
         const base = prev === undefined || prev === null ? '' : prev.toString();
         return Number(base + key);
       });
+
+      setDiscountRate(Math.min(Number(discountRate.toString() + key), discount.max_rate));
     } else {
       setDiscountAmount((prev: number) => {
         return Number(prev.toString() + key);
-      })
+      });
     }
   }
 
   useEffect(() => {
+    console.log(discountRate, discount, percentInput, itemsTotal)
     if(discount){
       const hasVariableRates = discount.min_rate !== discount.max_rate;
       let dValue: number;
 
       if(discount.type === DiscountType.Percent){
-        const rate = hasVariableRates ? (percentInput ?? 0) : discount.min_rate;
+        const rate = discountRate ? discountRate : (
+          hasVariableRates ? (percentInput ?? 0) : discount.min_rate
+        );
+
         dValue = rate * itemsTotal / 100;
       }else{
         dValue = discountAmount;
@@ -78,11 +91,16 @@ export const OrderPaymentDiscount = ({
       if (hasVariableRates && (discount.max_cap ?? undefined) !== undefined) {
         finalDiscount = Math.min(finalDiscount, discount.max_cap as number);
       }
-      finalDiscount = Math.min(finalDiscount, itemsTotal);
+
+      if(discount.type === DiscountType.Fixed) {
+        finalDiscount = Math.min(finalDiscount, itemsTotal, discount.max_rate);
+      }else{
+        finalDiscount = Math.min(finalDiscount, itemsTotal);
+      }
 
       setDiscountAmount(finalDiscount);
     }
-  }, [discountAmount, discount, itemsTotal, percentInput]);
+  }, [discountAmount, discount, itemsTotal, percentInput, discountRate]);
 
   return (
     <div className="flex flex-col justify-between h-full">
@@ -113,12 +131,20 @@ export const OrderPaymentDiscount = ({
               size="lg"
             >
               {item.name}{' '}
-              ({item.min_rate === item.max_rate ? (item.type === DiscountType.Fixed ? withCurrency(item.min_rate) : item.min_rate) : `${item.min_rate} - ${item.max_rate}`}
-              {item.type === DiscountType.Percent && '%'})
+              {/*({item.min_rate === item.max_rate ? (item.type === DiscountType.Fixed ? withCurrency(item.min_rate) : item.min_rate) : `${item.min_rate} - ${item.max_rate}`}*/}
+              {/*{item.type === DiscountType.Percent && '%'})*/}
             </Button>
           ))}
         </div>
       </div>
+
+      <div className="text-2xl text-center">
+        {withCurrency(discountAmount)}{' '}
+        {discount && discount.type === DiscountType.Percent && (
+          <>({discountRate}%)</>
+        )}
+      </div>
+
       <div className="text-2xl text-center">
         {discount && (
           <>
@@ -139,6 +165,7 @@ export const OrderPaymentDiscount = ({
             <Button size="xl" flat variant="primary" onClick={() => {
               setDiscountAmount(0);
               setPercentInput(undefined);
+              setDiscountRate(0);
             }}>
               C
             </Button>

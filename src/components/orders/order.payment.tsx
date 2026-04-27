@@ -67,6 +67,7 @@ export const OrderPayment = ({
 
   const [discount, setDiscount] = useState<Discount>();
   const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [discountRate, setDiscountRate] = useState<number>(0);
 
   const [serviceCharge, setServiceCharge] = useState<number>(0);
   const [serviceChargeAmount, setServiceChargeAmount] = useState<number>(0);
@@ -208,8 +209,11 @@ export const OrderPayment = ({
     setPaymentTypes(order?.payments ?? []);
     setTax(order?.tax);
     setTaxAmount(order?.tax_amount ?? 0);
+
     setDiscount(order?.discount);
     setDiscountAmount(order?.discount_amount ?? 0);
+    setDiscountRate(order?.discount_rate ?? 0);
+
     setServiceCharge(Number(order?.service_charge || 0));
     setServiceChargeAmount(order?.service_charge_amount ?? 0);
     setServiceChargeType(order?.service_charge_type === DiscountType.Fixed ? DiscountType.Fixed : DiscountType.Percent);
@@ -522,6 +526,7 @@ export const OrderPayment = ({
       tax_amount: taxAmount,
       discount: discount?.id,
       discount_amount: discountAmount,
+      discount_rate: discountRate,
       tip: tip,
       tip_amount: tipAmount,
       tip_type: tipType,
@@ -541,6 +546,7 @@ export const OrderPayment = ({
     taxAmount,
     discount,
     discountAmount,
+    discountRate,
     tip,
     tipAmount,
     tipType,
@@ -617,7 +623,11 @@ export const OrderPayment = ({
               });
             }}>
               <div>
-                Discount <FontAwesomeIcon icon={faPencil}/>
+                Discount{' '}
+                {discount && (
+                  discount.type === DiscountType.Percent ? discountRate + '%' : ''
+                )}{' '}
+                <FontAwesomeIcon icon={faPencil}/>
               </div>
               <div className="text-right">{withCurrency(discountAmount)}</div>
             </div>
@@ -717,6 +727,8 @@ export const OrderPayment = ({
               discount={discount} setDiscount={setDiscount}
               discountAmount={discountAmount} setDiscountAmount={setDiscountAmount}
               itemsTotal={itemsTotal}
+              setDiscountRate={setDiscountRate}
+              discountRate={discountRate}
             />
           )}
           {mode === PaymentOptions.Coupon && (
