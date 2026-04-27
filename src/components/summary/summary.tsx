@@ -22,10 +22,10 @@ export const Summary = ({
     return safeNumber(
       orders?.reduce((sum, order) => {
         const itemsTotal = safeNumber(
-          order.items?.reduce((itemSum, item) => {
+          (getOrderFilteredItems(order) ?? []).reduce((itemSum, item) => {
             const price = calculateOrderItemPrice(item);
             return itemSum + safeNumber(price);
-          }, 0) ?? 0
+          }, 0)
         );
         return sum + itemsTotal;
       }, 0) ?? 0

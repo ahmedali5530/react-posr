@@ -9,6 +9,7 @@ import {faArrowLeft, faArrowRight, faPrint, faSpinner} from "@fortawesome/free-s
 import {Calendar} from "@/components/common/react-aria/calendar.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {Summary as SummaryComponent} from '@/components/summary/summary.tsx';
+import {DailySalesSummaryReport} from '@/components/summary/daily.sales.summary.report.tsx';
 import {useDB} from "@/api/db/db.ts";
 import {dispatchPrint} from "@/lib/print.service.ts";
 import {PRINT_TYPE} from "@/lib/print.registry.tsx";
@@ -380,7 +381,10 @@ export const Summary = () => {
                 <FontAwesomeIcon icon={faSpinner} spin size="5x"/>
               </div>
             ) : (
-              <SummaryComponent orders={orders} date={date.toString()}/>
+              <>
+                <DailySalesSummaryReport orders={orders} date={date.toString()} />
+                <SummaryComponent orders={orders} date={date.toString()} />
+              </>
             )}
           </ScrollContainer>
         </div>
