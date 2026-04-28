@@ -1,5 +1,5 @@
 import {useMemo} from "react";
-import {calculateOrderItemPrice, calculateOrderTotal} from "@/lib/cart.ts";
+import {calculateOrderItemPrice} from "@/lib/cart.ts";
 import {Order, OrderStatus} from "@/api/model/order.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
 import {getOrderFilteredItems} from "@/lib/order.ts";
@@ -14,8 +14,40 @@ const safeNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+interface ModifierRow {
+  name: string;
+  depth: number;
+  path: string;
+}
+
+const getModifierRows = (modifiers: any[] = []): ModifierRow[] => {
+  const rows: ModifierRow[] = [];
+
+  const walkGroups = (groups: any[] = [], depth = 1, parentPath = '') => {
+    groups.forEach(group => {
+      (group?.selectedModifiers ?? []).forEach((selected: any) => {
+        const modifierName = String(selected?.dish?.name || selected?.name || '').trim();
+        if (!modifierName) {
+          return;
+        }
+
+        const currentPath = parentPath ? `${parentPath}>${modifierName}` : modifierName;
+        rows.push({
+          name: modifierName,
+          depth,
+          path: currentPath,
+        });
+        walkGroups(selected?.selectedGroups ?? [], depth + 1, currentPath);
+      });
+    });
+  };
+
+  walkGroups(modifiers);
+  return rows;
+};
+
 export const Summary = ({
-  orders, date
+  orders, date: _data
 }: Props) => {
   // Calculate sale price without tax (items total)
   const salePriceWithoutTax = useMemo(() => {
@@ -98,12 +130,12 @@ export const Summary = ({
   const amountDue = useMemo(() => {
     return safeNumber(
       salePriceWithoutTax +
-        taxCollected +
-        serviceCharges +
-        totalExtras -
-        itemDiscounts -
-        subtotalDiscounts -
-        couponDiscounts
+      taxCollected +
+      serviceCharges +
+      totalExtras -
+      itemDiscounts -
+      subtotalDiscounts -
+      couponDiscounts
     );
   }, [salePriceWithoutTax, taxCollected, serviceCharges, totalExtras, itemDiscounts, subtotalDiscounts, couponDiscounts]);
 
@@ -248,7 +280,7 @@ export const Summary = ({
         // Get filtered items (non-voided)
         const filteredItems = getOrderFilteredItems(order);
         // Find voided items
-        const voidedItems = allItems.filter(item => 
+        const voidedItems = allItems.filter(item =>
           !filteredItems.some(filtered => filtered.id === item.id)
         );
         // Calculate total for voided items
@@ -278,7 +310,7 @@ export const Summary = ({
             };
           }
 
-          list[item.category].total += item.quantity * item.price;
+          list[item.category].total += calculateOrderItemPrice(item);
           list[item.category].quantity += item.quantity;
         }
       })
@@ -291,16 +323,22 @@ export const Summary = ({
     const list = {};
     orders?.forEach(order => {
       getOrderFilteredItems(order).forEach(item => {
-        if (item.item.name) {
-          if (!list[item.item.name]) {
-            list[item.item.name] = {
+        const dishName = item?.item?.name;
+        if (dishName) {
+          const modifiers = getModifierRows(item?.modifiers ?? []);
+          const modifierSignature = modifiers.map(modifier => modifier.path).join('|');
+          const dishKey = modifierSignature ? `${dishName}__${modifierSignature}` : dishName;
+          if (!list[dishKey]) {
+            list[dishKey] = {
+              name: dishName,
+              modifiers,
               total: 0,
               quantity: 0
             };
           }
 
-          list[item.item.name].total += item.quantity * item.price;
-          list[item.item.name].quantity += item.quantity;
+          list[dishKey].total += calculateOrderItemPrice(item);
+          list[dishKey].quantity += item.quantity;
         }
       })
     });
@@ -310,8 +348,8 @@ export const Summary = ({
 
   return (
     <>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <div style={{textAlign: 'center', marginBottom: '16px', fontSize: '24px'}}>Summary of {date}</div>
+      <div style={{display: 'flex', flexDirection: 'column'}}>
+        {/*<div style={{textAlign: 'center', marginBottom: '16px', fontSize: '24px'}}>Summary of {date}</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Exclusive amount</span>
           <span>{withCurrency(exclusive)}</span>
@@ -375,156 +413,329 @@ export const Summary = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
           <span>Amount collected</span>
           <span>{withCurrency(amountCollected)}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        </div>*/}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span>Extras</span>
           <span>{withCurrency(totalExtras)}</span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{display: 'flex', flexDirection: 'column', borderBottom: '1px solid #e5e7eb', padding: '0.75rem'}}>
+          <div style={{display: 'flex', justifyContent: 'space-between'}}>
             <span>Rounding</span>
             <span>{withCurrency(rounding)}</span>
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+          <div style={{fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem'}}>
             Amount collected - Amount due
           </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span>Voids</span>
           <span>{withCurrency(voids)}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span></span>
           <span></span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #e5e7eb', padding: '0.75rem', fontWeight: 700 }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem',
+          fontWeight: 700
+        }}>
           <span>Tips</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span>Total Tips</span>
           <span>{withCurrency(tips)}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span></span>
           <span></span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span>Covers</span>
           <span>{formatNumber(covers)}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span>Average cover</span>
           <span>{withCurrency(covers > 0 ? amountDue / covers : 0)}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span>Orders/Checks</span>
           <span>{formatNumber(orders?.length ?? 0)}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span>Average order/check</span>
           <span>{withCurrency((orders?.length ?? 0) > 0 ? amountDue / (orders?.length ?? 1) : 0)}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span></span>
           <span></span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #e5e7eb', padding: '0.75rem', fontWeight: 700 }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem',
+          fontWeight: 700
+        }}>
           <span>Categories</span>
         </div>
         {Object.keys(categories).map(category => (
-          <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }} key={category}>
-            <span style={{ width: '40%', textAlign: 'left' }}>{category}</span>
-            <span style={{ width: '20%', textAlign: 'right' }}>{categories[category].quantity}</span>
-            <span style={{ width: '20%', textAlign: 'right' }}>{withCurrency(categories[category].total)}</span>
-            <span style={{ width: '20%', textAlign: 'right' }}>{formatNumber(exclusive > 0 ? categories[category].total / exclusive * 100 : 0)}%</span>
+          <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', padding: '0.75rem'}} key={category}>
+            <span style={{width: '40%', textAlign: 'left'}}>{category}</span>
+            <span style={{width: '20%', textAlign: 'right'}}>{categories[category].quantity}</span>
+            <span style={{width: '20%', textAlign: 'right'}}>{withCurrency(categories[category].total)}</span>
+            <span style={{
+              width: '20%',
+              textAlign: 'right'
+            }}>{formatNumber(exclusive > 0 ? categories[category].total / exclusive * 100 : 0)}%</span>
           </div>
         ))}
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span></span>
           <span></span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #e5e7eb', padding: '0.75rem', fontWeight: 700 }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem',
+          fontWeight: 700
+        }}>
           <span>Dishes</span>
         </div>
         {Object.keys(dishes).map(dish => (
-          <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }} key={dish}>
-            <span style={{ width: '40%', textAlign: 'left' }}>{dish}</span>
-            <span style={{ width: '20%', textAlign: 'right' }}>{dishes[dish].quantity}</span>
-            <span style={{ width: '20%', textAlign: 'right' }}>{withCurrency(dishes[dish].total)}</span>
-            <span style={{ width: '20%', textAlign: 'right' }}>{formatNumber(exclusive > 0 ? dishes[dish].total / exclusive * 100 : 0)}%</span>
+          <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', padding: '0.75rem'}} key={dish}>
+            <span style={{width: '40%', textAlign: 'left'}}>
+              <div>{dishes[dish].name}</div>
+              {dishes[dish].modifiers?.map((modifier: ModifierRow) => (
+                <div
+                  key={`${dish}-${modifier.path}`}
+                  style={{
+                    paddingLeft: `${modifier.depth}rem`,
+                    fontSize: '0.75rem',
+                    color: '#6b7280'
+                  }}
+                >
+                  - {modifier.name}
+                </div>
+              ))}
+            </span>
+            <span style={{width: '20%', textAlign: 'right'}}>{dishes[dish].quantity}</span>
+            <span style={{width: '20%', textAlign: 'right'}}>{withCurrency(dishes[dish].total)}</span>
+            <span style={{
+              width: '20%',
+              textAlign: 'right'
+            }}>{formatNumber(exclusive > 0 ? dishes[dish].total / exclusive * 100 : 0)}%</span>
           </div>
         ))}
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span></span>
           <span></span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #e5e7eb', padding: '0.75rem', fontWeight: 700 }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem',
+          fontWeight: 700
+        }}>
           <span>Payment types</span>
         </div>
         {Object.keys(paymentTypes).map(paymentType => (
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }} key={paymentType}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #e5e7eb',
+            padding: '0.75rem'
+          }} key={paymentType}>
             <span>{paymentType}</span>
             <span>{withCurrency(paymentTypes[paymentType])}</span>
             <span>{formatNumber(amountDue > 0 ? paymentTypes[paymentType] / amountDue * 100 : 0)}%</span>
           </div>
         ))}
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span></span>
           <span></span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #e5e7eb', padding: '0.75rem', fontWeight: 700 }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem',
+          fontWeight: 700
+        }}>
           <span>Taxes</span>
         </div>
         {Object.keys(taxesList).map(tax => (
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }} key={tax}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #e5e7eb',
+            padding: '0.75rem'
+          }} key={tax}>
             <span>{tax}%</span>
             <span>{withCurrency(taxesList[tax])}</span>
             <span>{formatNumber(taxes > 0 ? taxesList[tax] / taxes * 100 : 0)}%</span>
           </div>
         ))}
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span></span>
           <span></span>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #e5e7eb', padding: '0.75rem', fontWeight: 700 }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem',
+          fontWeight: 700
+        }}>
           <span>Discounts</span>
         </div>
         {Object.keys(discountsList).map(discount => (
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }} key={discount}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #e5e7eb',
+            padding: '0.75rem'
+          }} key={discount}>
             <span>{discount}</span>
             <span>{withCurrency(discountsList[discount])}</span>
             <span>{formatNumber(discounts > 0 ? discountsList[discount] / discounts * 100 : 0)}%</span>
           </div>
         ))}
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span></span>
           <span></span>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #e5e7eb', padding: '0.75rem', fontWeight: 700 }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem',
+          fontWeight: 700
+        }}>
           <span>Extras</span>
         </div>
         {Object.keys(extras).map(extra => (
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }} key={extra}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #e5e7eb',
+            padding: '0.75rem'
+          }} key={extra}>
             <span>{extra}</span>
             <span>{withCurrency(extras[extra])}</span>
           </div>
         ))}
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem'
+        }}>
           <span></span>
           <span></span>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #e5e7eb', padding: '0.75rem', fontWeight: 700 }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0.75rem',
+          fontWeight: 700
+        }}>
           <span>Coupons</span>
         </div>
         {Object.keys(couponsList).map(code => (
           <div
-            style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '0.75rem' }}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              borderBottom: '1px solid #e5e7eb',
+              padding: '0.75rem'
+            }}
             key={code}
           >
             <span>{code}</span>

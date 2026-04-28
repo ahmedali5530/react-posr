@@ -74,6 +74,15 @@ export const detectMimeType = (arrayBuffer: ArrayBuffer | string, defaultMimeTyp
   if (bytes[0] === 0x50 && bytes[1] === 0x4B && (bytes[2] === 0x03 || bytes[2] === 0x05 || bytes[2] === 0x07)) {
     return 'application/zip';
   }
+
+  if (
+    bytes[0] === 0x52 && // R
+    bytes[1] === 0x49 && // I
+    bytes[2] === 0x46 && // F
+    bytes[3] === 0x46    // F
+  ) {
+    return "image/webp";
+  }
   
   return defaultMimeType;
 };

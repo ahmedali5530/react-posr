@@ -1,5 +1,5 @@
 import {
-  AnyRecordId,
+  AnyRecordId, ExprCtx, ExprLike,
   LiveAction,
   LiveResource,
   LiveSubscription,
@@ -12,6 +12,7 @@ import {
 } from "surrealdb";
 import {toast} from "sonner";
 import {useDatabase} from "@/hooks/useDatabase.ts";
+import {string} from "yup";
 
 type QueryBindings = Record<string, unknown>;
 type DbThing = AnyRecordId | RecordIdRange | Table | string;
@@ -261,10 +262,11 @@ export const useDB = () => {
 
   const live = async <T = Record<string, unknown>>(
     thing: LiveResource | string,
-    callback?: LiveCallback<T>
+    callback?: LiveCallback<T>,
+    conditions?: ExprLike
   ): Promise<LiveSubscription> => {
     try {
-      const subscription = await client.live<T>(toTable(thing));
+      const subscription = await client.live<T>(toTable(thing)).where(conditions);
 
       if (callback) {
         subscription.subscribe((message) => {

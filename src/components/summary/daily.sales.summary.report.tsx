@@ -165,7 +165,6 @@ export function DailySalesSummaryReport({orders, date}: Props) {
 
       <Section
         title="1. Sales revenue"
-        subtitle="Food and beverage sold (active lines only; tips are not sales)."
       >
         <Row
           label="Gross sales"
@@ -191,7 +190,7 @@ export function DailySalesSummaryReport({orders, date}: Props) {
         <Row
           label="Service charges"
           value={withCurrency(f.serviceCharges)}
-          hint="Amount on orders; should be based on net after discount, not gross before discount."
+          hint="Amount on orders; based on net after discount"
         />
         <Row
           label="Taxes"
@@ -207,7 +206,7 @@ export function DailySalesSummaryReport({orders, date}: Props) {
         </div>
       </Section>
 
-      <Section title="3. Settlement and cashier" subtitle="Cash drawer view; tips belong here, not in gross sales.">
+      <Section title="3. Settlement and cashier" subtitle="Cash drawer view.">
         <Row
           label="Tips"
           value={withCurrency(f.tips)}
@@ -228,7 +227,7 @@ export function DailySalesSummaryReport({orders, date}: Props) {
         <Row
           label="Change / variance"
           value={withCurrency(f.changeGiven)}
-          hint="Amount collected − grand total. Should stay within about ±1 when the chain matches payments."
+          hint="Amount collected − grand total."
         />
       </Section>
 

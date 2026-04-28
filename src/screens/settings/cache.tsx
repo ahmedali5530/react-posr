@@ -49,7 +49,7 @@ export const CacheSettings = () => {
         floorsResult,
         tablesResult,
         kitchensResult,
-        paymentTypesResult
+        paymentTypesResult,
       ] = await Promise.all([
         db.query(`SELECT *
                   FROM ${Tables.order_types}
@@ -59,13 +59,13 @@ export const CacheSettings = () => {
                   ORDER BY priority ASC`),
         db.query(`SELECT *
                   FROM ${Tables.dishes}
-                  ORDER BY priority ASC FETCH ${DISH_FETCHES.join(', ')}, dish_photo`),
+                  ORDER BY priority ASC FETCH ${DISH_FETCHES.join(', ')}`),
         db.query(`SELECT *
                   FROM ${Tables.modifier_groups}
                   ORDER BY priority ASC FETCH modifiers`),
         db.query(`SELECT *
                   FROM ${Tables.dish_modifier_groups}
-                  ORDER BY priority ASC FETCH in, out, out.modifiers, out.modifiers.modifier, out.modifiers.modifier.dish_photo`),
+                  ORDER BY priority ASC FETCH in, out, out.modifiers, out.modifiers.modifier`),
         db.query(`SELECT *
                   FROM ${Tables.floors}
                   ORDER BY priority ASC`),
@@ -90,7 +90,7 @@ export const CacheSettings = () => {
         floors: toRows<Floor>(floorsResult?.[0]),
         tables: toRows<Table>(tablesResult?.[0]),
         kitchens: toRows<Kitchen>(kitchensResult?.[0]),
-        payment_types: toRows<PaymentType>(paymentTypesResult?.[0])
+        payment_types: toRows<PaymentType>(paymentTypesResult?.[0]),
       }));
 
       toast.success("Cache reloaded from database");

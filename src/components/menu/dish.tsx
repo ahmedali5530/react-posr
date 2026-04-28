@@ -9,6 +9,9 @@ import {nanoid} from "nanoid";
 import {DishModifierGroup} from "@/api/model/dish_modifier_group.ts";
 import {detectMimeType} from "@/utils/files.ts";
 import defaultImage from '@/assets/images/default-image.png';
+import {useDB} from "@/api/db/db.ts";
+
+const dishImageCache = new Map<string, string>();
 
 interface Props {
   onClick: (item: MenuItem, groups?: CartModifierGroup[], price?: number) => void
@@ -21,8 +24,10 @@ interface Props {
 export const MenuDish = ({onClick, item, level, isModifier, price}: Props) => {
   const [state] = useAtom(appState);
   const [{groups_dishes}] = useAtom(appSettings);
+  const db = useDB();
 
   const [modifiersModal, setModifiersModal] = useState(false);
+  const [imageSrc, setImageSrc] = useState(defaultImage);
 
   const [modifierGroups, setModifierGroups] = useState<DishModifierGroup[]>([]);
   const loadModifierGroups = async () => {
@@ -46,28 +51,52 @@ export const MenuDish = ({onClick, item, level, isModifier, price}: Props) => {
     return state.cart.filter(item => item.dish === dish).reduce((prev, item) => prev + item.quantity, 0)
   }, [state.cart]);
 
-  const image = useMemo(() => {
-    try {
-      if (item!.dish_photo) {
-        // fetch item photo
-        if (item.dish_photo.content instanceof ArrayBuffer) {
-          const buffer = item.dish_photo.content;
-          const mimeType = detectMimeType(buffer, "image/png");
-          const blob = new Blob([buffer], {type: mimeType});
-          return URL.createObjectURL(blob);
-        }
+  useEffect(() => {
+    let cancelled = false;
+    const dishPhotoId = item?.dish_photo?.toString();
 
-        if (typeof item.dish_photo === "string") {
-          // could be a data URL or a base64 string; try to use as-is
-          return item.dish_photo;
-        }
-      }
-    } catch (e) {
-      console.log("Failed to prepare dish image", e);
+    if (!dishPhotoId) {
+      setImageSrc(defaultImage);
+      return;
     }
 
-    return defaultImage;
-  }, [item]);
+    const cachedImage = dishImageCache.get(dishPhotoId);
+    if (cachedImage) {
+      setImageSrc(cachedImage);
+      return;
+    }
+
+    const loadImage = async () => {
+      try {
+        const [photo] = await db.query(`SELECT * FROM ONLY ${dishPhotoId}`);
+        if (!photo?.content || !(photo.content instanceof ArrayBuffer)) {
+          if (!cancelled) {
+            setImageSrc(defaultImage);
+          }
+          return;
+        }
+
+        const mimeType = detectMimeType(photo.content, "image/png");
+        const blob = new Blob([photo.content], {type: mimeType});
+        const objectUrl = URL.createObjectURL(blob);
+        dishImageCache.set(dishPhotoId, objectUrl);
+
+        if (!cancelled) {
+          setImageSrc(objectUrl);
+        }
+      } catch {
+        if (!cancelled) {
+          setImageSrc(defaultImage);
+        }
+      }
+    };
+
+    loadImage();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [db, item?.dish_photo]);
 
   return (
     <>
@@ -102,8 +131,8 @@ export const MenuDish = ({onClick, item, level, isModifier, price}: Props) => {
           <div className="flex-shrink-0 flex justify-start">
             <img
               loading="lazy"
-              src={image}
-              alt="card-image"
+              src={imageSrc}
+              alt={item.name}
               className="rounded-xl rounded-r-none pointer-events-none h-full w-[90px] xl:w-[120px] object-contain"/>
           </div>
           <div className="flex flex-1 flex-col px-3 py-2">

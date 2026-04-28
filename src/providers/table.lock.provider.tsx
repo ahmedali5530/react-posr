@@ -14,12 +14,19 @@ const CHECK_INTERVAL_MS = 30_000;
 export const TableLockProvider: React.FC<TableLockProviderProps> = ({children}) => {
   const db = useDB();
   const dbRef = useRef(db);
+  const inFlightRef = useRef(false);
   dbRef.current = db;
 
   useEffect(() => {
-    let isMounted = true;
+    let isActive = true;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const releaseStaleLocks = async () => {
+      if (inFlightRef.current) {
+        return;
+      }
+
+      inFlightRef.current = true;
       try {
         const [lockedTables] = await dbRef.current.query<[Table[]]>(
           `SELECT id, locked_at
@@ -57,20 +64,35 @@ export const TableLockProvider: React.FC<TableLockProviderProps> = ({children}) 
         );
       } catch (error) {
         console.error("Error releasing stale table locks:", error);
+      } finally {
+        inFlightRef.current = false;
       }
     };
 
-    // void releaseStaleLocks();
-    // const interval = setInterval(() => {
-    //   if (isMounted) {
-    //     void releaseStaleLocks();
-    //   }
-    // }, CHECK_INTERVAL_MS);
-    //
-    // return () => {
-    //   isMounted = false;
-    //   clearInterval(interval);
-    // };
+    const runLoop = async () => {
+      if (!isActive) {
+        return;
+      }
+
+      await releaseStaleLocks();
+
+      if (!isActive) {
+        return;
+      }
+
+      timeoutId = setTimeout(() => {
+        void runLoop();
+      }, CHECK_INTERVAL_MS);
+    };
+
+    void runLoop();
+
+    return () => {
+      isActive = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, []);
 
   return <>{children}</>;
