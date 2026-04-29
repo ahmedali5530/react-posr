@@ -4,9 +4,9 @@ import {useEffect, useMemo, useRef, useState} from "react";
 import {Tables} from "@/api/db/tables.ts";
 import {Order} from "@/api/model/order.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
+import {getOrderFilteredItems, getOrderPaymentTotals} from "@/lib/order.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
 import {OrderItem} from "@/api/model/order_item.ts";
-import {OrderPayment} from "@/api/model/order_payment.ts";
 import { toJsDate } from "@/lib/datetime.ts";
 import {DAY_PART_LABELS, getDayPartLabel, getDayPartTimeRangeLabel, type DayPartLabel} from "@/utils/dayParts";
 
@@ -97,8 +97,7 @@ const collectCategories = (item: OrderItem | undefined) => {
   return [UNCATEGORIZED];
 };
 
-const sumPayments = (payments?: OrderPayment[]) =>
-  payments?.reduce((sum, payment) => sum + safeNumber(payment?.amount), 0) ?? 0;
+const sumPayments = (order: Order) => getOrderPaymentTotals(order).amountCollected;
 
 const parseFilters = (): ReportFilters => {
   const params = new URLSearchParams(window.location.search);
@@ -135,8 +134,9 @@ interface TempCategoryTotals {
 
 const collectCategoryTotals = (order: Order): Map<string, TempCategoryTotals> => {
   const map = new Map<string, TempCategoryTotals>();
+  const filteredItems = getOrderFilteredItems(order);
 
-  order.items?.forEach(item => {
+  filteredItems.forEach(item => {
     const grossSale = safeNumber(calculateOrderItemPrice(item));
     const discount = safeNumber(item?.discount);
     const netSales = grossSale - discount;
@@ -384,7 +384,7 @@ export const SalesServerReport = () => {
       dayPart.guests += covers;
       dayPart.checks += 1;
       dayPart.taxes += safeNumber(order.tax_amount);
-      dayPart.payments += sumPayments(order.payments);
+      dayPart.payments += sumPayments(order);
       dayPart.serviceCharges += safeNumber(order.service_charge_amount);
       dayPart.coupons += safeNumber(order.coupon?.discount);
 

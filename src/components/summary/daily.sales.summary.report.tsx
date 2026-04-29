@@ -1,7 +1,7 @@
 import {useMemo, type ReactNode} from 'react';
 import {Order, OrderStatus} from '@/api/model/order.ts';
 import {formatNumber, withCurrency} from '@/lib/utils.ts';
-import {getOrderFilteredItems} from '@/lib/order.ts';
+import {getOrderFilteredItems, getOrderPaymentTotals} from '@/lib/order.ts';
 import {calculateOrderItemPrice} from '@/lib/cart.ts';
 
 interface Props {
@@ -91,10 +91,7 @@ function useDailySalesFigures(orders: Order[] | undefined) {
     const grandTotalDue = safeNumber(totalRevenue + tips);
 
     const amountCollected = list.reduce((sum, order) => {
-      return (
-        sum +
-        safeNumber(order.payments?.reduce((paySum, p) => paySum + safeNumber(p?.amount), 0) ?? 0)
-      );
+      return sum + getOrderPaymentTotals(order).amountCollected;
     }, 0);
 
     const changeGiven = safeNumber(amountCollected - grandTotalDue);

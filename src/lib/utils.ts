@@ -11,7 +11,7 @@ type RecordIdInput = {
 
 export const safeNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);
-  return Number.isFinite(parsed) || isNaN(parsed) ? parsed : fallback;
+  return Number.isFinite(parsed) && !isNaN(parsed) ? parsed : fallback;
 };
 
 export function cn(...inputs: ClassValue[]) {

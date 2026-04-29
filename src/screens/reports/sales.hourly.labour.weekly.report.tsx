@@ -6,9 +6,9 @@ import {Order} from "@/api/model/order.ts";
 import {TimeEntry} from "@/api/model/time_entry.ts";
 import {calculateOrderTotal} from "@/lib/cart.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
-import {OrderPayment} from "@/api/model/order_payment.ts";
 import {DateTime} from "luxon";
 import { toLuxonDateTime } from "@/lib/datetime.ts";
+import {getOrderPaymentTotals} from "@/lib/order.ts";
 
 type WeekdayName = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
 type MetricKey = 'amountCollected' | 'grossSales' | 'couponAmount' | 'labourMinutes';
@@ -44,8 +44,7 @@ const formatHourLabel = (hour: number) => {
   return `${value.toString().padStart(2, '0')}:00 ${suffix}`;
 };
 
-const sumPayments = (payments?: OrderPayment[]) =>
-  payments?.reduce((sum, payment) => sum + (Number(payment?.payable ?? payment?.amount) || 0), 0) ?? 0;
+const sumPayments = (order: Order) => getOrderPaymentTotals(order).amountCollected;
 
 const parseWeekParams = () => {
   const params = new URLSearchParams(window.location.search);
@@ -159,7 +158,7 @@ export const SalesHourlyLabourWeeklyReport = () => {
         return;
       }
 
-      const amountCollected = sumPayments(order.payments);
+      const amountCollected = sumPayments(order);
       const grossSale = Number(calculateOrderTotal(order)) || 0;
       const couponAmount = Number(order.coupon?.discount) || 0;
 

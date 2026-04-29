@@ -127,7 +127,7 @@ export const SalesAdvancedFilter = () => {
 
         <div className="flex flex-col gap-2">
           <label>Tax Filter</label>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             <Checkbox name="with_tax" value="1" label="With Tax" />
             <Checkbox name="without_tax" value="1" label="Without Tax" />
           </div>
@@ -135,7 +135,7 @@ export const SalesAdvancedFilter = () => {
 
         <div className="flex flex-col gap-2">
           <label htmlFor="sales-advanced-discounts">Discount Filter</label>
-          <div className="flex flex-col gap-2 mb-2">
+          <div className="flex flex-col gap-3 mb-2">
             <Checkbox name="with_discount" value="1" label="With Discount" />
             <Checkbox name="without_discount" value="1" label="Without Discount" />
           </div>
@@ -195,7 +195,7 @@ export const SalesAdvancedFilter = () => {
 
         <div className="flex flex-col gap-2">
           <label>Status Filters</label>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             <Checkbox name="refund" value="1" label="Refund" />
             <Checkbox name="merged" value="1" label="Merged" />
             <Checkbox name="cancelled" value="1" label="Cancelled" />
@@ -205,9 +205,40 @@ export const SalesAdvancedFilter = () => {
 
         <div className="flex flex-col gap-2">
           <label>Display Options</label>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             <Checkbox name="show_menu_items" value="1" label="Show Menu Items for Details" />
             <Checkbox name="show_details" value="1" label="Show Details" />
+          </div>
+        </div>
+
+        <div className="flex flex-row gap-3">
+          <div className="flex flex-col flex-1">
+            <label htmlFor="sales-advanced-sort-by">Sort result by</label>
+            <select
+              id="sales-advanced-sort-by"
+              name="sortBy"
+              className="form-control"
+              defaultValue="any"
+            >
+              <option value="">Default</option>
+              {['Invoice', 'Date', 'Status', 'Cashier', 'Order taker', 'Total'].map(item => (
+                <option value={item}>{item}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col flex-1">
+            <label htmlFor="sales-advanced-sort-by">Sort result by</label>
+            <select
+              id="sales-advanced-sort-by"
+              name="sortDirection"
+              className="form-control"
+              defaultValue="any"
+            >
+              {['Ascending', 'Descending'].map(item => (
+                <option value={item}>{item}</option>
+              ))}
+            </select>
           </div>
         </div>
       </div>

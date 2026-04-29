@@ -6,6 +6,7 @@ import {Order} from "@/api/model/order.ts";
 import {OrderVoid} from "@/api/model/order_void.ts";
 import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
+import {getOrderFilteredItems, getOrderPaymentTotals} from "@/lib/order.ts";
 import { toJsDate } from "@/lib/datetime.ts";
 import {DAY_PARTS, getDayPartLabel, getDayPartTimeRangeLabel, type DayPartLabel} from "@/utils/dayParts";
 
@@ -38,13 +39,28 @@ const calculateVoidEntryAmount = (entry: OrderVoid): number => {
 };
 
 const calculateOrderNetSales = (order: Order): number => {
-  const grossTotal = order.items?.reduce((sum, item) => sum + calculateOrderItemPrice(item), 0) ?? 0;
-  const lineDiscounts = order.items?.reduce((sum, item) => sum + safeNumber(item?.discount), 0) ?? 0;
+  const filteredItems = getOrderFilteredItems(order);
+  const grossTotal = filteredItems.reduce((sum, item) => sum + calculateOrderItemPrice(item), 0);
+  const lineDiscounts = filteredItems.reduce((sum, item) => sum + safeNumber(item?.discount), 0);
   const orderDiscount = safeNumber(order.discount_amount);
   const couponDiscount = safeNumber(order.coupon?.discount);
   const extraDiscount = Math.max(0, orderDiscount - lineDiscounts);
   const net = grossTotal - lineDiscounts - extraDiscount - couponDiscount;
   return net > 0 ? net : 0;
+};
+
+const calculateOrderAmountDue = (order: Order): number => {
+  const filteredItems = getOrderFilteredItems(order);
+  const salePriceWithoutTax = filteredItems.reduce((sum, item) => sum + safeNumber(calculateOrderItemPrice(item)), 0);
+  const lineDiscounts = filteredItems.reduce((sum, item) => sum + safeNumber(item?.discount), 0);
+  const orderDiscount = safeNumber(order.discount_amount);
+  const couponDiscount = safeNumber(order.coupon?.discount);
+  const extraDiscount = Math.max(0, orderDiscount - lineDiscounts);
+  const totalDiscounts = lineDiscounts + extraDiscount;
+  const taxes = safeNumber(order.tax_amount);
+  const serviceCharges = safeNumber(order.service_charge_amount);
+  const tips = safeNumber(order.tip_amount);
+  return safeNumber(salePriceWithoutTax + taxes + serviceCharges + tips - totalDiscounts - couponDiscount);
 };
 
 const parseFilters = () => {
@@ -136,22 +152,13 @@ export const SalesSummaryReport = () => {
   const paymentSummary = useMemo(() => {
     return orders.reduce(
       (acc, order) => {
-        order.payments?.forEach(payment => {
-          const payable = safeNumber(payment?.payable ?? payment?.amount);
-          acc.amountCollected += payable;
-          acc.amountDue += payable;
-
-          const typeName = payment?.payment_type?.name || "Other";
-          const typeCode = payment?.payment_type?.type || typeName;
-          const normalized = typeCode?.toLowerCase() ?? "";
-          const isCash = normalized.includes("cash");
-
-          if (isCash) {
-            acc.cashPayments += payable;
-          } else {
-            acc.nonCashPayments += payable;
-            acc.nonCashBreakdown[typeName] = (acc.nonCashBreakdown[typeName] ?? 0) + payable;
-          }
+        acc.amountDue += calculateOrderAmountDue(order);
+        const paymentTotals = getOrderPaymentTotals(order);
+        acc.amountCollected += paymentTotals.amountCollected;
+        acc.cashPayments += paymentTotals.cashAmount;
+        acc.nonCashPayments += paymentTotals.nonCashAmount;
+        Object.entries(paymentTotals.nonCashBreakdown).forEach(([typeName, amount]) => {
+          acc.nonCashBreakdown[typeName] = (acc.nonCashBreakdown[typeName] ?? 0) + amount;
         });
         return acc;
       },

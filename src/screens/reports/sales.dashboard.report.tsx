@@ -20,6 +20,7 @@ import {TabList, Tabs} from "react-aria-components";
 import {Tab, TabPanel} from "@/components/common/react-aria/tabs.tsx";
 import { toJsDate, toLuxonDateTime } from "@/lib/datetime.ts";
 import {DAY_PARTS, getDayPartLabel, getDayPartTimeRangeLabel, type DayPartLabel} from "@/utils/dayParts";
+import {getOrderPaymentTotals} from "@/lib/order.ts";
 
 
 // ==================== Types ====================
@@ -1374,13 +1375,17 @@ export const SalesDashboardReport = () => {
     const map = new Map<string, {count: number; amount: number}>();
 
     orders.filter(o => o.status === 'Paid').forEach(order => {
-      order.payments?.forEach(payment => {
-        const typeName = payment.payment_type?.name || 'Cash';
+      const paymentTotals = getOrderPaymentTotals(order);
+      Object.entries(paymentTotals.nonCashBreakdown).forEach(([typeName, amount]) => {
         const current = map.get(typeName) || {count: 0, amount: 0};
         current.count += 1;
-        current.amount += safeNumber(payment.amount);
+        current.amount += amount;
         map.set(typeName, current);
       });
+      const cashCurrent = map.get('Cash') || {count: 0, amount: 0};
+      cashCurrent.count += 1;
+      cashCurrent.amount += paymentTotals.cashAmount;
+      map.set('Cash', cashCurrent);
     });
 
     return Array.from(map.entries())

@@ -3,14 +3,12 @@ import {ReportsLayout} from "@/screens/partials/reports.layout.tsx";
 import {useDB} from "@/api/db/db.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {Order, ORDER_FETCHES, OrderStatus} from "@/api/model/order.ts";
-import {formatNumber, toRecordId, withCurrency} from "@/lib/utils.ts";
+import {OrderVoid} from "@/api/model/order_void.ts";
+import {formatNumber, safeNumber, toRecordId, withCurrency} from "@/lib/utils.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
+import {getOrderFilteredItems, getOrderPaymentTotals} from "@/lib/order.ts";
 import {toLuxonDateTime} from "@/lib/datetime.ts";
-
-const safeNumber = (value: unknown) => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
+import {OrderItemName} from "@/components/common/order/order.item.tsx";
 
 const recordToString = (value: any): string => {
   if (!value) {
@@ -23,6 +21,18 @@ const recordToString = (value: any): string => {
     return value.toString();
   }
   return String(value);
+};
+
+const calculateVoidEntryAmount = (voidEntry: OrderVoid): number => {
+  const quantity = safeNumber(voidEntry?.quantity || 1);
+  const voidItems = (voidEntry?.items ?? []).filter(Boolean);
+  return voidItems.reduce((sum, item) => {
+    const lineAmount = calculateOrderItemPrice({
+      ...(item ?? {}),
+      quantity,
+    } as any);
+    return sum + safeNumber(lineAmount);
+  }, 0);
 };
 
 interface ReportFilters {
@@ -47,6 +57,8 @@ interface ReportFilters {
   split?: boolean;
   showMenuItems?: boolean;
   showDetails?: boolean;
+  sortBy?: string
+  sortDirection: 'Ascending' | 'Descending'
 }
 
 const parseFilters = (): ReportFilters => {
@@ -81,6 +93,8 @@ const parseFilters = (): ReportFilters => {
     split: params.has('split'),
     showMenuItems: params.has('show_menu_items'),
     showDetails: params.has('show_details'),
+    sortBy: params.get('sortBy') ?? 'created_at',
+    sortDirection: params.get('sortDirection') === 'Ascending' ? 'Ascending' : 'Descending'
   };
 };
 
@@ -88,6 +102,7 @@ export const SalesAdvancedReport = () => {
   const db = useDB();
   const queryRef = useRef(db.query);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [orderVoids, setOrderVoids] = useState<OrderVoid[]>([]);
   const [expandedOrderIds, setExpandedOrderIds] = useState<Set<string>>(new Set());
 
   const [loading, setLoading] = useState(true);
@@ -107,7 +122,7 @@ export const SalesAdvancedReport = () => {
         setError(null);
 
         const orderConditions: string[] = [];
-        const params: Record<string, string|string[]|number|number[]> = {};
+        const params: Record<string, string | string[] | number | number[]> = {};
 
         if (filters.startDate) {
           orderConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
@@ -145,49 +160,49 @@ export const SalesAdvancedReport = () => {
           orderConditions.push(`(${statusConditions.join(' OR ')})`);
         }
 
-        if(filters.orderTakerIds.length > 0){
+        if (filters.orderTakerIds.length > 0) {
           orderConditions.push(`user INSIDE $orderTakerIds`);
           params['orderTakerIds'] = filters.orderTakerIds.map(item => toRecordId(item))
         }
 
-        if(filters.cashierIds.length > 0){
+        if (filters.cashierIds.length > 0) {
           orderConditions.push(`cashier INSIDE $cashierIds`);
           params['cashierIds'] = filters.cashierIds.map(item => toRecordId(item))
         }
 
-        if(filters.tableIds.length > 0){
+        if (filters.tableIds.length > 0) {
           orderConditions.push(`table INSIDE $tableIds`);
           params['tableIds'] = filters.tableIds.map(item => toRecordId(item))
         }
 
-        if(filters.floorIds.length > 0){
+        if (filters.floorIds.length > 0) {
           orderConditions.push(`floor INSIDE $floorIds`);
           params['floorIds'] = filters.floorIds.map(item => toRecordId(item))
         }
 
-        if(filters.orderTypeIds.length > 0){
+        if (filters.orderTypeIds.length > 0) {
           orderConditions.push(`order_type INSIDE $orderTypeIds`);
           params['orderTypeIds'] = filters.orderTypeIds.map(item => toRecordId(item))
         }
 
-        if(filters.discountIds.length > 0){
+        if (filters.discountIds.length > 0) {
           orderConditions.push(`discount INSIDE $discountIds`);
           params['discountIds'] = filters.discountIds.map(item => toRecordId(item))
         }
 
-        if(filters.withDiscount){
+        if (filters.withDiscount) {
           orderConditions.push(`discount_amount > 0`);
         }
 
-        if(filters.withoutDiscount){
+        if (filters.withoutDiscount) {
           orderConditions.push(`(discount_amount = 0 or discount_amount = null or discount_amount = none)`);
         }
 
-        if(filters.withTax){
+        if (filters.withTax) {
           orderConditions.push(`tax_amount > 0`);
         }
 
-        if(filters.withoutTax){
+        if (filters.withoutTax) {
           orderConditions.push(`(tax_amount = 0 or tax_amount = null or tax_amount = none)`);
         }
 
@@ -201,14 +216,66 @@ export const SalesAdvancedReport = () => {
           orderConditions.push(`(${paymentFilter.join(' or ')})`);
         }
 
+
+        let orderByMode = filters.sortDirection === 'Ascending' ? 'asc' : 'desc';
+        let orderByClause = 'created_at';
+        if (filters.sortBy) {
+          switch (filters.sortBy) {
+            case "Invoice":
+              orderByClause = 'invoice_number';
+              break;
+
+            case "Status":
+              orderByClause = 'status';
+              break;
+
+            case "Cashier":
+              orderByClause = 'cashier.first_name';
+              break;
+
+            case "Order taker":
+              orderByClause = 'user.first_name';
+              break;
+
+            case "Total":
+              orderByClause = 'ttl';
+              break;
+
+            case "Date":
+            default:
+              orderByClause = 'created_at';
+              break;
+          }
+        }
+
+        const totalQuery = `math::sum(payments.map(|$v| $v.payable)) as ttl`;
         const ordersQuery = `
-            SELECT *
+            SELECT *, ${totalQuery}
             FROM ${Tables.orders} ${orderConditions.length ? `WHERE ${orderConditions.join(" AND ")}` : ""}
+            ORDER BY ${orderByClause} ${orderByMode}
                 FETCH ${ORDER_FETCHES.join(', ')}, floor
         `;
 
         const ordersResult: any = await queryRef.current(ordersQuery, params);
         setOrders((ordersResult?.[0] ?? []) as Order[]);
+
+        const voidConditions: string[] = [];
+        const voidParams: Record<string, string> = {};
+        if (filters.startDate) {
+          voidConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
+          voidParams.startDate = filters.startDate;
+        }
+        if (filters.endDate) {
+          voidConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
+          voidParams.endDate = filters.endDate;
+        }
+        const voidsQuery = `
+            SELECT *
+            FROM ${Tables.order_voids} ${voidConditions.length ? `WHERE ${voidConditions.join(" AND ")}` : ""}
+                FETCH items
+        `;
+        const voidsResult: any = await queryRef.current(voidsQuery, voidParams);
+        setOrderVoids((voidsResult?.[0] ?? []) as OrderVoid[]);
       } catch (err) {
         console.error("Failed to load sales advanced report", err);
         setError(err instanceof Error ? err.message : "Unable to load report");
@@ -232,7 +299,8 @@ export const SalesAdvancedReport = () => {
     filters.orderTypeIds,
     filters.discountIds, filters.withDiscount, filters.withoutDiscount,
     filters.paymentTypeIds,
-    filters.withTax, filters.withoutTax
+    filters.withTax, filters.withoutTax,
+    filters.sortBy, filters.sortDirection
   ]);
 
   const filteredOrders = useMemo(() => {
@@ -261,8 +329,9 @@ export const SalesAdvancedReport = () => {
     });
   }, [orders, filters]);
 
-  const detailsColSpan = filters.showDetails ? 17 : 9;
-  const tableColSpan = detailsColSpan + (filters.showMenuItems ? 1 : 0);
+  const baseColumns = 9;
+  const detailsColumns = filters.showDetails ? 10 : 1;
+  const tableColSpan = baseColumns + detailsColumns + (filters.showMenuItems ? 1 : 0);
   const ordersWithItems = useMemo(
     () => filteredOrders.filter(order => Boolean(filters.showMenuItems && order.items && order.items.length > 0)),
     [filteredOrders, filters.showMenuItems],
@@ -300,12 +369,9 @@ export const SalesAdvancedReport = () => {
   };
 
   const getOrderPaymentBreakdown = (order: Order): string => {
-    const paymentMap = new Map<string, number>();
-    order.payments?.forEach(payment => {
-      const paymentName = payment?.payment_type?.name || 'Other';
-      const amount = safeNumber(payment?.payable ?? payment?.amount);
-      paymentMap.set(paymentName, (paymentMap.get(paymentName) ?? 0) + amount);
-    });
+    const paymentTotals = getOrderPaymentTotals(order);
+    const paymentMap = new Map<string, number>(Object.entries(paymentTotals.nonCashBreakdown));
+    paymentMap.set('Cash', (paymentMap.get('Cash') ?? 0) + paymentTotals.cashAmount);
 
     if (paymentMap.size === 0) return '-';
 
@@ -315,14 +381,15 @@ export const SalesAdvancedReport = () => {
   };
 
   const calculateOrderTotals = (order: Order) => {
+    const filteredItems = getOrderFilteredItems(order);
     const salePriceWithoutTax = safeNumber(
-      order.items?.reduce((sum, item) => {
+      filteredItems.reduce((sum, item) => {
         const price = calculateOrderItemPrice(item);
         return sum + safeNumber(price);
-      }, 0) ?? 0
+      }, 0)
     );
     const lineDiscounts = safeNumber(
-      order.items?.reduce((sum, item) => sum + safeNumber(item?.discount), 0) ?? 0
+      filteredItems.reduce((sum, item) => sum + safeNumber(item?.discount), 0)
     );
     const orderDiscount = safeNumber(order.discount_amount);
     const couponDiscount = safeNumber(order.coupon?.discount);
@@ -332,19 +399,20 @@ export const SalesAdvancedReport = () => {
     const tips = safeNumber(order?.tip_amount);
     const serviceCharges = safeNumber(order.service_charge_amount);
     const amountDue = safeNumber(salePriceWithoutTax + taxes + serviceCharges - totalDiscounts - couponDiscount + tips);
-    const amountCollected = safeNumber(
-      order.payments?.reduce((sum, payment) => sum + safeNumber(payment?.payable), 0) ?? 0
-    );
+    const amountCollected = getOrderPaymentTotals(order).amountCollected;
     const net = safeNumber(amountCollected - serviceCharges - taxes);
+    const rounding = safeNumber(amountCollected - amountDue);
 
     return {
       salePriceWithoutTax,
       taxes,
+      tips,
       amountDue,
       serviceCharges,
       discounts: totalDiscounts,
       coupons: couponDiscount,
       net,
+      rounding,
       amountCollected,
     };
   };
@@ -355,11 +423,13 @@ export const SalesAdvancedReport = () => {
         const orderTotals = calculateOrderTotals(order);
         acc.salePriceWithoutTax += orderTotals.salePriceWithoutTax;
         acc.taxes += orderTotals.taxes;
+        acc.tips += orderTotals.tips;
         acc.amountDue += orderTotals.amountDue;
         acc.serviceCharges += orderTotals.serviceCharges;
         acc.discounts += orderTotals.discounts;
         acc.coupons += orderTotals.coupons;
         acc.net += orderTotals.net;
+        acc.rounding += orderTotals.rounding;
         acc.amountCollected += orderTotals.amountCollected;
         acc.ordersCount += 1;
         return acc;
@@ -367,16 +437,22 @@ export const SalesAdvancedReport = () => {
       {
         salePriceWithoutTax: 0,
         taxes: 0,
+        tips: 0,
         amountDue: 0,
         serviceCharges: 0,
         discounts: 0,
         coupons: 0,
         net: 0,
+        rounding: 0,
         amountCollected: 0,
         ordersCount: 0,
       }
     );
   }, [filteredOrders]);
+  const totalVoids = useMemo(
+    () => safeNumber(orderVoids.reduce((sum, voidEntry) => sum + calculateVoidEntryAmount(voidEntry), 0)),
+    [orderVoids],
+  );
 
   if (loading) {
     return (
@@ -401,7 +477,7 @@ export const SalesAdvancedReport = () => {
         <div className="overflow-hidden rounded-lg border border-neutral-200">
           <h3 className="bg-neutral-100 px-6 py-3 text-sm font-semibold text-neutral-700">Summary</h3>
           <div className="p-4">
-            <table className="min-w-full text-sm">
+            <table className="min-w-full text-sm table-hover">
               <tbody className="divide-y divide-neutral-100">
               <tr>
                 <td className="py-2 text-neutral-700">Total Orders</td>
@@ -430,6 +506,14 @@ export const SalesAdvancedReport = () => {
                 <td className="py-2 text-right font-semibold text-red-600">{withCurrency(-totals.coupons)}</td>
               </tr>
               <tr>
+                <td className="py-2 text-neutral-700">Voids</td>
+                <td className="py-2 text-right font-semibold text-red-600">{withCurrency(-totalVoids)}</td>
+              </tr>
+              <tr>
+                <td className="py-2 text-neutral-700">Tips</td>
+                <td className="py-2 text-right font-semibold text-neutral-900">{withCurrency(totals.tips)}</td>
+              </tr>
+              <tr>
                 <td className="py-2 text-neutral-700">Amount Due</td>
                 <td className="py-2 text-right font-semibold text-neutral-900">{withCurrency(totals.amountDue)}</td>
               </tr>
@@ -437,6 +521,10 @@ export const SalesAdvancedReport = () => {
                 <td className="py-2 text-neutral-700">Amount Collected</td>
                 <td
                   className="py-2 text-right font-semibold text-neutral-900">{withCurrency(totals.amountCollected)}</td>
+              </tr>
+              <tr>
+                <td className="py-2 text-neutral-700">Rounding</td>
+                <td className="py-2 text-right font-semibold text-neutral-900">{withCurrency(totals.rounding)}</td>
               </tr>
               <tr className="border-t-2 border-neutral-300">
                 <td className="py-2 font-semibold text-neutral-900">Net</td>
@@ -454,7 +542,7 @@ export const SalesAdvancedReport = () => {
               <button
                 type="button"
                 onClick={toggleAllOrderItems}
-                className="h-6 w-6 rounded border border-neutral-300 text-xs font-bold text-neutral-700 hover:bg-neutral-100"
+                className="print:hidden h-6 w-6 rounded border border-neutral-300 text-xs font-bold text-neutral-700 hover:bg-neutral-100"
                 aria-label={areAllExpanded ? 'Hide menu items' : 'Show menu items'}
               >
                 {areAllExpanded ? '-' : '+'}
@@ -463,11 +551,11 @@ export const SalesAdvancedReport = () => {
             <h3 className="text-sm font-semibold text-neutral-700">Orders</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-neutral-200">
+            <table className="min-w-full divide-y divide-neutral-200 table-hover">
               <thead className="bg-neutral-50">
               <tr>
                 {filters.showMenuItems && (
-                  <th className="py-3 pl-6 pr-2 text-left text-xs font-semibold text-neutral-700">Items</th>
+                  <th className="py-3 pl-6 pr-2 text-left text-xs font-semibold text-neutral-700 print:hidden">Items</th>
                 )}
                 <th className="py-3 pl-6 pr-3 text-left text-xs font-semibold text-neutral-700">Date</th>
                 <th className="py-3 px-3 text-left text-xs font-semibold text-neutral-700">Invoice #</th>
@@ -481,6 +569,7 @@ export const SalesAdvancedReport = () => {
                   <>
                     <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Sale w/o Tax</th>
                     <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Taxes</th>
+                    <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Tip</th>
                     <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Service Charges</th>
                     <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Discounts</th>
                     <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Coupons</th>
@@ -502,6 +591,7 @@ export const SalesAdvancedReport = () => {
                 const orderTotals = calculateOrderTotals(order);
                 const orderDate = toLuxonDateTime(order.created_at);
                 const dateStr = orderDate.toFormat(import.meta.env.VITE_DATE_FORMAT);
+                const timeStr = orderDate.toFormat(import.meta.env.VITE_TIME_FORMAT);
                 const orderTakerName = order.user
                   ? `${order.user.first_name ?? ''} ${order.user.last_name ?? ''}`.trim() || order.user.login || 'Unknown'
                   : 'Unknown';
@@ -520,7 +610,7 @@ export const SalesAdvancedReport = () => {
                   <Fragment key={orderId}>
                     <tr key={order.id} className={hasItems ? 'border-b-0' : ''}>
                       {filters.showMenuItems && (
-                        <td className="py-3 pl-6 pr-2 text-sm text-neutral-700">
+                        <td className="py-3 pl-6 pr-2 text-sm text-neutral-700 print:hidden">
                           {hasItems ? (
                             <button
                               type="button"
@@ -533,7 +623,10 @@ export const SalesAdvancedReport = () => {
                           ) : null}
                         </td>
                       )}
-                      <td className="py-3 pl-6 pr-3 text-sm text-neutral-700">{dateStr}</td>
+                      <td className="py-3 pl-6 pr-3 text-sm text-neutral-700">
+                        <div>{dateStr}</div>
+                        <div className="text-neutral-500">{timeStr}</div>
+                      </td>
                       <td className="py-3 px-3 text-sm text-neutral-700">{order.invoice_number}</td>
                       <td className="py-3 px-3 text-sm text-neutral-700">{orderTakerName}</td>
                       <td className="py-3 px-3 text-sm text-neutral-700">{cashierName}</td>
@@ -559,6 +652,8 @@ export const SalesAdvancedReport = () => {
                           <td
                             className="py-3 px-3 text-right text-sm text-neutral-700">{withCurrency(orderTotals.taxes)}</td>
                           <td
+                            className="py-3 px-3 text-right text-sm text-neutral-700">{withCurrency(orderTotals.tips)}</td>
+                          <td
                             className="py-3 px-3 text-right text-sm text-neutral-700">{withCurrency(orderTotals.serviceCharges)}</td>
                           <td
                             className="py-3 px-3 text-right text-sm text-danger-600">{withCurrency(-orderTotals.discounts)}</td>
@@ -583,7 +678,7 @@ export const SalesAdvancedReport = () => {
                       <tr key={`${order.id}-items`} className="bg-neutral-50">
                         <td colSpan={tableColSpan} className="py-3 pl-6 pr-6">
                           <div className="space-y-2">
-                            <div className="text-xs font-semibold text-neutral-700 mb-2">Menu Items:</div>
+                            {/*<div className="text-xs font-semibold text-neutral-700 mb-2">Menu Items:</div>*/}
                             <table className="w-full text-xs">
                               <thead>
                               <tr className="border-b border-neutral-200">
@@ -601,8 +696,14 @@ export const SalesAdvancedReport = () => {
                                 const itemTotal = safeNumber(itemPrice) - itemDiscount;
 
                                 return (
-                                  <tr key={`${order.id}-item-${idx}`}>
-                                    <td className="py-2 pr-4 text-neutral-700">{item.item?.name || 'Unknown'}</td>
+                                  <tr
+                                    key={`${order.id}-item-${idx}`}
+                                    className={item.deleted_at ? 'text-danger-500' : ''}
+                                  >
+                                    <td className="py-2 pr-4 text-neutral-700">
+                                      <OrderItemName item={item} showQuantity={false} showPrice={false}
+                                                     showGroups={false}/>
+                                    </td>
                                     <td
                                       className="py-2 px-2 text-right text-neutral-700">{formatNumber(item.quantity)}</td>
                                     <td className="py-2 px-2 text-right text-neutral-700">{withCurrency(itemPrice)}</td>

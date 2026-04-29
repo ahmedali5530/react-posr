@@ -6,6 +6,7 @@ import {Order, OrderStatus} from "@/api/model/order.ts";
 import {OrderVoid} from "@/api/model/order_void.ts";
 import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
+import {getOrderFilteredItems, getOrderPaymentTotals} from "@/lib/order.ts";
 import { toJsDate } from "@/lib/datetime.ts";
 import {DAY_PARTS, getDayPartLabel, getDayPartTimeRangeLabel, type DayPartLabel} from "@/utils/dayParts";
 
@@ -162,14 +163,15 @@ export const SalesSummary2Report = () => {
 
   // Calculate metrics for a single order
   const calculateOrderMetrics = (order: Order) => {
+    const filteredItems = getOrderFilteredItems(order);
     const salePriceWithoutTax = safeNumber(
-      order.items?.reduce((sum, item) => {
+      filteredItems.reduce((sum, item) => {
         const price = calculateOrderItemPrice(item);
         return sum + safeNumber(price);
-      }, 0) ?? 0
+      }, 0)
     );
     const itemDiscounts = safeNumber(
-      order.items?.reduce((sum, item) => sum + safeNumber(item?.discount), 0) ?? 0
+      filteredItems.reduce((sum, item) => sum + safeNumber(item?.discount), 0)
     );
     const lineDiscounts = itemDiscounts;
     const orderDiscount = safeNumber(order.discount_amount);
@@ -180,9 +182,7 @@ export const SalesSummary2Report = () => {
     const serviceCharges = safeNumber(order.service_charge_amount);
     const tips = safeNumber(order.tip_amount);
     const amountDue = safeNumber(salePriceWithoutTax + taxes + serviceCharges + tips - totalDiscounts - couponDiscount);
-    const amountCollected = safeNumber(
-      order.payments?.reduce((sum, payment) => sum + safeNumber(payment?.payable ?? payment?.amount), 0) ?? 0
-    );
+    const amountCollected = getOrderPaymentTotals(order).amountCollected;
     const net = safeNumber(amountCollected - serviceCharges - taxes);
 
     // Calculate turn time: for paid orders, estimate based on payment time
@@ -207,11 +207,12 @@ export const SalesSummary2Report = () => {
   const financialMetrics = useMemo(() => {
     const salePriceWithoutTax = safeNumber(
       orders.reduce((sum, order) => {
+        const filteredItems = getOrderFilteredItems(order);
         const itemsTotal = safeNumber(
-          order.items?.reduce((itemSum, item) => {
+          filteredItems.reduce((itemSum, item) => {
             const price = calculateOrderItemPrice(item);
             return itemSum + safeNumber(price);
-          }, 0) ?? 0
+          }, 0)
         );
         return sum + itemsTotal;
       }, 0)
@@ -230,14 +231,16 @@ export const SalesSummary2Report = () => {
 
     const itemDiscounts = safeNumber(
       orders.reduce((sum, order) => {
-        return sum + safeNumber(order.items?.reduce((itemSum, item) => itemSum + safeNumber(item?.discount), 0) ?? 0);
+        const filteredItems = getOrderFilteredItems(order);
+        return sum + safeNumber(filteredItems.reduce((itemSum, item) => itemSum + safeNumber(item?.discount), 0));
       }, 0)
     );
 
     const subtotalDiscounts = safeNumber(
       orders.reduce((sum, order) => {
+        const filteredItems = getOrderFilteredItems(order);
         const lineDiscounts = safeNumber(
-          order.items?.reduce((itemSum, item) => itemSum + safeNumber(item?.discount), 0) ?? 0
+          filteredItems.reduce((itemSum, item) => itemSum + safeNumber(item?.discount), 0)
         );
         const orderDiscount = safeNumber(order.discount_amount);
         const extraDiscount = Math.max(0, safeNumber(orderDiscount - lineDiscounts));
@@ -254,7 +257,7 @@ export const SalesSummary2Report = () => {
 
     const amountCollected = safeNumber(
       orders.reduce((sum, order) => {
-        return sum + safeNumber(order.payments?.reduce((paySum, payment) => paySum + safeNumber(payment?.payable ?? payment?.amount), 0) ?? 0);
+        return sum + getOrderPaymentTotals(order).amountCollected;
       }, 0)
     );
 
@@ -664,14 +667,17 @@ export const SalesSummary2Report = () => {
     // 4th subsection: Payment types with quantity + total
     const paymentTypesMap = new Map<string, {quantity: number; total: number}>();
     orders.forEach(order => {
-      order.payments?.forEach(payment => {
-        const paymentTypeName = payment.payment_type?.name || "Unknown";
+      const paymentTotals = getOrderPaymentTotals(order);
+      Object.entries(paymentTotals.nonCashBreakdown).forEach(([paymentTypeName, paymentAmount]) => {
         const existing = paymentTypesMap.get(paymentTypeName) || {quantity: 0, total: 0};
-        const paymentAmount = safeNumber(payment.payable);
         existing.quantity = safeNumber(existing.quantity + 1);
         existing.total = safeNumber(existing.total + paymentAmount);
         paymentTypesMap.set(paymentTypeName, existing);
       });
+      const cashExisting = paymentTypesMap.get("Cash") || {quantity: 0, total: 0};
+      cashExisting.quantity = safeNumber(cashExisting.quantity + 1);
+      cashExisting.total = safeNumber(cashExisting.total + paymentTotals.cashAmount);
+      paymentTypesMap.set("Cash", cashExisting);
     });
 
     return {

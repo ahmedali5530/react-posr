@@ -2,7 +2,7 @@ import {useMemo} from "react";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
 import {Order, OrderStatus} from "@/api/model/order.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
-import {getOrderFilteredItems} from "@/lib/order.ts";
+import {getOrderFilteredItems, getOrderPaymentTotals} from "@/lib/order.ts";
 
 interface Props {
   orders: Order[]
@@ -143,7 +143,7 @@ export const Summary = ({
   const amountCollected = useMemo(() => {
     return safeNumber(
       orders?.reduce((sum, order) => {
-        return sum + safeNumber(order.payments?.reduce((paySum, payment) => paySum + safeNumber(payment?.amount), 0) ?? 0);
+        return sum + getOrderPaymentTotals(order).amountCollected;
       }, 0) ?? 0
     );
   }, [orders]);
@@ -243,16 +243,19 @@ export const Summary = ({
   }, [orders]);
 
   const paymentTypes = useMemo(() => {
-    const list = {};
+    const list: Record<string, number> = {};
     orders?.forEach(order => {
-      order.payments?.forEach(payment => {
-        const paymentTypeName = payment.payment_type?.name || 'Unknown';
+      const paymentTotals = getOrderPaymentTotals(order);
+      Object.entries(paymentTotals.nonCashBreakdown).forEach(([paymentTypeName, amount]) => {
         if (!list[paymentTypeName]) {
           list[paymentTypeName] = 0;
         }
-
-        list[paymentTypeName] += safeNumber(payment.payable);
+        list[paymentTypeName] += amount;
       });
+      if (!list.Cash) {
+        list.Cash = 0;
+      }
+      list.Cash += paymentTotals.cashAmount;
     });
     return list;
   }, [orders]);

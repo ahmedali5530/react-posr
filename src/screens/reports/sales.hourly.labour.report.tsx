@@ -7,6 +7,7 @@ import {TimeEntry} from "@/api/model/time_entry.ts";
 import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderTotal} from "@/lib/cart.ts";
 import { toJsDate } from "@/lib/datetime.ts";
+import {getOrderPaymentTotals} from "@/lib/order.ts";
 
 interface HourlyData {
   hour: number;
@@ -130,10 +131,7 @@ export const SalesHourlyLabourReport = () => {
 
       // Calculate metrics with proper number validation
       const amountCollected = hourOrders.reduce((sum, order) => {
-        const paymentsTotal = order.payments?.reduce((pSum, payment) => {
-          const amount = Number(payment?.payable ?? payment?.amount) || 0;
-          return pSum + (isNaN(amount) ? 0 : amount);
-        }, 0) || 0;
+        const paymentsTotal = getOrderPaymentTotals(order).amountCollected;
         return sum + (isNaN(paymentsTotal) ? 0 : paymentsTotal);
       }, 0);
 

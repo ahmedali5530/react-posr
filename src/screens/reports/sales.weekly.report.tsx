@@ -9,6 +9,7 @@ import {calculateOrderItemPrice} from "@/lib/cart.ts";
 import {DateTime} from "luxon";
 import { toJsDate, toLuxonDateTime } from "@/lib/datetime.ts";
 import {DAY_PART_LABELS, DAY_PARTS, getDayPartLabel, getDayPartTimeRangeLabel, type DayPartLabel} from "@/utils/dayParts";
+import {getOrderPaymentTotals} from "@/lib/order.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -167,21 +168,10 @@ export const SalesWeeklyReport = () => {
       dayMetric.coupons += safeNumber(order.coupon?.discount);
 
       // Payments
-      order.payments?.forEach(payment => {
-        const payable = safeNumber(payment?.payable ?? payment?.amount);
-        dayMetric.amountCollected += payable;
-
-        const typeName = payment?.payment_type?.name || "Other";
-        const typeCode = payment?.payment_type?.type || typeName;
-        const normalized = typeCode?.toLowerCase() ?? "";
-        const isCash = normalized.includes("cash");
-
-        if (isCash) {
-          dayMetric.cashPayments += payable;
-        } else {
-          dayMetric.nonCashPayments += payable;
-        }
-      });
+      const paymentTotals = getOrderPaymentTotals(order);
+      dayMetric.amountCollected += paymentTotals.amountCollected;
+      dayMetric.cashPayments += paymentTotals.cashAmount;
+      dayMetric.nonCashPayments += paymentTotals.nonCashAmount;
 
       // Sales by day part
       const dayPart = getDayPartLabel(toJsDate(order.created_at));
@@ -189,9 +179,7 @@ export const SalesWeeklyReport = () => {
 
       // Service charges
       const serviceChargeAmount = safeNumber(order.service_charge_amount);
-      const amountCollected = safeNumber(
-        order.payments?.reduce((sum, payment) => sum + safeNumber(payment?.payable ?? payment?.amount), 0) ?? 0
-      );
+      const amountCollected = paymentTotals.amountCollected;
       if (amountCollected > 0) {
         dayMetric.serviceChargesCollected += serviceChargeAmount;
       } else {
