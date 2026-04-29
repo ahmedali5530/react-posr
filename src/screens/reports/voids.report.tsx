@@ -366,6 +366,7 @@ export const VoidsReport = () => {
                   <th className="py-3 px-3 text-left text-xs font-semibold text-neutral-700">Reason</th>
                   <th className="py-3 px-3 text-left text-xs font-semibold text-neutral-700">Menu Item</th>
                   <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Quantity</th>
+                  <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Line Total</th>
                   <th className="py-3 px-3 text-left text-xs font-semibold text-neutral-700">Manager</th>
                   <th className="py-3 px-3 text-left text-xs font-semibold text-neutral-700">Cashier</th>
                   <th className="py-3 px-3 text-right text-xs font-semibold text-neutral-700">Order #</th>
@@ -375,7 +376,7 @@ export const VoidsReport = () => {
               <tbody className="divide-y divide-neutral-100 bg-white">
                 {orderVoids.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-6 text-center text-sm text-neutral-500">
+                    <td colSpan={10} className="py-6 text-center text-sm text-neutral-500">
                       No voids found for the selected filters
                     </td>
                   </tr>
@@ -393,6 +394,7 @@ export const VoidsReport = () => {
                     const menuItemName = getVoidItems(voidItem)
                       .map(item => item?.item?.name || 'Unknown')
                       .join(', ') || 'Unknown';
+                    const lineTotal = getVoidItems(voidItem).reduce((sum, item) => sum + getVoidLineAmount(voidItem, item), 0);
                     const orderNumber = voidItem.order?.invoice_number || 'N/A';
 
                     return (
@@ -402,6 +404,7 @@ export const VoidsReport = () => {
                         <td className="py-3 px-3 text-sm text-neutral-700">{voidItem.reason}</td>
                         <td className="py-3 px-3 text-sm text-neutral-700">{menuItemName}</td>
                         <td className="py-3 px-3 text-right text-sm text-neutral-700">{formatNumber(voidItem.quantity)}</td>
+                        <td className="py-3 px-3 text-right text-sm text-neutral-700">{withCurrency(lineTotal)}</td>
                         <td className="py-3 px-3 text-sm text-neutral-700">{managerName}</td>
                         <td className="py-3 px-3 text-sm text-neutral-700">{cashierName}</td>
                         <td className="py-3 px-3 text-right text-sm text-neutral-700">{orderNumber}</td>
@@ -417,6 +420,9 @@ export const VoidsReport = () => {
                     <td colSpan={4} className="py-3 pl-6 pr-3 text-sm font-semibold text-neutral-900">Total</td>
                     <td className="py-3 px-3 text-right text-sm font-bold text-neutral-900">
                       {formatNumber(orderVoids.reduce((sum, v) => sum + safeNumber(v.quantity), 0))}
+                    </td>
+                    <td className="py-3 px-3 text-right text-sm font-bold text-neutral-900">
+                      {withCurrency(orderVoids.reduce((sum, v) => sum + getVoidItems(v).reduce((lineSum, item) => lineSum + getVoidLineAmount(v, item), 0), 0))}
                     </td>
                     <td colSpan={4}></td>
                   </tr>
