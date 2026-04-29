@@ -8,7 +8,7 @@ import {InventoryIssueItem} from "@/api/model/inventory_issue.ts";
 import {InventoryIssueReturnItem} from "@/api/model/inventory_issue_return.ts";
 import {InventoryWasteItem} from "@/api/model/inventory_waste.ts";
 import {formatNumber} from "@/lib/utils.ts";
-import { toJsDate } from "@/lib/datetime.ts";
+import { toJsDate, toLuxonDateTime } from "@/lib/datetime.ts";
 
 type InventoryTransaction = {
   date: string;
@@ -67,12 +67,12 @@ export const DetailedInventoryReport = () => {
         const params: Record<string, string> = {};
 
         if (filters.startDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") >= $startDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           params.startDate = filters.startDate;
         }
 
         if (filters.endDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           params.endDate = filters.endDate;
         }
 
@@ -417,7 +417,7 @@ export const DetailedInventoryReport = () => {
               transactions.map((transaction, index) => (
                 <tr key={`${transaction.date}-${transaction.item}-${transaction.type}-${index}`}>
                   <td className="py-4 pl-6 pr-3 text-sm text-neutral-700">
-                    {transaction.date ? toJsDate(transaction.date).toLocaleDateString() : ""}
+                    {transaction.date ? toLuxonDateTime(transaction.date).toFormat(import.meta.env.VITE_DATE_FORMAT) : ""}
                   </td>
                   <td className="py-4 px-3 text-sm font-medium text-neutral-800">
                     {transaction.item}{transaction.itemCode ? ` (${transaction.itemCode})` : ""}

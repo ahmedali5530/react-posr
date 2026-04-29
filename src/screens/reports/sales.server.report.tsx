@@ -8,8 +8,7 @@ import {formatNumber, withCurrency} from "@/lib/utils.ts";
 import {OrderItem} from "@/api/model/order_item.ts";
 import {OrderPayment} from "@/api/model/order_payment.ts";
 import { toJsDate } from "@/lib/datetime.ts";
-
-type DayPartLabel = 'Breakfast' | 'Lunch' | 'Evening';
+import {DAY_PART_LABELS, getDayPartLabel, getDayPartTimeRangeLabel, type DayPartLabel} from "@/utils/dayParts";
 
 interface CategoryAggregate {
   id: string;
@@ -53,7 +52,6 @@ interface ReportFilters {
   tableIds: string[];
 }
 
-const DAY_PARTS: DayPartLabel[] = ['Breakfast', 'Lunch', 'Evening'];
 const UNCATEGORIZED = { id: 'uncategorized', name: 'Uncategorized' };
 
 const safeNumber = (value: any): number => {
@@ -101,17 +99,6 @@ const collectCategories = (item: OrderItem | undefined) => {
 
 const sumPayments = (payments?: OrderPayment[]) =>
   payments?.reduce((sum, payment) => sum + safeNumber(payment?.amount), 0) ?? 0;
-
-const getDayPart = (date: Date): DayPartLabel => {
-  const hour = date.getHours();
-  if (hour >= 8 && hour < 12) {
-    return 'Breakfast';
-  }
-  if (hour >= 13 && hour < 17) {
-    return 'Lunch';
-  }
-  return 'Evening';
-};
 
 const parseFilters = (): ReportFilters => {
   const params = new URLSearchParams(window.location.search);
@@ -285,12 +272,12 @@ export const SalesServerReport = () => {
         const params: Record<string, string> = {};
 
         if (filters.startDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") >= $startDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           params.startDate = filters.startDate;
         }
 
         if (filters.endDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           params.endDate = filters.endDate;
         }
 
@@ -391,7 +378,7 @@ export const SalesServerReport = () => {
       const categoryTotals = collectCategoryTotals(order);
       const orderNet = Array.from(categoryTotals.values()).reduce((sum, row) => sum + row.netSales, 0);
       const covers = safeNumber(order.covers);
-      const dayPart = ensureDayPartEntry(entry.dayPartMap, getDayPart(toJsDate(order.created_at)));
+      const dayPart = ensureDayPartEntry(entry.dayPartMap, getDayPartLabel(toJsDate(order.created_at)));
 
       dayPart.netSales += orderNet;
       dayPart.guests += covers;
@@ -421,7 +408,7 @@ export const SalesServerReport = () => {
       userId,
       userName: data.userName,
       categories: Array.from(data.categoryMap.values()).sort((a, b) => b.netSales - a.netSales),
-      dayParts: DAY_PARTS.map(label => data.dayPartMap[label] ?? {
+      dayParts: DAY_PART_LABELS.map(label => data.dayPartMap[label] ?? {
         label,
         netSales: 0,
         guests: 0,
@@ -596,7 +583,10 @@ export const SalesServerReport = () => {
                   <tbody>
                     {section.dayParts.map(row => (
                       <tr key={row.label}>
-                        <td>{row.label}</td>
+                        <td>
+                          <div>{row.label}</div>
+                          <div className="text-xs text-gray-500">{getDayPartTimeRangeLabel(row.label)}</div>
+                        </td>
                         <td className="text-right">{withCurrency(row.netSales)}</td>
                         <td className="text-right">{formatNumber(row.guests)}</td>
                         <td className="text-right">{formatNumber(row.checks)}</td>

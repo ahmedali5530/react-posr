@@ -6,7 +6,7 @@ import {DateValue} from "react-aria-components";
 import {getLocalTimeZone, today} from "@internationalized/date";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faArrowLeft, faArrowRight, faPrint, faSpinner} from "@fortawesome/free-solid-svg-icons";
-import {Calendar} from "@/components/common/react-aria/calendar.tsx";
+import {Calendar} from "@/components/common/antd/calendar.tsx";
 import {Button} from "@/components/common/input/button.tsx";
 import {Summary as SummaryComponent} from '@/components/summary/summary.tsx';
 import {DailySalesSummaryReport} from '@/components/summary/daily.sales.summary.report.tsx';
@@ -309,7 +309,6 @@ export const Summary = () => {
                 onChange={setDate}
                 value={date}
                 maxValue={today(getLocalTimeZone())}
-                pageBehavior="visible"
               />
             </div>
             <div className="flex gap-3 mt-3">

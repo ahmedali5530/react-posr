@@ -24,7 +24,7 @@ import {useAtom} from "jotai";
 import {appPage} from "@/store/jotai.ts";
 import {CsvUploadModal} from "@/components/common/table/csv.uploader.tsx";
 import {fetchNextSequentialNumber, isUniqueRecordNumber} from "@/utils/recordNumbers.ts";
-import {DatePicker} from "@/components/common/react-aria/datepicker.tsx";
+import {DatePicker} from "@/components/common/antd/datepicker.tsx";
 import {DateValue} from "react-aria-components";
 import {calendarDateToDate, dateToCalendarDate, getToday} from "@/utils/date.ts";
 import {Switch} from "@/components/common/input/switch.tsx";

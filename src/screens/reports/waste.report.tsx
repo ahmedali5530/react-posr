@@ -4,7 +4,7 @@ import {useDB} from "@/api/db/db.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {InventoryWaste} from "@/api/model/inventory_waste.ts";
 import {formatNumber} from "@/lib/utils.ts";
-import { toJsDate } from "@/lib/datetime.ts";
+import { toLuxonDateTime } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -73,12 +73,12 @@ export const WasteReport = () => {
         const params: Record<string, string | string[]> = {};
 
         if (filters.startDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") >= $startDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           params.startDate = filters.startDate;
         }
 
         if (filters.endDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           params.endDate = filters.endDate;
         }
 
@@ -195,8 +195,8 @@ export const WasteReport = () => {
                   </tr>
                 ) : (
                   wastes.flatMap(waste => {
-                    const date = toJsDate(waste.created_at);
-                    const dateStr = date.toLocaleDateString();
+                    const date = toLuxonDateTime(waste.created_at);
+                    const dateStr = date.toFormat(import.meta.env.VITE_DATE_FORMAT);
                     const createdByName = waste.created_by
                       ? `${waste.created_by.first_name ?? ''} ${waste.created_by.last_name ?? ''}`.trim() || waste.created_by.login || 'Unknown'
                       : 'Unknown';

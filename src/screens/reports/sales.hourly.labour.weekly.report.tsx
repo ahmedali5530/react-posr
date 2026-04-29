@@ -45,7 +45,7 @@ const formatHourLabel = (hour: number) => {
 };
 
 const sumPayments = (payments?: OrderPayment[]) =>
-  payments?.reduce((sum, payment) => sum + (Number(payment?.amount) || 0), 0) ?? 0;
+  payments?.reduce((sum, payment) => sum + (Number(payment?.payable ?? payment?.amount) || 0), 0) ?? 0;
 
 const parseWeekParams = () => {
   const params = new URLSearchParams(window.location.search);
@@ -98,16 +98,16 @@ export const SalesHourlyLabourWeeklyReport = () => {
         const ordersQuery = `
           SELECT * FROM ${Tables.orders}
           WHERE status = 'Paid'
-            AND time::format(created_at, "%Y-%m-%d") >= $start
-            AND time::format(created_at, "%Y-%m-%d") <= $end
+            AND time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $start
+            AND time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $end
           FETCH payments, items, items.item, items.item.categories, coupon, coupon.coupon
         `;
 
         const timeEntriesQuery = `
           SELECT * FROM ${Tables.time_entries}
           WHERE clock_out != NONE
-            AND time::format(clock_in, "%Y-%m-%d") <= $end
-            AND time::format(clock_out, "%Y-%m-%d") >= $start
+            AND time::format(clock_in, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $end
+            AND time::format(clock_out, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $start
         `;
 
         const [ordersResult, timeEntriesResult]: any = await Promise.all([

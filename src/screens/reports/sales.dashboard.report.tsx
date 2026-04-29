@@ -19,6 +19,7 @@ import {
 import {TabList, Tabs} from "react-aria-components";
 import {Tab, TabPanel} from "@/components/common/react-aria/tabs.tsx";
 import { toJsDate, toLuxonDateTime } from "@/lib/datetime.ts";
+import {DAY_PARTS, getDayPartLabel, getDayPartTimeRangeLabel, type DayPartLabel} from "@/utils/dayParts";
 
 
 // ==================== Types ====================
@@ -357,6 +358,10 @@ const DayPartsWidget = ({dayParts}: {dayParts: {label: string; orders: number; r
       })),
     },
   ], [dayParts]);
+  const dayPartSummary = useMemo(
+    () => DAY_PARTS.map(part => `${part.label} (${getDayPartTimeRangeLabel(part.label)})`).join(', '),
+    [],
+  );
 
   return (
     <div className="bg-white p-5 rounded-lg shadow-xl border">
@@ -366,7 +371,7 @@ const DayPartsWidget = ({dayParts}: {dayParts: {label: string; orders: number; r
         </div>
         <div>
           <h2 className="text-xl font-bold text-neutral-700">Sales by Day Part</h2>
-          <p className="text-xs text-neutral-500">Breakfast, Lunch, Dinner, Late Night</p>
+          <p className="text-xs text-neutral-500">{dayPartSummary}</p>
         </div>
       </div>
       <div className="h-[250px]">
@@ -1158,12 +1163,12 @@ export const SalesDashboardReport = () => {
         const params: Record<string, string> = {};
 
         if (filters.startDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") >= $startDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           params.startDate = filters.startDate;
         }
 
         if (filters.endDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           params.endDate = filters.endDate;
         }
 
@@ -1260,31 +1265,10 @@ export const SalesDashboardReport = () => {
   }, [orders]);
 
   const dayParts = useMemo(() => {
-    const DAY_PARTS = [
-      {label: 'Breakfast', startHour: 5, endHour: 11},
-      {label: 'Lunch', startHour: 11, endHour: 16},
-      {label: 'Dinner', startHour: 16, endHour: 22},
-      {label: 'Late Night', startHour: 22, endHour: 5},
-    ];
-
-    const getDayPart = (date: Date) => {
-      const hour = date.getHours();
-      for (const part of DAY_PARTS) {
-        const wrapsMidnight = part.startHour > part.endHour;
-        if (
-          (!wrapsMidnight && hour >= part.startHour && hour < part.endHour) ||
-          (wrapsMidnight && (hour >= part.startHour || hour < part.endHour))
-        ) {
-          return part.label;
-        }
-      }
-      return DAY_PARTS[0].label;
-    };
-
-    const map = new Map<string, {orders: number; revenue: number}>();
+    const map = new Map<DayPartLabel, {orders: number; revenue: number}>();
 
     orders.filter(o => o.status === 'Paid').forEach(order => {
-      const dayPart = getDayPart(toJsDate(order.created_at));
+      const dayPart = getDayPartLabel(toJsDate(order.created_at));
       const current = map.get(dayPart) || {orders: 0, revenue: 0};
       current.orders += 1;
       current.revenue += calculateOrderNetSales(order);
@@ -1294,8 +1278,8 @@ export const SalesDashboardReport = () => {
     return DAY_PARTS
       .map(part => ({
         label: part.label,
-        orders: map.get(part.label)?.orders || 0,
-        revenue: map.get(part.label)?.revenue || 0,
+        orders: map.get(part.label)?.orders ?? 0,
+        revenue: map.get(part.label)?.revenue ?? 0,
       }))
       .filter(part => part.orders > 0);
   }, [orders]);

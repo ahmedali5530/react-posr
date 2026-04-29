@@ -1,6 +1,8 @@
 import './assets/css/app.scss';
 import 'react-indiana-drag-scroll/dist/style.css'
+import {ConfigProvider} from "antd";
 import {QueryClient, QueryClientProvider,} from '@tanstack/react-query'
+import {appAntdTheme} from "@/lib/antd-theme.ts";
 import {Toaster} from "sonner";
 import {Alert} from "./components/common/alert/dialog.tsx";
 import {Login} from "@/screens/login.tsx";
@@ -130,6 +132,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ConfigProvider theme={appAntdTheme}>
       <DatabaseProvider>
         <DeliveryOrdersProvider>
           <PrintProvider>
@@ -192,6 +195,7 @@ function App() {
         <Alert/>
         <Toaster richColors position="top-right" closeButton={true}/>
       </DatabaseProvider>
+      </ConfigProvider>
     </QueryClientProvider>
   );
 }

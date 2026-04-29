@@ -71,7 +71,7 @@ export enum OrderStatus {
 export const ORDER_FETCHES = [
   'items',
   'items.item',
-  'item.item.category',
+  'item.item.categories',
   'item.item.modifiers',
   'table',
   'user',

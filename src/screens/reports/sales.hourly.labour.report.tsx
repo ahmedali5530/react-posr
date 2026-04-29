@@ -131,7 +131,7 @@ export const SalesHourlyLabourReport = () => {
       // Calculate metrics with proper number validation
       const amountCollected = hourOrders.reduce((sum, order) => {
         const paymentsTotal = order.payments?.reduce((pSum, payment) => {
-          const amount = Number(payment?.amount) || 0;
+          const amount = Number(payment?.payable ?? payment?.amount) || 0;
           return pSum + (isNaN(amount) ? 0 : amount);
         }, 0) || 0;
         return sum + (isNaN(paymentsTotal) ? 0 : paymentsTotal);

@@ -85,12 +85,12 @@ export const SaleVsConsumptionReport = () => {
         const params: Record<string, string> = {};
 
         if (filters.startDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") >= $startDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           params.startDate = filters.startDate;
         }
 
         if (filters.endDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           params.endDate = filters.endDate;
         }
 

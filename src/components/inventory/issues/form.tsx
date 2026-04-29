@@ -22,7 +22,7 @@ import _ from "lodash";
 import {appPage} from "@/store/jotai.ts";
 import {useAtom} from "jotai";
 import {fetchNextSequentialNumber, isUniqueRecordNumber} from "@/utils/recordNumbers.ts";
-import {DatePicker} from "@/components/common/react-aria/datepicker.tsx";
+import {DatePicker} from "@/components/common/antd/datepicker.tsx";
 import {DateValue} from "react-aria-components";
 import {dateToCalendarDate, calendarDateToDate, getToday} from "@/utils/date.ts";
 import {Switch} from "@/components/common/input/switch.tsx";

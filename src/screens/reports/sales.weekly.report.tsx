@@ -8,34 +8,23 @@ import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
 import {DateTime} from "luxon";
 import { toJsDate, toLuxonDateTime } from "@/lib/datetime.ts";
+import {DAY_PART_LABELS, DAY_PARTS, getDayPartLabel, getDayPartTimeRangeLabel, type DayPartLabel} from "@/utils/dayParts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const DAY_PARTS = [
-  {label: "Breakfast", startHour: 5, endHour: 11},
-  {label: "Lunch", startHour: 11, endHour: 16},
-  {label: "Dinner", startHour: 16, endHour: 22},
-  {label: "Late night", startHour: 22, endHour: 5},
-] as const;
-
-type DayPartLabel = typeof DAY_PARTS[number]["label"];
-
-const getDayPartLabel = (date: Date): DayPartLabel => {
-  const hour = date.getHours();
-  for (const part of DAY_PARTS) {
-    const {startHour, endHour, label} = part;
-    const wrapsMidnight = startHour > endHour;
-    if (
-      (!wrapsMidnight && hour >= startHour && hour < endHour) ||
-      (wrapsMidnight && (hour >= startHour || hour < endHour))
-    ) {
-      return label;
-    }
-  }
-  return DAY_PARTS[0].label;
+const calculateVoidEntryAmount = (entry: OrderVoid): number => {
+  const quantity = safeNumber(entry?.quantity || 1);
+  const voidItems = (entry?.items ?? []).filter(Boolean);
+  return voidItems.reduce((sum, item) => {
+    const lineAmount = calculateOrderItemPrice({
+      ...(item ?? {}),
+      quantity,
+    } as any);
+    return sum + safeNumber(lineAmount);
+  }, 0);
 };
 
 const WEEK_DAYS: string[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -108,8 +97,8 @@ export const SalesWeeklyReport = () => {
 
         const ordersQuery = `
           SELECT * FROM ${Tables.orders}
-          WHERE time::format(created_at, "%Y-%m-%d") >= $start
-            AND time::format(created_at, "%Y-%m-%d") <= $end
+          WHERE time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $start
+            AND time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $end
           FETCH payments, payments.payment_type, discount, order_type, items, items.item, items.item.categories, extras, user, coupon, coupon.coupon
         `;
 
@@ -119,9 +108,9 @@ export const SalesWeeklyReport = () => {
         // Fetch order voids
         const voidsQuery = `
           SELECT * FROM ${Tables.order_voids}
-          WHERE time::format(created_at, "%Y-%m-%d") >= $start
-            AND time::format(created_at, "%Y-%m-%d") <= $end
-          FETCH order_item
+          WHERE time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $start
+            AND time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $end
+          FETCH items
         `;
 
         const voidsResult: any = await queryRef.current(voidsQuery, params);
@@ -150,12 +139,10 @@ export const SalesWeeklyReport = () => {
         nonCashPayments: 0,
         amountCollected: 0,
         coupons: 0,
-        salesByDayPart: {
-          Breakfast: 0,
-          Lunch: 0,
-          Dinner: 0,
-          "Late night": 0,
-        },
+        salesByDayPart: DAY_PART_LABELS.reduce((acc, label) => {
+          acc[label] = 0;
+          return acc;
+        }, {} as Record<DayPartLabel, number>),
         voids: 0,
         comps: 0,
         serviceChargesCollected: 0,
@@ -181,8 +168,8 @@ export const SalesWeeklyReport = () => {
 
       // Payments
       order.payments?.forEach(payment => {
-        const amount = safeNumber(payment?.amount);
-        dayMetric.amountCollected += amount;
+        const payable = safeNumber(payment?.payable ?? payment?.amount);
+        dayMetric.amountCollected += payable;
 
         const typeName = payment?.payment_type?.name || "Other";
         const typeCode = payment?.payment_type?.type || typeName;
@@ -190,9 +177,9 @@ export const SalesWeeklyReport = () => {
         const isCash = normalized.includes("cash");
 
         if (isCash) {
-          dayMetric.cashPayments += amount;
+          dayMetric.cashPayments += payable;
         } else {
-          dayMetric.nonCashPayments += amount;
+          dayMetric.nonCashPayments += payable;
         }
       });
 
@@ -203,7 +190,7 @@ export const SalesWeeklyReport = () => {
       // Service charges
       const serviceChargeAmount = safeNumber(order.service_charge_amount);
       const amountCollected = safeNumber(
-        order.payments?.reduce((sum, payment) => sum + safeNumber(payment?.amount), 0) ?? 0
+        order.payments?.reduce((sum, payment) => sum + safeNumber(payment?.payable ?? payment?.amount), 0) ?? 0
       );
       if (amountCollected > 0) {
         dayMetric.serviceChargesCollected += serviceChargeAmount;
@@ -235,10 +222,7 @@ export const SalesWeeklyReport = () => {
         return;
       }
 
-      const price = safeNumber(voidEntry?.order_item?.price);
-      const quantity = safeNumber(voidEntry?.quantity || 1);
-      const amount = price * quantity;
-      metrics[dateKey].voids += amount;
+      metrics[dateKey].voids += calculateVoidEntryAmount(voidEntry);
     });
 
     return metrics;
@@ -311,7 +295,7 @@ export const SalesWeeklyReport = () => {
     DAY_PARTS.forEach(part => {
       const dayPartValues = dayHeaders.map(h => dayMetrics[h.dateKey]?.salesByDayPart[part.label] || 0);
       rowData.push({
-        label: `Sales by Day Part - ${part.label}`,
+        label: `Sales by Day Part - ${part.label} (${getDayPartTimeRangeLabel(part.label)})`,
         values: dayPartValues,
         total: dayPartValues.reduce((sum, val) => sum + val, 0),
         formatter: withCurrency,

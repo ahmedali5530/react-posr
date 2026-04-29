@@ -12,7 +12,7 @@ import {User} from "@/api/model/user.ts";
 import {useAtom} from "jotai";
 import {appAlert, appPage, appState, AppStateInterface} from "@/store/jotai.ts";
 import {OrderType} from "@/api/model/order_type.ts";
-import {DatePicker} from "@/components/common/react-aria/datepicker.tsx";
+import {DatePicker} from "@/components/common/antd/datepicker.tsx";
 import {getLocalTimeZone, today} from '@internationalized/date';
 import {DateValue} from "react-aria-components";
 import {Button} from "@/components/common/input/button.tsx";

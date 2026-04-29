@@ -320,12 +320,12 @@ export const InventoryDashboardReport = () => {
         const whereParams = {};
 
         if(filters.startDate){
-          whereConditions.push(`time::format(created_at, '%Y-%m-%d') >= $startDate`);
+          whereConditions.push(`time::format(created_at, '${import.meta.env.VITE_DB_DATABASE_FORMAT}') >= $startDate`);
           whereParams['startDate'] = filters.startDate;
         }
 
         if(filters.endDate){
-          whereConditions.push(`time::format(created_at, '%Y-%m-%d') <= $endDate`);
+          whereConditions.push(`time::format(created_at, '${import.meta.env.VITE_DB_DATABASE_FORMAT}') <= $endDate`);
           whereParams['endDate'] = filters.endDate;
         }
 

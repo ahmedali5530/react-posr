@@ -61,11 +61,11 @@ export const TipsReport = () => {
         const params: Record<string, any> = {};
 
         if (filters.startDate) {
-          conditions.push(`time::format(from_at, "%Y-%m-%d") >= $startDate`);
+          conditions.push(`time::format(from_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           params.startDate = filters.startDate;
         }
         if (filters.endDate) {
-          conditions.push(`time::format(from_at, "%Y-%m-%d") <= $endDate`);
+          conditions.push(`time::format(from_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           params.endDate = filters.endDate;
         }
         if (filters.shiftId) {

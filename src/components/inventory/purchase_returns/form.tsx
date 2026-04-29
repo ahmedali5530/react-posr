@@ -22,7 +22,7 @@ import {useAtom} from "jotai";
 import {appPage} from "@/store/jotai.ts";
 import {fetchNextSequentialNumber, isUniqueRecordNumber} from "@/utils/recordNumbers.ts";
 import {fetchNetQuantity} from "@/utils/inventory.ts";
-import {DatePicker} from "@/components/common/react-aria/datepicker.tsx";
+import {DatePicker} from "@/components/common/antd/datepicker.tsx";
 import {DateValue} from "react-aria-components";
 import {dateToCalendarDate, calendarDateToDate, getToday} from "@/utils/date.ts";
 import { nowSurrealDateTime, toJsDate, toSurrealDateTime } from "@/lib/datetime.ts";

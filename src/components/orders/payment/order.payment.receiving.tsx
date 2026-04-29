@@ -437,6 +437,7 @@ export const OrderPaymentReceiving = ({
     const extrasTotal = Object.values(extras).reduce((prev, item) => prev + item, 0);
     const effectiveDiscount = overrideDiscountAmount !== undefined ? overrideDiscountAmount : (discountAmount ?? 0);
     const couponDiscount = couponAmount ?? 0;
+
     return calculateOrderGrandTotal({
       itemsTotal,
       extrasTotal,
@@ -487,9 +488,9 @@ export const OrderPaymentReceiving = ({
     return discounts[0];
   }
 
-  const computeDiscountAmountFor = (d?: Discount): number => {
+  const computeDiscountAmountFor = (d?: Discount): number|undefined => {
     if (!d) {
-      return 0;
+      return undefined;
     }
     const hasVariableRates = (d.min_rate ?? 0) !== (d.max_rate ?? 0);
     let computed: number;
@@ -516,7 +517,7 @@ export const OrderPaymentReceiving = ({
     }
   }
 
-  const applyPaymentTypeDiscountIfAny = (paymentType: PaymentType): number => {
+  const applyPaymentTypeDiscountIfAny = (paymentType: PaymentType): number|undefined => {
     clearAutoDiscountIfNeeded(paymentType.id.toString());
     const d = selectBestDiscount(paymentType.discounts);
     const amount = computeDiscountAmountFor(d);
@@ -627,6 +628,8 @@ export const OrderPaymentReceiving = ({
                 const autoDiscountAmount = applyPaymentTypeDiscountIfAny(item);
 
                 const payable = calculateTotal(highestRate, autoDiscountAmount);
+
+                console.log(highestRate, autoDiscountAmount)
 
                 if (selectedAmount.trim().length > 0) {
                   // Respect typed amount; add with proper payable (includes highest tax)

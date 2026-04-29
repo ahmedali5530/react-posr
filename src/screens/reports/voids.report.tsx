@@ -3,12 +3,25 @@ import {ReportsLayout} from "@/screens/partials/reports.layout.tsx";
 import {useDB} from "@/api/db/db.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {OrderVoid} from "@/api/model/order_void.ts";
+import {calculateOrderItemPrice} from "@/lib/cart.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
-import { toJsDate } from "@/lib/datetime.ts";
+import { toLuxonDateTime } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const getVoidItems = (voidItem: OrderVoid) => (voidItem.items ?? []).filter(Boolean);
+
+const getVoidLineAmount = (voidItem: OrderVoid, item: any) => {
+  const quantity = safeNumber(voidItem.quantity ?? 1);
+  return safeNumber(
+    calculateOrderItemPrice({
+      ...(item ?? {}),
+      quantity,
+    } as any),
+  );
 };
 
 const recordToString = (value: any): string => {
@@ -77,12 +90,12 @@ export const VoidsReport = () => {
         const params: Record<string, string | string[]> = {};
 
         if (filters.startDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") >= $startDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           params.startDate = filters.startDate;
         }
 
         if (filters.endDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           params.endDate = filters.endDate;
         }
 
@@ -90,7 +103,7 @@ export const VoidsReport = () => {
           SELECT * FROM ${Tables.order_voids}
           ${conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''}
           order by created_at ASC
-          FETCH deleted_by, order, order.cashier, order_item, order_item.item
+          FETCH deleted_by, order, order.cashier, items, items.item
         `;
 
         const result: any = await queryRef.current(query, params);
@@ -119,8 +132,8 @@ export const VoidsReport = () => {
 
         if (filters.menuItemIds.length > 0) {
           voids = voids.filter(voidItem => {
-            const menuItemId = recordToString(voidItem.order_item?.item?.id ?? voidItem.order_item?.item);
-            return filters.menuItemIds.includes(menuItemId);
+            const menuItemIds = getVoidItems(voidItem).map(item => recordToString(item?.item?.id ?? item?.item));
+            return menuItemIds.some(menuItemId => filters.menuItemIds.includes(menuItemId));
           });
         }
 
@@ -142,9 +155,9 @@ export const VoidsReport = () => {
     
     orderVoids.forEach(voidItem => {
       const reason = voidItem.reason || 'Unknown';
-      const quantity = safeNumber(voidItem.quantity);
-      const price = safeNumber(voidItem.order_item?.price || 0);
-      const amount = price * quantity;
+      const voidItems = getVoidItems(voidItem);
+      const quantity = safeNumber(voidItem.quantity ?? 1) * voidItems.length;
+      const amount = voidItems.reduce((sum, item) => sum + getVoidLineAmount(voidItem, item), 0);
       
       const existing = map.get(reason) || {count: 0, quantity: 0, amount: 0};
       existing.count += 1;
@@ -166,9 +179,9 @@ export const VoidsReport = () => {
       const managerName = voidItem.deleted_by 
         ? `${voidItem.deleted_by.first_name ?? ''} ${voidItem.deleted_by.last_name ?? ''}`.trim() || voidItem.deleted_by.login || 'Unknown'
         : 'Unknown';
-      const quantity = safeNumber(voidItem.quantity);
-      const price = safeNumber(voidItem.order_item?.price || 0);
-      const amount = price * quantity;
+      const voidItems = getVoidItems(voidItem);
+      const quantity = safeNumber(voidItem.quantity ?? 1) * voidItems.length;
+      const amount = voidItems.reduce((sum, item) => sum + getVoidLineAmount(voidItem, item), 0);
       
       const existing = map.get(managerName) || {count: 0, quantity: 0, amount: 0};
       existing.count += 1;
@@ -187,16 +200,17 @@ export const VoidsReport = () => {
     const map = new Map<string, {count: number; quantity: number; amount: number}>();
     
     orderVoids.forEach(voidItem => {
-      const menuItemName = voidItem.order_item?.item?.name || 'Unknown';
-      const quantity = safeNumber(voidItem.quantity);
-      const price = safeNumber(voidItem.order_item?.price || 0);
-      const amount = price * quantity;
-      
-      const existing = map.get(menuItemName) || {count: 0, quantity: 0, amount: 0};
-      existing.count += 1;
-      existing.quantity = safeNumber(existing.quantity + quantity);
-      existing.amount = safeNumber(existing.amount + amount);
-      map.set(menuItemName, existing);
+      getVoidItems(voidItem).forEach(item => {
+        const menuItemName = item?.item?.name || 'Unknown';
+        const quantity = safeNumber(voidItem.quantity ?? 1);
+        const amount = getVoidLineAmount(voidItem, item);
+
+        const existing = map.get(menuItemName) || {count: 0, quantity: 0, amount: 0};
+        existing.count += 1;
+        existing.quantity = safeNumber(existing.quantity + quantity);
+        existing.amount = safeNumber(existing.amount + amount);
+        map.set(menuItemName, existing);
+      });
     });
     
     return Array.from(map.entries())
@@ -367,16 +381,18 @@ export const VoidsReport = () => {
                   </tr>
                 ) : (
                   orderVoids.map((voidItem) => {
-                    const date = toJsDate(voidItem.created_at);
-                    const dateStr = date.toLocaleDateString();
-                    const timeStr = date.toLocaleTimeString();
+                    const date = toLuxonDateTime(voidItem.created_at);
+                    const dateStr = date.toFormat(import.meta.env.VITE_DATE_FORMAT);
+                    const timeStr = date.toFormat(import.meta.env.VITE_TIME_FORMAT);
                     const managerName = voidItem.deleted_by 
                       ? `${voidItem.deleted_by.first_name ?? ''} ${voidItem.deleted_by.last_name ?? ''}`.trim() || voidItem.deleted_by.login || 'Unknown'
                       : 'Unknown';
                     const cashierName = voidItem.order?.cashier
                       ? `${voidItem.order.cashier.first_name ?? ''} ${voidItem.order.cashier.last_name ?? ''}`.trim() || voidItem.order.cashier.login || 'Unknown'
                       : 'N/A';
-                    const menuItemName = voidItem.order_item?.item?.name || 'Unknown';
+                    const menuItemName = getVoidItems(voidItem)
+                      .map(item => item?.item?.name || 'Unknown')
+                      .join(', ') || 'Unknown';
                     const orderNumber = voidItem.order?.invoice_number || 'N/A';
 
                     return (

@@ -4,7 +4,7 @@ import {useDB} from "@/api/db/db.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {InventoryPurchaseReturn} from "@/api/model/inventory_purchase_return.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
-import { toJsDate } from "@/lib/datetime.ts";
+import { toLuxonDateTime } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -77,12 +77,12 @@ export const PurchaseReturnReport = () => {
         const params: Record<string, string | string[]> = {};
 
         if (filters.startDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") >= $startDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           params.startDate = filters.startDate;
         }
 
         if (filters.endDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           params.endDate = filters.endDate;
         }
 
@@ -224,8 +224,8 @@ export const PurchaseReturnReport = () => {
                   </tr>
                 ) : (
                   purchaseReturns.flatMap(purchaseReturn => {
-                    const date = toJsDate(purchaseReturn.created_at);
-                    const dateStr = date.toLocaleDateString();
+                    const date = toLuxonDateTime(purchaseReturn.created_at);
+                    const dateStr = date.toFormat(import.meta.env.VITE_DATE_FORMAT);
                     const storeName = purchaseReturn.store?.name || 'N/A';
                     const createdByName = purchaseReturn.created_by
                       ? `${purchaseReturn.created_by.first_name ?? ''} ${purchaseReturn.created_by.last_name ?? ''}`.trim() || purchaseReturn.created_by.login || 'Unknown'

@@ -11,6 +11,7 @@ import {Floor} from "@/api/model/floor.ts";
 import {Table} from "@/api/model/table.ts";
 import {Discount} from "@/api/model/discount.ts";
 import {PaymentType} from "@/api/model/payment_type.ts";
+import {Dish} from "@/api/model/dish.ts";
 
 const toOption = <T extends { id?: any }>(
   item: T | undefined,
@@ -39,6 +40,7 @@ export const SalesAdvancedFilter = () => {
   const {data: tablesData, isLoading: loadingTables} = useApi<SettingsData<Table>>(Tables.tables, [], ['name asc'], 0, 9999, ['floor']);
   const {data: discountsData, isLoading: loadingDiscounts} = useApi<SettingsData<Discount>>(Tables.discounts, [], ['name asc'], 0, 9999);
   const {data: paymentTypesData, isLoading: loadingPaymentTypes} = useApi<SettingsData<PaymentType>>(Tables.payment_types, [], ['name asc'], 0, 9999);
+  const {data: menuItemsData, isLoading: loadingMenuItems} = useApi<SettingsData<Dish>>(Tables.dishes, [], ['name asc'], 0, 9999);
 
   return (
     <form
@@ -162,6 +164,33 @@ export const SalesAdvancedFilter = () => {
               .map(paymentType => toOption(paymentType, paymentType.name))
               .filter(notNull)}
           />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="sales-advanced-menu-items">Menu Items</label>
+          <ReactSelect
+            id="sales-advanced-menu-items"
+            name="menu_items[]"
+            isMulti
+            isLoading={loadingMenuItems}
+            className="w-full"
+            options={(menuItemsData?.data || [])
+              .map(item => toOption(item, item.name))
+              .filter(notNull)}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="sales-advanced-menu-items-match">Menu Items Match</label>
+          <select
+            id="sales-advanced-menu-items-match"
+            name="menu_items_match"
+            className="form-control"
+            defaultValue="any"
+          >
+            <option value="any">Any selected item</option>
+            <option value="all">All selected items</option>
+          </select>
         </div>
 
         <div className="flex flex-col gap-2">

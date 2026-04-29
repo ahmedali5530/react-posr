@@ -98,8 +98,8 @@ export const ProductMixWeeklyReport = () => {
         };
 
         // Week date range filter
-        conditions.push(`time::format(created_at, "%Y-%m-%d") >= $start`);
-        conditions.push(`time::format(created_at, "%Y-%m-%d") <= $end`);
+        conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $start`);
+        conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $end`);
 
         // Order takers filter
         if (filters.orderTakerIds.length > 0) {

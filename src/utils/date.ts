@@ -1,5 +1,6 @@
 import { CalendarDate, parseDate, today, getLocalTimeZone } from '@internationalized/date';
 import { DateValue } from 'react-aria-components';
+import dayjs, { Dayjs } from "dayjs";
 
 /**
  * Converts a Date object to a CalendarDate (DateValue)
@@ -35,5 +36,25 @@ export const calendarDateToDate = (dateValue: DateValue | null | undefined): Dat
  */
 export const getToday = (): CalendarDate => {
   return today(getLocalTimeZone());
+};
+
+export const dateValueToDayjs = (dateValue: DateValue | null | undefined): Dayjs | null => {
+  if (!dateValue) return null;
+
+  return dayjs(new Date(
+    dateValue.year,
+    dateValue.month - 1,
+    dateValue.day
+  ));
+};
+
+export const dayjsToCalendarDate = (value: Dayjs | null | undefined): CalendarDate | null => {
+  if (!value) return null;
+
+  return new CalendarDate(
+    value.year(),
+    value.month() + 1,
+    value.date()
+  );
 };
 

@@ -4,7 +4,7 @@ import {useDB} from "@/api/db/db.ts";
 import {Tables} from "@/api/db/tables.ts";
 import {InventoryIssueReturn} from "@/api/model/inventory_issue_return.ts";
 import {formatNumber, withCurrency} from "@/lib/utils.ts";
-import { toJsDate } from "@/lib/datetime.ts";
+import { toLuxonDateTime } from "@/lib/datetime.ts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -77,12 +77,12 @@ export const IssueReturnReport = () => {
         const params: Record<string, string | string[]> = {};
 
         if (filters.startDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") >= $startDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           params.startDate = filters.startDate;
         }
 
         if (filters.endDate) {
-          conditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
+          conditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           params.endDate = filters.endDate;
         }
 
@@ -215,8 +215,8 @@ export const IssueReturnReport = () => {
                   </tr>
                 ) : (
                   issueReturns.flatMap(issueReturn => {
-                    const date = toJsDate(issueReturn.created_at);
-                    const dateStr = date.toLocaleDateString();
+                    const date = toLuxonDateTime(issueReturn.created_at);
+                    const dateStr = date.toFormat(import.meta.env.VITE_DATE_FORMAT);
                     const kitchenName = issueReturn.kitchen?.name || 'N/A';
                     const storeName = issueReturn.store?.name || 'N/A';
                     const issuedToName = issueReturn.issued_to

@@ -23,4 +23,5 @@ export interface OrderVoid {
   order?: Order
   order_item: OrderItem
   quantity: number
+  items?: OrderItem[]
 }

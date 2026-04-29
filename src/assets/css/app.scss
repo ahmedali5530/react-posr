@@ -381,6 +381,51 @@ select.input{
   padding: 0;
 }
 
+.ant-picker-dropdown .ant-picker-time-panel-column > li.ant-picker-time-panel-cell.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner{
+  color: theme('colors.warning.500');
+}
+
+/*.app-ant-picker.ant-picker {
+  @apply block leading-5 py-2 px-3 rounded-lg text-neutral-500 border-2 border-neutral-900 h-[40px] w-full bg-white;
+  box-shadow: none;
+  transition: all 100ms linear;
+}
+
+.app-ant-picker.ant-picker:hover,
+.app-ant-picker.ant-picker-focused {
+  @apply border-neutral-900;
+  box-shadow: none;
+}
+
+.app-ant-picker.ant-picker-disabled {
+  @apply bg-neutral-100 text-neutral-500;
+}
+
+.app-ant-picker .ant-picker-input > input {
+  @apply text-neutral-500;
+  font-family: "Urbanist", sans-serif;
+}
+
+.app-ant-picker .ant-picker-separator,
+.app-ant-picker .ant-picker-suffix,
+.app-ant-picker .ant-picker-clear {
+  @apply text-neutral-500;
+}
+
+.app-ant-picker{
+  --ant-color-primary: theme("colors.neutral.900");
+  --ant-color-text-light-solid: theme('colors.warning.500');
+
+  .ant-picker-cell-inner{
+    --ant-calendar-cell-height: 40px;
+    --ant-border-radius-sm: 50%;
+  }
+
+  .ant-select.ant-select-outlined:not(.ant-select-disabled).ant-select-focused{
+    --ant-select-border-color: theme('colors.neutral.900');
+  }
+}*/
+
 textarea.form-control,
 textarea.input {
   height: auto;

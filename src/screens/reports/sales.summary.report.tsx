@@ -7,6 +7,7 @@ import {OrderVoid} from "@/api/model/order_void.ts";
 import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
 import { toJsDate } from "@/lib/datetime.ts";
+import {DAY_PARTS, getDayPartLabel, getDayPartTimeRangeLabel, type DayPartLabel} from "@/utils/dayParts";
 
 type BreakdownItem = {
   label: string;
@@ -19,33 +20,21 @@ type SummaryRow = {
   breakdown?: BreakdownItem[];
 };
 
-const DAY_PARTS = [
-  {label: "Breakfast", startHour: 5, endHour: 11},
-  {label: "Lunch", startHour: 11, endHour: 16},
-  {label: "Dinner", startHour: 16, endHour: 22},
-  {label: "Late night", startHour: 22, endHour: 5},
-] as const;
-
-type DayPartLabel = typeof DAY_PARTS[number]["label"];
-
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const getDayPartLabel = (date: Date): DayPartLabel => {
-  const hour = date.getHours();
-  for (const part of DAY_PARTS) {
-    const {startHour, endHour, label} = part;
-    const wrapsMidnight = startHour > endHour;
-    if (
-      (!wrapsMidnight && hour >= startHour && hour < endHour) ||
-      (wrapsMidnight && (hour >= startHour || hour < endHour))
-    ) {
-      return label;
-    }
-  }
-  return DAY_PARTS[0].label;
+const calculateVoidEntryAmount = (entry: OrderVoid): number => {
+  const quantity = safeNumber(entry?.quantity || 1);
+  const voidItems = (entry?.items ?? []).filter(Boolean);
+  return voidItems.reduce((sum, item) => {
+    const lineAmount = calculateOrderItemPrice({
+      ...(item ?? {}),
+      quantity,
+    } as any);
+    return sum + safeNumber(lineAmount);
+  }, 0);
 };
 
 const calculateOrderNetSales = (order: Order): number => {
@@ -90,12 +79,12 @@ export const SalesSummaryReport = () => {
         const params: Record<string, string> = {};
 
         if (filters.startDate) {
-          orderConditions.push(`time::format(created_at, "%Y-%m-%d") >= $startDate`);
+          orderConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           params.startDate = filters.startDate;
         }
 
         if (filters.endDate) {
-          orderConditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
+          orderConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           params.endDate = filters.endDate;
         }
 
@@ -112,19 +101,19 @@ export const SalesSummaryReport = () => {
         const voidParams: Record<string, string> = {};
 
         if (filters.startDate) {
-          voidConditions.push(`time::format(created_at, "%Y-%m-%d") >= $startDate`);
+          voidConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           voidParams.startDate = filters.startDate;
         }
 
         if (filters.endDate) {
-          voidConditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
+          voidConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           voidParams.endDate = filters.endDate;
         }
 
         const voidsQuery = `
           SELECT * FROM ${Tables.order_voids}
           ${voidConditions.length ? `WHERE ${voidConditions.join(" AND ")}` : ""}
-          FETCH order_item
+          FETCH items
         `;
 
         const voidsResult: any = await queryRef.current(voidsQuery, voidParams);
@@ -148,9 +137,8 @@ export const SalesSummaryReport = () => {
     return orders.reduce(
       (acc, order) => {
         order.payments?.forEach(payment => {
-          const amount = safeNumber(payment?.amount);
           const payable = safeNumber(payment?.payable ?? payment?.amount);
-          acc.amountCollected += amount;
+          acc.amountCollected += payable;
           acc.amountDue += payable;
 
           const typeName = payment?.payment_type?.name || "Other";
@@ -159,10 +147,10 @@ export const SalesSummaryReport = () => {
           const isCash = normalized.includes("cash");
 
           if (isCash) {
-            acc.cashPayments += amount;
+            acc.cashPayments += payable;
           } else {
-            acc.nonCashPayments += amount;
-            acc.nonCashBreakdown[typeName] = (acc.nonCashBreakdown[typeName] ?? 0) + amount;
+            acc.nonCashPayments += payable;
+            acc.nonCashBreakdown[typeName] = (acc.nonCashBreakdown[typeName] ?? 0) + payable;
           }
         });
         return acc;
@@ -226,9 +214,7 @@ export const SalesSummaryReport = () => {
 
   const totalVoids = useMemo(() => {
     return orderVoids.reduce((sum, entry) => {
-      const price = safeNumber(entry?.order_item?.price);
-      const quantity = safeNumber(entry?.quantity || 1);
-      return sum + price * quantity;
+      return sum + calculateVoidEntryAmount(entry);
     }, 0);
   }, [orderVoids]);
 
@@ -262,12 +248,12 @@ export const SalesSummaryReport = () => {
 
   const summaryRows: SummaryRow[] = useMemo(() => {
     const checkBreakdown = DAY_PARTS.map(part => ({
-      label: part.label,
+      label: `${part.label} (${getDayPartTimeRangeLabel(part.label)})`,
       value: formatNumber(dayPartTotals[part.label].checks),
     }));
 
     const guestBreakdown = DAY_PARTS.map(part => ({
-      label: part.label,
+      label: `${part.label} (${getDayPartTimeRangeLabel(part.label)})`,
       value: formatNumber(dayPartTotals[part.label].guests),
     }));
 

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils.ts";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
+import { DateTime } from "luxon";
 
 export interface ReportsLayoutProps {
   /** Report title */
@@ -61,7 +62,7 @@ export const ReportsLayout = ({
   className,
 }: ReportsLayoutProps) => {
   const reportRef = useRef<HTMLDivElement>(null);
-  const [generatedAt] = useState(new Date().toLocaleString());
+  const [generatedAt] = useState(DateTime.now().toFormat(import.meta.env.VITE_DATE_TIME_FORMAT));
 
   const handlePrint = () => {
     if (onPrint) {

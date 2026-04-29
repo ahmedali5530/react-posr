@@ -7,34 +7,23 @@ import {OrderVoid} from "@/api/model/order_void.ts";
 import {withCurrency, formatNumber} from "@/lib/utils.ts";
 import {calculateOrderItemPrice} from "@/lib/cart.ts";
 import { toJsDate } from "@/lib/datetime.ts";
+import {DAY_PARTS, getDayPartLabel, getDayPartTimeRangeLabel, type DayPartLabel} from "@/utils/dayParts";
 
 const safeNumber = (value: unknown) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const DAY_PARTS = [
-  {label: "Breakfast", startHour: 5, endHour: 11},
-  {label: "Lunch", startHour: 11, endHour: 16},
-  {label: "Dinner", startHour: 16, endHour: 22},
-  {label: "Late night", startHour: 22, endHour: 5},
-] as const;
-
-type DayPartLabel = typeof DAY_PARTS[number]["label"];
-
-const getDayPartLabel = (date: Date): DayPartLabel => {
-  const hour = date.getHours();
-  for (const part of DAY_PARTS) {
-    const {startHour, endHour, label} = part;
-    const wrapsMidnight = startHour > endHour;
-    if (
-      (!wrapsMidnight && hour >= startHour && hour < endHour) ||
-      (wrapsMidnight && (hour >= startHour || hour < endHour))
-    ) {
-      return label;
-    }
-  }
-  return DAY_PARTS[0].label;
+const calculateVoidEntryAmount = (entry: OrderVoid): number => {
+  const quantity = safeNumber(entry?.quantity || 1);
+  const voidItems = (entry?.items ?? []).filter(Boolean);
+  return voidItems.reduce((sum, item) => {
+    const lineAmount = calculateOrderItemPrice({
+      ...(item ?? {}),
+      quantity,
+    } as any);
+    return sum + safeNumber(lineAmount);
+  }, 0);
 };
 
 const parseFilters = () => {
@@ -87,12 +76,12 @@ export const SalesSummary2Report = () => {
         const params: Record<string, string> = {};
 
         if (filters.startDate) {
-          orderConditions.push(`time::format(created_at, "%Y-%m-%d") >= $startDate`);
+          orderConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           params.startDate = filters.startDate;
         }
 
         if (filters.endDate) {
-          orderConditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
+          orderConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           params.endDate = filters.endDate;
         }
         orderConditions.push(`status = '${OrderStatus.Paid}'`);
@@ -121,7 +110,7 @@ export const SalesSummary2Report = () => {
         let carriedOverOrders: Order[] = [];
         if (filters.startDate) {
           const carriedOverConditions = [
-            `time::format(created_at, "%Y-%m-%d") < $startDate`,
+            `time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") < $startDate`,
             `status = '${OrderStatus["In Progress"]}'`,
           ];
           const carriedOverParams = {startDate: filters.startDate};
@@ -142,19 +131,19 @@ export const SalesSummary2Report = () => {
         const voidParams: Record<string, string> = {};
 
         if (filters.startDate) {
-          voidConditions.push(`time::format(created_at, "%Y-%m-%d") >= $startDate`);
+          voidConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") >= $startDate`);
           voidParams.startDate = filters.startDate;
         }
 
         if (filters.endDate) {
-          voidConditions.push(`time::format(created_at, "%Y-%m-%d") <= $endDate`);
+          voidConditions.push(`time::format(created_at, "${import.meta.env.VITE_DB_DATABASE_FORMAT}") <= $endDate`);
           voidParams.endDate = filters.endDate;
         }
 
         const voidsQuery = `
           SELECT * FROM ${Tables.order_voids}
           ${voidConditions.length ? `WHERE ${voidConditions.join(" AND ")}` : ""}
-          FETCH order_item
+          FETCH items
         `;
 
         const voidsResult: any = await queryRef.current(voidsQuery, voidParams);
@@ -189,9 +178,10 @@ export const SalesSummary2Report = () => {
     const totalDiscounts = safeNumber(lineDiscounts + subtotalDiscount);
     const taxes = safeNumber(order.tax_amount);
     const serviceCharges = safeNumber(order.service_charge_amount);
-    const amountDue = safeNumber(salePriceWithoutTax + taxes + serviceCharges - totalDiscounts - couponDiscount);
+    const tips = safeNumber(order.tip_amount);
+    const amountDue = safeNumber(salePriceWithoutTax + taxes + serviceCharges + tips - totalDiscounts - couponDiscount);
     const amountCollected = safeNumber(
-      order.payments?.reduce((sum, payment) => sum + safeNumber(payment?.amount), 0) ?? 0
+      order.payments?.reduce((sum, payment) => sum + safeNumber(payment?.payable ?? payment?.amount), 0) ?? 0
     );
     const net = safeNumber(amountCollected - serviceCharges - taxes);
 
@@ -205,6 +195,7 @@ export const SalesSummary2Report = () => {
       taxes,
       amountDue,
       serviceCharges,
+      tips,
       discounts: totalDiscounts,
       coupons: couponDiscount,
       net,
@@ -233,6 +224,9 @@ export const SalesSummary2Report = () => {
     const serviceCharges = safeNumber(
       orders.reduce((sum, order) => sum + safeNumber(order.service_charge_amount), 0)
     );
+    const tips = safeNumber(
+      orders.reduce((sum, order) => sum + safeNumber(order.tip_amount), 0)
+    );
 
     const itemDiscounts = safeNumber(
       orders.reduce((sum, order) => {
@@ -255,12 +249,12 @@ export const SalesSummary2Report = () => {
     );
 
     const amountDue = safeNumber(
-      salePriceWithoutTax + taxCollected + serviceCharges - itemDiscounts - subtotalDiscounts - couponDiscounts
+      salePriceWithoutTax + taxCollected + serviceCharges + tips - itemDiscounts - subtotalDiscounts - couponDiscounts
     );
 
     const amountCollected = safeNumber(
       orders.reduce((sum, order) => {
-        return sum + safeNumber(order.payments?.reduce((paySum, payment) => paySum + safeNumber(payment?.amount), 0) ?? 0);
+        return sum + safeNumber(order.payments?.reduce((paySum, payment) => paySum + safeNumber(payment?.payable ?? payment?.amount), 0) ?? 0);
       }, 0)
     );
 
@@ -294,6 +288,7 @@ export const SalesSummary2Report = () => {
       salePriceWithoutTax,
       taxCollected,
       serviceCharges,
+      tips,
       itemDiscounts,
       subtotalDiscounts,
       couponDiscounts,
@@ -447,14 +442,13 @@ export const SalesSummary2Report = () => {
     const cancelledOrders = statusOrders.filter(order => order.status === OrderStatus.Cancelled).length;
     const voidsByReason = orderVoids.reduce((acc, voidEntry) => {
       const reason = voidEntry.reason || "Unknown";
-      const price = safeNumber(voidEntry?.order_item?.price);
-      const quantity = safeNumber(voidEntry?.quantity || 1);
-      const amount = price * quantity;
+      const voidItems = (voidEntry.items ?? []).filter(Boolean);
+      const amount = calculateVoidEntryAmount(voidEntry);
 
       if (!acc[reason]) {
         acc[reason] = {count: 0, amount: 0};
       }
-      acc[reason].count += 1;
+      acc[reason].count += voidItems.length;
       acc[reason].amount += amount;
       return acc;
     }, {} as Record<string, {count: number; amount: number}>);
@@ -471,10 +465,6 @@ export const SalesSummary2Report = () => {
   const checkStatusMetrics = useMemo(() => {
     const startDate = filters.startDate ? toJsDate(filters.startDate) : null;
     const endDate = filters.endDate ? toJsDate(filters.endDate) : null;
-    if (endDate) {
-      endDate.setHours(23, 59, 59, 999);
-    }
-
     const checksCarriedOver = startDate
       ? statusOrders.filter(order => {
           const orderCreatedAt = toJsDate(order.created_at);
@@ -494,7 +484,6 @@ export const SalesSummary2Report = () => {
           const orderDate = toJsDate(order.created_at);
           const start = toJsDate(filters.startDate!);
           const end = toJsDate(filters.endDate!);
-          end.setHours(23, 59, 59, 999);
           return orderDate >= start && orderDate <= end;
         }).length
       : statusOrders.filter(order => {
@@ -521,7 +510,7 @@ export const SalesSummary2Report = () => {
   }, [statusOrders, filters.startDate, filters.endDate]);
 
   const discountTypesBreakdown = useMemo(() => {
-    const discountTypes = new Map<string, {quantity: number; total: number; percent: number}>();
+    const discountTypes = new Map<string, {quantity: number; total: number; rates: Set<number>}>();
     const couponTypes = new Map<string, {quantity: number; total: number}>();
     orders.forEach(order => {
       if (order.discount) {
@@ -530,13 +519,12 @@ export const SalesSummary2Report = () => {
           (typeof order.discount === "string" ? order.discount : null) ||
           "Custom discount";
         const amount = safeNumber(order.discount_amount);
-        const existing = discountTypes.get(discountName) || {quantity: 0, total: 0, percent: 0};
+        const existing = discountTypes.get(discountName) || {quantity: 0, total: 0, rates: new Set<number>()};
         existing.quantity += 1;
         existing.total += amount;
-        if (order.discount && typeof order.discount === "object" && "type" in order.discount) {
-          if (!existing.percent && order.discount.type) {
-            existing.percent = 0;
-          }
+        const discountRate = safeNumber(order.discount_rate);
+        if (discountRate > 0) {
+          existing.rates.add(discountRate);
         }
         discountTypes.set(discountName, existing);
       }
@@ -599,7 +587,7 @@ export const SalesSummary2Report = () => {
         name,
         quantity: data.quantity,
         total: data.total,
-        percent: data.percent,
+        rates: Array.from(data.rates).sort((a, b) => a - b),
       })),
       couponTypes: Array.from(couponTypes.entries())
         .map(([name, data]) => ({
@@ -654,7 +642,7 @@ export const SalesSummary2Report = () => {
     });
 
     // 3rd subsection: Discounts made by users
-    const userDiscountsMap = new Map<string, {quantity: number; total: number}>();
+    const userDiscountsMap = new Map<string, {quantity: number; total: number; rates: Set<number>}>();
     orders.forEach(order => {
       const discountAmount = safeNumber(order.discount_amount);
       if (discountAmount > 0) {
@@ -662,9 +650,13 @@ export const SalesSummary2Report = () => {
           order.user?.first_name && order.user?.last_name
             ? `${order.user.first_name} ${order.user.last_name}`
             : order.user?.login || "Unknown";
-        const existing = userDiscountsMap.get(userName) || {quantity: 0, total: 0};
+        const existing = userDiscountsMap.get(userName) || {quantity: 0, total: 0, rates: new Set<number>()};
         existing.quantity = safeNumber(existing.quantity + 1);
         existing.total = safeNumber(existing.total + discountAmount);
+        const discountRate = safeNumber(order.discount_rate);
+        if (discountRate > 0) {
+          existing.rates.add(discountRate);
+        }
         userDiscountsMap.set(userName, existing);
       }
     });
@@ -675,7 +667,7 @@ export const SalesSummary2Report = () => {
       order.payments?.forEach(payment => {
         const paymentTypeName = payment.payment_type?.name || "Unknown";
         const existing = paymentTypesMap.get(paymentTypeName) || {quantity: 0, total: 0};
-        const paymentAmount = safeNumber(payment.amount);
+        const paymentAmount = safeNumber(payment.payable);
         existing.quantity = safeNumber(existing.quantity + 1);
         existing.total = safeNumber(existing.total + paymentAmount);
         paymentTypesMap.set(paymentTypeName, existing);
@@ -690,7 +682,12 @@ export const SalesSummary2Report = () => {
         .map(([name, data]) => ({name, ...data}))
         .sort((a, b) => b.total - a.total),
       userDiscounts: Array.from(userDiscountsMap.entries())
-        .map(([name, data]) => ({name, ...data}))
+        .map(([name, data]) => ({
+          name,
+          quantity: data.quantity,
+          total: data.total,
+          rates: Array.from(data.rates).sort((a, b) => a - b),
+        }))
         .sort((a, b) => b.total - a.total),
       paymentTypes: Array.from(paymentTypesMap.entries())
         .map(([name, data]) => ({name, ...data}))
@@ -742,6 +739,12 @@ export const SalesSummary2Report = () => {
                     <td className="py-1.5 text-neutral-700">+ Service charges</td>
                     <td className="py-1.5 text-right font-semibold text-neutral-900">
                       {withCurrency(financialMetrics.serviceCharges)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 text-neutral-700">+ Tips</td>
+                    <td className="py-1.5 text-right font-semibold text-neutral-900">
+                      {withCurrency(financialMetrics.tips)}
                     </td>
                   </tr>
                   <tr>
@@ -943,7 +946,9 @@ export const SalesSummary2Report = () => {
                           <tr key={discount.name}>
                             <td className="py-1 text-neutral-700">{discount.name}</td>
                             <td className="py-1 text-right text-neutral-700">
-                              {discount.percent > 0 ? `${formatNumber(discount.percent)}%` : "-"}
+                              {discount.rates.length > 0
+                                ? discount.rates.map(rate => `${formatNumber(rate)}%`).join(", ")
+                                : "-"}
                             </td>
                             <td className="py-1 text-right text-neutral-700">{formatNumber(discount.quantity)}</td>
                             <td className="py-1 text-right font-semibold text-neutral-900">
@@ -1128,7 +1133,12 @@ export const SalesSummary2Report = () => {
               <tbody className="divide-y divide-neutral-100 bg-white">
                 {dayPartMetrics.map(metrics => (
                   <tr key={metrics.orderType}>
-                    <td className="py-3 pl-6 pr-3 font-medium text-neutral-900">{metrics.orderType}</td>
+                    <td className="py-3 pl-6 pr-3 font-medium text-neutral-900">
+                      <div>{metrics.orderType}</div>
+                      <div className="text-xs font-normal text-neutral-500">
+                        {getDayPartTimeRangeLabel(metrics.orderType as DayPartLabel)}
+                      </div>
+                    </td>
                     <td className="py-3 px-3 text-right text-neutral-700">
                       {withCurrency(metrics.salePriceWithoutTax)}
                     </td>
@@ -1229,6 +1239,7 @@ export const SalesSummary2Report = () => {
                   <thead>
                     <tr>
                       <th className="py-1.5 text-left  font-semibold text-neutral-600">User</th>
+                      <th className="py-1.5 text-right  font-semibold text-neutral-600">Rate</th>
                       <th className="py-1.5 text-right  font-semibold text-neutral-600">Qty</th>
                       <th className="py-1.5 text-right  font-semibold text-neutral-600">Total</th>
                     </tr>
@@ -1237,6 +1248,11 @@ export const SalesSummary2Report = () => {
                     {breakdownMetrics.userDiscounts.map(userDiscount => (
                       <tr key={userDiscount.name}>
                         <td className="py-1.5 text-neutral-700">{userDiscount.name}</td>
+                        <td className="py-1.5 text-right text-neutral-700">
+                          {userDiscount.rates.length > 0
+                            ? userDiscount.rates.map(rate => `${formatNumber(rate)}%`).join(", ")
+                            : "-"}
+                        </td>
                         <td className="py-1.5 text-right text-neutral-700">
                           {formatNumber(userDiscount.quantity)}
                         </td>
