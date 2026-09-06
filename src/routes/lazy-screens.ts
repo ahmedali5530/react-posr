@@ -934,3 +934,7 @@ export const MobileAppOrderingScreen = lazy(() =>
 export const PhoneChargingPowerScreen = lazy(() =>
   import('@/screens/reports/phone-charging-power.report.tsx').then(m => ({default: m.PhoneChargingPowerScreen}))
 );
+
+export const TabletopEntertainmentActivityScreen = lazy(() =>
+  import('@/screens/reports/tabletop-entertainment-activity.report.tsx').then(m => ({default: m.TabletopEntertainmentActivityScreen}))
+);

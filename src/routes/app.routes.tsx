@@ -263,6 +263,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_SELF_SERVICE_KIOSK_TERMINAL,
   REPORTS_MOBILE_APP_ORDERING,
   REPORTS_PHONE_CHARGING_POWER,
+  REPORTS_TABLETOP_ENTERTAINMENT_ACTIVITY,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -497,6 +498,7 @@ RecipeScalingScreen,
   SelfServiceKioskTerminalScreen,
   MobileAppOrderingScreen,
   PhoneChargingPowerScreen,
+  TabletopEntertainmentActivityScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -737,6 +739,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_SELF_SERVICE_KIOSK_TERMINAL} element={<SelfServiceKioskTerminalScreen/>}/>
         <Route path={REPORTS_MOBILE_APP_ORDERING} element={<MobileAppOrderingScreen/>}/>
         <Route path={REPORTS_PHONE_CHARGING_POWER} element={<PhoneChargingPowerScreen/>}/>
+        <Route path={REPORTS_TABLETOP_ENTERTAINMENT_ACTIVITY} element={<TabletopEntertainmentActivityScreen/>}/>
 <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>
