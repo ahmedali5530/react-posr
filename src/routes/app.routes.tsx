@@ -266,6 +266,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_TABLETOP_ENTERTAINMENT_ACTIVITY,
   REPORTS_OUTDOOR_LANDSCAPE_LIGHTING,
   REPORTS_WATER_STATION_BEVERAGE_BAR,
+  REPORTS_NUTRITIONAL_TRANSPARENCY,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -503,6 +504,7 @@ RecipeScalingScreen,
   TabletopEntertainmentActivityScreen,
   OutdoorLandscapeLightingScreen,
   WaterStationBeverageBarScreen,
+  NutritionalTransparencyScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -746,6 +748,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_TABLETOP_ENTERTAINMENT_ACTIVITY} element={<TabletopEntertainmentActivityScreen/>}/>
         <Route path={REPORTS_OUTDOOR_LANDSCAPE_LIGHTING} element={<OutdoorLandscapeLightingScreen/>}/>
         <Route path={REPORTS_WATER_STATION_BEVERAGE_BAR} element={<WaterStationBeverageBarScreen/>}/>
+        <Route path={REPORTS_NUTRITIONAL_TRANSPARENCY} element={<NutritionalTransparencyScreen/>}/>
 <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>

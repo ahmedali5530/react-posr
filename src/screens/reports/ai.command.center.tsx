@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -234,6 +234,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_TABLETOP_ENTERTAINMENT_ACTIVITY,
   REPORTS_OUTDOOR_LANDSCAPE_LIGHTING,
   REPORTS_WATER_STATION_BEVERAGE_BAR,
+  REPORTS_NUTRITIONAL_TRANSPARENCY,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -284,6 +285,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         tabletopEntertainmentData,
         outdoorLightingData,
         waterStationData,
+        nutritionalTransparencyData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -495,6 +497,7 @@ fetchRecipeScaleSummary(db),
         fetchTabletopEntertainmentSummary(db),
         fetchOutdoorLightingSummary(db),
         fetchWaterStationSummary(db),
+        fetchNutritionalTransparencySummary(db),
       ]);
 
       setMetrics([
@@ -509,6 +512,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         tabletopEntertainmentData,
         outdoorLightingData,
         waterStationData,
+        nutritionalTransparencyData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5106,6 +5110,29 @@ async function fetchWaterStationSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.noselfserve > 0 || f.poorclean > 0 ? 'warning' : 'good'), link: REPORTS_WATER_STATION_BEVERAGE_BAR, linkLabel: 'View station',
     };
   } catch { return neutralCard('Water Station', faDroplet, 'text-sky-500', REPORTS_WATER_STATION_BEVERAGE_BAR); }
+}
+
+async function fetchNutritionalTransparencySummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'calorie_count_absent') AS nocalorie,
+              math::count(rule_id = 'allergen_labeling_insufficient') AS badallergen,
+              math::count(rule_id = 'dietary_labels_missing') AS missingdietary,
+              math::count(rule_id = 'fda_compliance_risk') AS fdarisk
+       FROM nutritional_transparency_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Nutrition Transparency', faHeartPulse, 'text-rose-500', REPORTS_NUTRITIONAL_TRANSPARENCY);
+    return {
+      title: 'Nutrition Transparency', icon: faHeartPulse, color: 'text-rose-500',
+      primary: `${f.nocalorie} no calories · ${f.badallergen} weak allergens`,
+      secondary: `${f.total} alerts · ${f.missingdietary} missing dietary · ${f.fdarisk} FDA risk`,
+      health: f.critical > 0 ? 'critical' : (f.nocalorie > 0 || f.badallergen > 0 || f.fdarisk > 0 ? 'warning' : 'good'), link: REPORTS_NUTRITIONAL_TRANSPARENCY, linkLabel: 'View nutrition',
+    };
+  } catch { return neutralCard('Nutrition Transparency', faHeartPulse, 'text-rose-500', REPORTS_NUTRITIONAL_TRANSPARENCY); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

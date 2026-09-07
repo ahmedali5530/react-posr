@@ -946,3 +946,7 @@ export const OutdoorLandscapeLightingScreen = lazy(() =>
 export const WaterStationBeverageBarScreen = lazy(() =>
   import('@/screens/reports/water-station-beverage-bar.report.tsx').then(m => ({default: m.WaterStationBeverageBarScreen}))
 );
+
+export const NutritionalTransparencyScreen = lazy(() =>
+  import('@/screens/reports/nutritional-transparency.report.tsx').then(m => ({default: m.NutritionalTransparencyScreen}))
+);
