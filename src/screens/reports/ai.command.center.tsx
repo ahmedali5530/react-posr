@@ -239,6 +239,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_LIVE_MUSIC_PERFORMANCE,
   REPORTS_WINDOW_TREATMENT_CURTAIN,
   REPORTS_ROTATING_ART_GALLERY,
+  REPORTS_FAMILY_INFANT_AMENITY,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------

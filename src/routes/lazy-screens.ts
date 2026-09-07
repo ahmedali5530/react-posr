@@ -966,3 +966,7 @@ export const WindowTreatmentCurtainScreen = lazy(() =>
 export const RotatingArtGalleryScreen = lazy(() =>
   import('@/screens/reports/rotating-art-gallery.report.tsx').then(m => ({default: m.RotatingArtGalleryScreen}))
 );
+
+export const FamilyInfantAmenityScreen = lazy(() =>
+  import('@/screens/reports/family-infant-amenity.report.tsx').then(m => ({default: m.FamilyInfantAmenityScreen}))
+);
