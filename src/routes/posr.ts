@@ -336,3 +336,4 @@ export const REPORTS_MOBILE_APP_ORDERING = REPORTS + '/mobile-app-ordering';
 export const REPORTS_PHONE_CHARGING_POWER = REPORTS + '/phone-charging-power';
 export const REPORTS_TABLETOP_ENTERTAINMENT_ACTIVITY = REPORTS + '/tabletop-entertainment-activity';
 export const REPORTS_OUTDOOR_LANDSCAPE_LIGHTING = REPORTS + '/outdoor-landscape-lighting';
+export const REPORTS_WATER_STATION_BEVERAGE_BAR = REPORTS + '/water-station-beverage-bar';
