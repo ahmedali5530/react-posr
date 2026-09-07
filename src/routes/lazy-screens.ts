@@ -954,3 +954,7 @@ export const NutritionalTransparencyScreen = lazy(() =>
 export const CulinaryExperienceCookingClassScreen = lazy(() =>
   import('@/screens/reports/culinary-experience-cooking-class.report.tsx').then(m => ({default: m.CulinaryExperienceCookingClassScreen}))
 );
+
+export const LiveMusicPerformanceScreen = lazy(() =>
+  import('@/screens/reports/live-music-performance.report.tsx').then(m => ({default: m.LiveMusicPerformanceScreen}))
+);

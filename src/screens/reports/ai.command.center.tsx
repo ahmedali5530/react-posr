@@ -236,6 +236,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_WATER_STATION_BEVERAGE_BAR,
   REPORTS_NUTRITIONAL_TRANSPARENCY,
   REPORTS_CULINARY_EXPERIENCE_COOKING_CLASS,
+  REPORTS_LIVE_MUSIC_PERFORMANCE,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -288,6 +289,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         waterStationData,
         nutritionalTransparencyData,
         culinaryExperienceData,
+        liveMusicData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -501,6 +503,7 @@ fetchRecipeScaleSummary(db),
         fetchWaterStationSummary(db),
         fetchNutritionalTransparencySummary(db),
         fetchCulinaryExperienceSummary(db),
+        fetchLiveMusicSummary(db),
       ]);
 
       setMetrics([
@@ -517,6 +520,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         waterStationData,
         nutritionalTransparencyData,
         culinaryExperienceData,
+        liveMusicData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5160,6 +5164,29 @@ async function fetchCulinaryExperienceSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nocooking > 0 || f.nocheftable > 0 || f.notasting > 0 ? 'warning' : 'good'), link: REPORTS_CULINARY_EXPERIENCE_COOKING_CLASS, linkLabel: 'View experiences',
     };
   } catch { return neutralCard('Culinary Experience', faUtensils, 'text-rose-500', REPORTS_CULINARY_EXPERIENCE_COOKING_CLASS); }
+}
+
+async function fetchLiveMusicSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'live_music_absent_weekend_venue') AS noweekend,
+              math::count(rule_id = 'performance_schedule_wrong') AS wrongsched,
+              math::count(rule_id = 'artist_budget_too_low') AS lowbudget,
+              math::count(rule_id = 'live_music_not_promoted') AS notpromoted
+       FROM live_music_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Live Music', faMusic, 'text-violet-500', REPORTS_LIVE_MUSIC_PERFORMANCE);
+    return {
+      title: 'Live Music', icon: faMusic, color: 'text-violet-500',
+      primary: `${f.noweekend} no weekend music · ${f.wrongsched} wrong schedule`,
+      secondary: `${f.total} alerts · ${f.lowbudget} low budget · ${f.notpromoted} not promoted`,
+      health: f.critical > 0 ? 'critical' : (f.noweekend > 0 || f.wrongsched > 0 || f.lowbudget > 0 ? 'warning' : 'good'), link: REPORTS_LIVE_MUSIC_PERFORMANCE, linkLabel: 'View live music',
+    };
+  } catch { return neutralCard('Live Music', faMusic, 'text-violet-500', REPORTS_LIVE_MUSIC_PERFORMANCE); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

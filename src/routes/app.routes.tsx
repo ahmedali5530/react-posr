@@ -268,6 +268,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_WATER_STATION_BEVERAGE_BAR,
   REPORTS_NUTRITIONAL_TRANSPARENCY,
   REPORTS_CULINARY_EXPERIENCE_COOKING_CLASS,
+  REPORTS_LIVE_MUSIC_PERFORMANCE,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -507,6 +508,7 @@ RecipeScalingScreen,
   WaterStationBeverageBarScreen,
   NutritionalTransparencyScreen,
   CulinaryExperienceCookingClassScreen,
+  LiveMusicPerformanceScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -752,6 +754,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_WATER_STATION_BEVERAGE_BAR} element={<WaterStationBeverageBarScreen/>}/>
         <Route path={REPORTS_NUTRITIONAL_TRANSPARENCY} element={<NutritionalTransparencyScreen/>}/>
         <Route path={REPORTS_CULINARY_EXPERIENCE_COOKING_CLASS} element={<CulinaryExperienceCookingClassScreen/>}/>
+        <Route path={REPORTS_LIVE_MUSIC_PERFORMANCE} element={<LiveMusicPerformanceScreen/>}/>
 <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>

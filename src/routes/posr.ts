@@ -339,3 +339,4 @@ export const REPORTS_OUTDOOR_LANDSCAPE_LIGHTING = REPORTS + '/outdoor-landscape-
 export const REPORTS_WATER_STATION_BEVERAGE_BAR = REPORTS + '/water-station-beverage-bar';
 export const REPORTS_NUTRITIONAL_TRANSPARENCY = REPORTS + '/nutritional-transparency';
 export const REPORTS_CULINARY_EXPERIENCE_COOKING_CLASS = REPORTS + '/culinary-experience-cooking-class';
+export const REPORTS_LIVE_MUSIC_PERFORMANCE = REPORTS + '/live-music-performance';
