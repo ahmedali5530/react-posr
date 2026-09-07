@@ -235,6 +235,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_OUTDOOR_LANDSCAPE_LIGHTING,
   REPORTS_WATER_STATION_BEVERAGE_BAR,
   REPORTS_NUTRITIONAL_TRANSPARENCY,
+  REPORTS_CULINARY_EXPERIENCE_COOKING_CLASS,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -286,6 +287,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         outdoorLightingData,
         waterStationData,
         nutritionalTransparencyData,
+        culinaryExperienceData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -498,6 +500,7 @@ fetchRecipeScaleSummary(db),
         fetchOutdoorLightingSummary(db),
         fetchWaterStationSummary(db),
         fetchNutritionalTransparencySummary(db),
+        fetchCulinaryExperienceSummary(db),
       ]);
 
       setMetrics([
@@ -513,6 +516,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         outdoorLightingData,
         waterStationData,
         nutritionalTransparencyData,
+        culinaryExperienceData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5133,6 +5137,29 @@ async function fetchNutritionalTransparencySummary(db: any): Promise<MetricCard>
       health: f.critical > 0 ? 'critical' : (f.nocalorie > 0 || f.badallergen > 0 || f.fdarisk > 0 ? 'warning' : 'good'), link: REPORTS_NUTRITIONAL_TRANSPARENCY, linkLabel: 'View nutrition',
     };
   } catch { return neutralCard('Nutrition Transparency', faHeartPulse, 'text-rose-500', REPORTS_NUTRITIONAL_TRANSPARENCY); }
+}
+
+async function fetchCulinaryExperienceSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'cooking_class_program_absent') AS nocooking,
+              math::count(rule_id = 'chef_table_experience_absent') AS nocheftable,
+              math::count(rule_id = 'tasting_menu_absent') AS notasting,
+              math::count(rule_id = 'culinary_experience_not_promoted') AS notpromoted
+       FROM culinary_experience_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Culinary Experience', faUtensils, 'text-rose-500', REPORTS_CULINARY_EXPERIENCE_COOKING_CLASS);
+    return {
+      title: 'Culinary Experience', icon: faUtensils, color: 'text-rose-500',
+      primary: `${f.nocooking} no classes · ${f.nocheftable} no chef table`,
+      secondary: `${f.total} alerts · ${f.notasting} no tasting · ${f.notpromoted} not promoted`,
+      health: f.critical > 0 ? 'critical' : (f.nocooking > 0 || f.nocheftable > 0 || f.notasting > 0 ? 'warning' : 'good'), link: REPORTS_CULINARY_EXPERIENCE_COOKING_CLASS, linkLabel: 'View experiences',
+    };
+  } catch { return neutralCard('Culinary Experience', faUtensils, 'text-rose-500', REPORTS_CULINARY_EXPERIENCE_COOKING_CLASS); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {
