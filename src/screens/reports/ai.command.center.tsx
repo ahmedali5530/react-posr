@@ -232,6 +232,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_MOBILE_APP_ORDERING,
   REPORTS_PHONE_CHARGING_POWER,
   REPORTS_TABLETOP_ENTERTAINMENT_ACTIVITY,
+  REPORTS_OUTDOOR_LANDSCAPE_LIGHTING,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -280,6 +281,7 @@ export function AiCommandCenterScreen() {
         deliveryData, tipData, revpashData,
 seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, staffTurnoverData, yieldData, kitchenData, winBackData, chargebackData, elasticityData, promoAbuseData, pairingData, waitPredData, promoForecastData, clvTrajectoryData, spoilageData, cadenceData, substitutionData, trainingData, seatingData, satisfactionData, abandonedData, branchCompData, complianceData, giftCardFraudData, refundAbuseData, buffetDemandData, deliveryRouteData, serverBalancerData, dishProfitData, cashDrawerData, cashWarningData, complaintPatternData, weatherData, peakPricingData, tableUtilData, overtimeData, loyaltyRoiData, procurementData, menuRotationData, serverCoachData, allergenRiskData, overbookingData, cascadeData, vibeData, vampireData, reviewResponseData, socialContentData, cateringData, equipMaintData, milestoneData, schedPrefData, floorPlanData, onlineFraudData, packagingData, reorderPointData, prepSheetData, payFeeData, healthData, schedConflictData, breakEvenData, alcoholData, recipeScaleData, wineData, gamificationData, kitchenPrepData, transferData, sentimentTrendData, cleaningData, driverCoachData, expiryData, adTargetingData, localSeoData, pricePsychData, stressTestData, eventMenuData, retentionData, negotiationData, maintBudgetData, feedbackLoopData, crossSellData, dishPopData, waitlistData, nutritionData, customizationData, tableTurnoverData, procedureData, carbonData, adRoiData, compData, taxData, phoneData, predictData, intelData, benchData, wasteValueData, socialData, hiringData, invoiceData, breakData, utilityData, pacingData, heatmapData, zoneData, priceTestData, menuEngData, promoHaloData, kitchenSurgeData, modPatternData, ltvMultData, ticketCompData, stationEffData, pairAffData, waitExpData, serverTableData, seasonalShiftData, turnoverVelData, profDecayData, orderFreqData, patternAnomData, skillGapData, cannibData, journeyFrictionData, subImpactData, prefDriftData, shiftHandData, menuDescData, attributionData, staffEnergyData, photoImpactData, tablePrefData, elasDriftData, occasionData, retireData, perfPredData, atmosData, briefingData, costVolData, plateWasteData, tierMigData, firstConvData, delivDecayData, barPourData, restroomData, wifiData, parkingData, noiseData, lightingData, tempHvacData, scentData, entranceData, menuLayoutData, staffAppData, musicPlaylistData, tablewareData, seatingData, wallDecorData, biophilicData, digitalMenuData, outdoorPatioData, airQualityData, curbAppealData, floorCeilingData, signageWayfindingData, colorSchemeData, windowNaturalLightData, menuTypographyData, mirrorReflectiveData, roomPartitionData, restroomDesignData, fireplaceData, ceilingDesignData, greenEcoData, soundSystemData, privateEventData, foodDisplayData, brandedMerchData, communityPartnershipData, kioskTerminalData, mobileAppData, phoneChargingData,
         tabletopEntertainmentData,
+        outdoorLightingData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -489,6 +491,7 @@ fetchRecipeScaleSummary(db),
         fetchMobileAppSummary(db),
         fetchPhoneChargingSummary(db),
         fetchTabletopEntertainmentSummary(db),
+        fetchOutdoorLightingSummary(db),
       ]);
 
       setMetrics([
@@ -501,6 +504,7 @@ fetchRecipeScaleSummary(db),
         deliveryData, tipData, revpashData,
 seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, staffTurnoverData, yieldData, kitchenData, winBackData, chargebackData, elasticityData, promoAbuseData, pairingData, waitPredData, promoForecastData, clvTrajectoryData, spoilageData, cadenceData, substitutionData, trainingData, seatingData, satisfactionData, abandonedData, branchCompData, complianceData, giftCardFraudData, refundAbuseData, buffetDemandData, deliveryRouteData, serverBalancerData, dishProfitData, cashDrawerData, cashWarningData, complaintPatternData, weatherData, peakPricingData, tableUtilData, overtimeData, loyaltyRoiData, procurementData, menuRotationData, serverCoachData, allergenRiskData, overbookingData, cascadeData, vibeData, vampireData, reviewResponseData, socialContentData, cateringData, equipMaintData, milestoneData, schedPrefData, floorPlanData, onlineFraudData, packagingData, reorderPointData, prepSheetData, payFeeData, healthData, schedConflictData, breakEvenData, alcoholData, recipeScaleData, wineData, gamificationData, kitchenPrepData, transferData, sentimentTrendData, cleaningData, driverCoachData, expiryData, adTargetingData, localSeoData, pricePsychData, stressTestData, eventMenuData, retentionData, negotiationData, maintBudgetData, feedbackLoopData, crossSellData, dishPopData, waitlistData, nutritionData, customizationData, tableTurnoverData, procedureData, carbonData, adRoiData, compData, taxData, phoneData, predictData, intelData, benchData, wasteValueData, socialData, hiringData, invoiceData, breakData, utilityData, pacingData, heatmapData, zoneData, priceTestData, menuEngData, promoHaloData, kitchenSurgeData, modPatternData, ltvMultData, ticketCompData, stationEffData, pairAffData, waitExpData, serverTableData, seasonalShiftData, turnoverVelData, profDecayData, orderFreqData, patternAnomData, skillGapData, cannibData, journeyFrictionData, subImpactData, prefDriftData, shiftHandData, menuDescData, attributionData, staffEnergyData, photoImpactData, tablePrefData, elasDriftData, occasionData, retireData, perfPredData, atmosData, briefingData, costVolData, plateWasteData, tierMigData, firstConvData, delivDecayData, barPourData, restroomData, wifiData, parkingData, noiseData, lightingData, tempHvacData, scentData, entranceData, menuLayoutData, staffAppData, musicPlaylistData, tablewareData, seatingData, wallDecorData, biophilicData, digitalMenuData, outdoorPatioData, airQualityData, curbAppealData, floorCeilingData, signageWayfindingData, colorSchemeData, windowNaturalLightData, menuTypographyData, mirrorReflectiveData, roomPartitionData, restroomDesignData, fireplaceData, ceilingDesignData, greenEcoData, soundSystemData, privateEventData, foodDisplayData, brandedMerchData, communityPartnershipData, kioskTerminalData, mobileAppData, phoneChargingData,
         tabletopEntertainmentData,
+        outdoorLightingData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5052,6 +5056,29 @@ async function fetchTabletopEntertainmentSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nokids > 0 || f.maintpoor > 0 ? 'warning' : 'good'), link: REPORTS_TABLETOP_ENTERTAINMENT_ACTIVITY, linkLabel: 'View tabletop',
     };
   } catch { return neutralCard('Tabletop Fun', faDice, 'text-fuchsia-600', REPORTS_TABLETOP_ENTERTAINMENT_ACTIVITY); }
+}
+
+async function fetchOutdoorLightingSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'pathway_lighting_insufficient') AS nopathway,
+              math::count(rule_id = 'parking_lot_lighting_inadequate') AS darkparking,
+              math::count(rule_id = 'signage_illumination_poor') AS nosignage,
+              math::count(rule_id = 'security_lighting_gap') AS nosecurity
+       FROM outdoor_lighting_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Outdoor Lighting', faLightbulb, 'text-amber-500', REPORTS_OUTDOOR_LANDSCAPE_LIGHTING);
+    return {
+      title: 'Outdoor Lighting', icon: faLightbulb, color: 'text-amber-500',
+      primary: `${f.nopathway} dark pathways · ${f.darkparking} dark parking`,
+      secondary: `${f.total} alerts · ${f.nosignage} poor signage · ${f.nosecurity} security gaps`,
+      health: f.critical > 0 ? 'critical' : (f.nopathway > 0 || f.darkparking > 0 ? 'warning' : 'good'), link: REPORTS_OUTDOOR_LANDSCAPE_LIGHTING, linkLabel: 'View lighting',
+    };
+  } catch { return neutralCard('Outdoor Lighting', faLightbulb, 'text-amber-500', REPORTS_OUTDOOR_LANDSCAPE_LIGHTING); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

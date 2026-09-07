@@ -335,3 +335,4 @@ export const REPORTS_SELF_SERVICE_KIOSK_TERMINAL = REPORTS + '/self-service-kios
 export const REPORTS_MOBILE_APP_ORDERING = REPORTS + '/mobile-app-ordering';
 export const REPORTS_PHONE_CHARGING_POWER = REPORTS + '/phone-charging-power';
 export const REPORTS_TABLETOP_ENTERTAINMENT_ACTIVITY = REPORTS + '/tabletop-entertainment-activity';
+export const REPORTS_OUTDOOR_LANDSCAPE_LIGHTING = REPORTS + '/outdoor-landscape-lighting';
