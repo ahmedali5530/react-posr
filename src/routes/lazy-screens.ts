@@ -978,3 +978,7 @@ export const CoatCheckCloakroomScreen = lazy(() =>
 export const TakeoutPackagingContainerScreen = lazy(() =>
   import('@/screens/reports/takeout-packaging-container.report.tsx').then(m => ({default: m.TakeoutPackagingContainerScreen}))
 );
+
+export const DriveThruPickupWindowScreen = lazy(() =>
+  import('@/screens/reports/drive-thru-pickup-window.report.tsx').then(m => ({default: m.DriveThruPickupWindowScreen}))
+);

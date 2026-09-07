@@ -242,6 +242,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_FAMILY_INFANT_AMENITY,
   REPORTS_COAT_CHECK_CLOAKROOM,
   REPORTS_TAKEOUT_PACKAGING_CONTAINER,
+  REPORTS_DRIVE_THRU_PICKUP_WINDOW,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -299,6 +300,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         rotatingArtData,
         coatCheckData,
         takeoutPackagingData,
+        driveThruData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -517,6 +519,7 @@ fetchRecipeScaleSummary(db),
         fetchRotatingArtSummary(db),
         fetchCoatCheckSummary(db),
         fetchTakeoutPackagingSummary(db),
+        fetchDriveThruSummary(db),
       ]);
 
       setMetrics([
@@ -538,6 +541,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         rotatingArtData,
         coatCheckData,
         takeoutPackagingData,
+        driveThruData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5299,6 +5303,33 @@ async function fetchTakeoutPackagingSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nounbranded > 0 || f.noleak > 0 || f.notemp > 0 || f.nopremium > 0 ? 'warning' : 'good'), link: REPORTS_TAKEOUT_PACKAGING_CONTAINER, linkLabel: 'View packaging',
     };
   } catch { return neutralCard('Takeout Packaging', faBagShopping, 'text-amber-600', REPORTS_TAKEOUT_PACKAGING_CONTAINER); }
+}
+
+async function fetchDriveThruSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'drive_thru_speed_too_slow') AS nospeed,
+              math::count(rule_id = 'order_error_rate_high') AS noerror,
+              math::count(rule_id = 'speaker_clarity_poor') AS nospeaker,
+              math::count(rule_id = 'menu_board_visibility_poor') AS nomenu,
+              math::count(rule_id = 'pickup_window_unprotected_weather') AS noweather,
+              math::count(rule_id = 'order_ahead_integration_absent') AS noorderahead,
+              math::count(rule_id = 'lane_design_suboptimal') AS nolane,
+              math::count(rule_id = 'payment_speed_slow') AS nopayment
+       FROM drive_thru_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Drive-Thru', faCarSide, 'text-amber-600', REPORTS_DRIVE_THRU_PICKUP_WINDOW);
+    return {
+      title: 'Drive-Thru', icon: faCarSide, color: 'text-amber-600',
+      primary: `${f.nospeed} slow · ${f.noerror} errors`,
+      secondary: `${f.total} alerts · ${f.nospeaker} speaker · ${f.noweather} weather · ${f.nopayment} payment`,
+      health: f.critical > 0 ? 'critical' : (f.nospeed > 0 || f.noerror > 0 || f.noweather > 0 || f.nopayment > 0 ? 'warning' : 'good'), link: REPORTS_DRIVE_THRU_PICKUP_WINDOW, linkLabel: 'View drive-thru',
+    };
+  } catch { return neutralCard('Drive-Thru', faCarSide, 'text-amber-600', REPORTS_DRIVE_THRU_PICKUP_WINDOW); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {
