@@ -974,3 +974,7 @@ export const FamilyInfantAmenityScreen = lazy(() =>
 export const CoatCheckCloakroomScreen = lazy(() =>
   import('@/screens/reports/coat-check-cloakroom.report.tsx').then(m => ({default: m.CoatCheckCloakroomScreen}))
 );
+
+export const TakeoutPackagingContainerScreen = lazy(() =>
+  import('@/screens/reports/takeout-packaging-container.report.tsx').then(m => ({default: m.TakeoutPackagingContainerScreen}))
+);

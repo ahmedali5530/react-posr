@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -241,6 +241,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_ROTATING_ART_GALLERY,
   REPORTS_FAMILY_INFANT_AMENITY,
   REPORTS_COAT_CHECK_CLOAKROOM,
+  REPORTS_TAKEOUT_PACKAGING_CONTAINER,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -297,6 +298,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         windowTreatmentData,
         rotatingArtData,
         coatCheckData,
+        takeoutPackagingData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -514,6 +516,7 @@ fetchRecipeScaleSummary(db),
         fetchWindowTreatmentSummary(db),
         fetchRotatingArtSummary(db),
         fetchCoatCheckSummary(db),
+        fetchTakeoutPackagingSummary(db),
       ]);
 
       setMetrics([
@@ -534,6 +537,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         windowTreatmentData,
         rotatingArtData,
         coatCheckData,
+        takeoutPackagingData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5270,6 +5274,31 @@ async function fetchCoatCheckSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.noabsentcold > 0 || f.nounstaffed > 0 || f.noticket > 0 ? 'warning' : 'good'), link: REPORTS_COAT_CHECK_CLOAKROOM, linkLabel: 'View coat check',
     };
   } catch { return neutralCard('Coat Check', faShirt, 'text-rose-600', REPORTS_COAT_CHECK_CLOAKROOM); }
+}
+
+async function fetchTakeoutPackagingSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'packaging_unbranded') AS nounbranded,
+              math::count(rule_id = 'container_leak_risk') AS noleak,
+              math::count(rule_id = 'eco_friendly_absent') AS noeco,
+              math::count(rule_id = 'temperature_retention_poor') AS notemp,
+              math::count(rule_id = 'labeling_unclear') AS nolabel,
+              math::count(rule_id = 'packaging_premium_gap') AS nopremium
+       FROM takeout_packaging_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Takeout Packaging', faBagShopping, 'text-amber-600', REPORTS_TAKEOUT_PACKAGING_CONTAINER);
+    return {
+      title: 'Takeout Packaging', icon: faBagShopping, color: 'text-amber-600',
+      primary: `${f.nounbranded} unbranded · ${f.noleak} leak risk`,
+      secondary: `${f.total} alerts · ${f.noeco} no eco · ${f.notemp} cold food · ${f.nolabel} no labels`,
+      health: f.critical > 0 ? 'critical' : (f.nounbranded > 0 || f.noleak > 0 || f.notemp > 0 || f.nopremium > 0 ? 'warning' : 'good'), link: REPORTS_TAKEOUT_PACKAGING_CONTAINER, linkLabel: 'View packaging',
+    };
+  } catch { return neutralCard('Takeout Packaging', faBagShopping, 'text-amber-600', REPORTS_TAKEOUT_PACKAGING_CONTAINER); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

@@ -344,3 +344,4 @@ export const REPORTS_WINDOW_TREATMENT_CURTAIN = REPORTS + '/window-treatment-cur
 export const REPORTS_ROTATING_ART_GALLERY = REPORTS + '/rotating-art-gallery';
 export const REPORTS_FAMILY_INFANT_AMENITY = REPORTS + '/family-infant-amenity';
 export const REPORTS_COAT_CHECK_CLOAKROOM = REPORTS + '/coat-check-cloakroom';
+export const REPORTS_TAKEOUT_PACKAGING_CONTAINER = REPORTS + '/takeout-packaging-container';
