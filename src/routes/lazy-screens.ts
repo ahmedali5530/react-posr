@@ -970,3 +970,7 @@ export const RotatingArtGalleryScreen = lazy(() =>
 export const FamilyInfantAmenityScreen = lazy(() =>
   import('@/screens/reports/family-infant-amenity.report.tsx').then(m => ({default: m.FamilyInfantAmenityScreen}))
 );
+
+export const CoatCheckCloakroomScreen = lazy(() =>
+  import('@/screens/reports/coat-check-cloakroom.report.tsx').then(m => ({default: m.CoatCheckCloakroomScreen}))
+);

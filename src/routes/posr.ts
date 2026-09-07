@@ -343,3 +343,4 @@ export const REPORTS_LIVE_MUSIC_PERFORMANCE = REPORTS + '/live-music-performance
 export const REPORTS_WINDOW_TREATMENT_CURTAIN = REPORTS + '/window-treatment-curtain';
 export const REPORTS_ROTATING_ART_GALLERY = REPORTS + '/rotating-art-gallery';
 export const REPORTS_FAMILY_INFANT_AMENITY = REPORTS + '/family-infant-amenity';
+export const REPORTS_COAT_CHECK_CLOAKROOM = REPORTS + '/coat-check-cloakroom';

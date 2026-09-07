@@ -240,6 +240,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_WINDOW_TREATMENT_CURTAIN,
   REPORTS_ROTATING_ART_GALLERY,
   REPORTS_FAMILY_INFANT_AMENITY,
+  REPORTS_COAT_CHECK_CLOAKROOM,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -295,6 +296,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         liveMusicData,
         windowTreatmentData,
         rotatingArtData,
+        coatCheckData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -511,6 +513,7 @@ fetchRecipeScaleSummary(db),
         fetchLiveMusicSummary(db),
         fetchWindowTreatmentSummary(db),
         fetchRotatingArtSummary(db),
+        fetchCoatCheckSummary(db),
       ]);
 
       setMetrics([
@@ -530,6 +533,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         liveMusicData,
         windowTreatmentData,
         rotatingArtData,
+        coatCheckData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5242,6 +5246,30 @@ async function fetchRotatingArtSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.absent > 0 || f.noopening > 0 || f.nocommission > 0 ? 'warning' : 'good'), link: REPORTS_ROTATING_ART_GALLERY, linkLabel: 'View exhibitions',
     };
   } catch { return neutralCard('Rotating Art', faPalette, 'text-rose-600', REPORTS_ROTATING_ART_GALLERY); }
+}
+
+async function fetchCoatCheckSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'coat_check_absent_cold_climate') AS noabsentcold,
+              math::count(rule_id = 'coat_check_unstaffed_peak_hours') AS nounstaffed,
+              math::count(rule_id = 'coat_check_capacity_insufficient') AS nocapacity,
+              math::count(rule_id = 'ticket_system_inadequate') AS noticket,
+              math::count(rule_id = 'coat_security_insufficient') AS nosecurity
+       FROM coat_check_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Coat Check', faShirt, 'text-rose-600', REPORTS_COAT_CHECK_CLOAKROOM);
+    return {
+      title: 'Coat Check', icon: faShirt, color: 'text-rose-600',
+      primary: `${f.noabsentcold} no coat check · ${f.nounstaffed} unstaffed`,
+      secondary: `${f.total} alerts · ${f.noticket} no tickets · ${f.nosecurity} no security`,
+      health: f.critical > 0 ? 'critical' : (f.noabsentcold > 0 || f.nounstaffed > 0 || f.noticket > 0 ? 'warning' : 'good'), link: REPORTS_COAT_CHECK_CLOAKROOM, linkLabel: 'View coat check',
+    };
+  } catch { return neutralCard('Coat Check', faShirt, 'text-rose-600', REPORTS_COAT_CHECK_CLOAKROOM); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

@@ -272,6 +272,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_WINDOW_TREATMENT_CURTAIN,
   REPORTS_ROTATING_ART_GALLERY,
   REPORTS_FAMILY_INFANT_AMENITY,
+  REPORTS_COAT_CHECK_CLOAKROOM,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -515,6 +516,7 @@ RecipeScalingScreen,
   WindowTreatmentCurtainScreen,
   RotatingArtGalleryScreen,
   FamilyInfantAmenityScreen,
+  CoatCheckCloakroomScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -764,6 +766,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_WINDOW_TREATMENT_CURTAIN} element={<WindowTreatmentCurtainScreen/>}/>
         <Route path={REPORTS_ROTATING_ART_GALLERY} element={<RotatingArtGalleryScreen/>}/>
         <Route path={REPORTS_FAMILY_INFANT_AMENITY} element={<FamilyInfantAmenityScreen/>}/>
+        <Route path={REPORTS_COAT_CHECK_CLOAKROOM} element={<CoatCheckCloakroomScreen/>}/>
 <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>
