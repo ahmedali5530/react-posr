@@ -275,6 +275,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_COAT_CHECK_CLOAKROOM,
   REPORTS_TAKEOUT_PACKAGING_CONTAINER,
   REPORTS_DRIVE_THRU_PICKUP_WINDOW,
+  REPORTS_SENSORY_FRIENDLY_SPACE,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -521,6 +522,7 @@ RecipeScalingScreen,
   CoatCheckCloakroomScreen,
   TakeoutPackagingContainerScreen,
   DriveThruPickupWindowScreen,
+  SensoryFriendlySpaceScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -773,6 +775,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_COAT_CHECK_CLOAKROOM} element={<CoatCheckCloakroomScreen/>}/>
         <Route path={REPORTS_TAKEOUT_PACKAGING_CONTAINER} element={<TakeoutPackagingContainerScreen/>}/>
         <Route path={REPORTS_DRIVE_THRU_PICKUP_WINDOW} element={<DriveThruPickupWindowScreen/>}/>
+        <Route path={REPORTS_SENSORY_FRIENDLY_SPACE} element={<SensoryFriendlySpaceScreen/>}/>
 <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>

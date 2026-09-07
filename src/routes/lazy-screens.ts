@@ -982,3 +982,7 @@ export const TakeoutPackagingContainerScreen = lazy(() =>
 export const DriveThruPickupWindowScreen = lazy(() =>
   import('@/screens/reports/drive-thru-pickup-window.report.tsx').then(m => ({default: m.DriveThruPickupWindowScreen}))
 );
+
+export const SensoryFriendlySpaceScreen = lazy(() =>
+  import('@/screens/reports/sensory-friendly-space.report.tsx').then(m => ({default: m.SensoryFriendlySpaceScreen}))
+);

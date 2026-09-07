@@ -346,3 +346,4 @@ export const REPORTS_FAMILY_INFANT_AMENITY = REPORTS + '/family-infant-amenity';
 export const REPORTS_COAT_CHECK_CLOAKROOM = REPORTS + '/coat-check-cloakroom';
 export const REPORTS_TAKEOUT_PACKAGING_CONTAINER = REPORTS + '/takeout-packaging-container';
 export const REPORTS_DRIVE_THRU_PICKUP_WINDOW = REPORTS + '/drive-thru-pickup-window';
+export const REPORTS_SENSORY_FRIENDLY_SPACE = REPORTS + '/sensory-friendly-space';
