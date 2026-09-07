@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -237,6 +237,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_NUTRITIONAL_TRANSPARENCY,
   REPORTS_CULINARY_EXPERIENCE_COOKING_CLASS,
   REPORTS_LIVE_MUSIC_PERFORMANCE,
+  REPORTS_WINDOW_TREATMENT_CURTAIN,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -290,6 +291,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         nutritionalTransparencyData,
         culinaryExperienceData,
         liveMusicData,
+        windowTreatmentData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -504,6 +506,7 @@ fetchRecipeScaleSummary(db),
         fetchNutritionalTransparencySummary(db),
         fetchCulinaryExperienceSummary(db),
         fetchLiveMusicSummary(db),
+        fetchWindowTreatmentSummary(db),
       ]);
 
       setMetrics([
@@ -521,6 +524,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         nutritionalTransparencyData,
         culinaryExperienceData,
         liveMusicData,
+        windowTreatmentData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5187,6 +5191,29 @@ async function fetchLiveMusicSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.noweekend > 0 || f.wrongsched > 0 || f.lowbudget > 0 ? 'warning' : 'good'), link: REPORTS_LIVE_MUSIC_PERFORMANCE, linkLabel: 'View live music',
     };
   } catch { return neutralCard('Live Music', faMusic, 'text-violet-500', REPORTS_LIVE_MUSIC_PERFORMANCE); }
+}
+
+async function fetchWindowTreatmentSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'window_treatment_absent') AS absent,
+              math::count(rule_id = 'curtain_wear_stain_detected') AS wearstain,
+              math::count(rule_id = 'uv_protection_missing') AS nouv,
+              math::count(rule_id = 'blackout_capability_absent') AS noblackout
+       FROM window_treatment_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Window Treatment', faWindowMaximize, 'text-sky-500', REPORTS_WINDOW_TREATMENT_CURTAIN);
+    return {
+      title: 'Window Treatment', icon: faWindowMaximize, color: 'text-sky-500',
+      primary: `${f.absent} no treatments · ${f.wearstain} wear/stains`,
+      secondary: `${f.total} alerts · ${f.nouv} no UV · ${f.noblackout} no blackout`,
+      health: f.critical > 0 ? 'critical' : (f.absent > 0 || f.wearstain > 0 || f.nouv > 0 ? 'warning' : 'good'), link: REPORTS_WINDOW_TREATMENT_CURTAIN, linkLabel: 'View treatments',
+    };
+  } catch { return neutralCard('Window Treatment', faWindowMaximize, 'text-sky-500', REPORTS_WINDOW_TREATMENT_CURTAIN); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {
