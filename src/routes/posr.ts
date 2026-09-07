@@ -341,3 +341,4 @@ export const REPORTS_NUTRITIONAL_TRANSPARENCY = REPORTS + '/nutritional-transpar
 export const REPORTS_CULINARY_EXPERIENCE_COOKING_CLASS = REPORTS + '/culinary-experience-cooking-class';
 export const REPORTS_LIVE_MUSIC_PERFORMANCE = REPORTS + '/live-music-performance';
 export const REPORTS_WINDOW_TREATMENT_CURTAIN = REPORTS + '/window-treatment-curtain';
+export const REPORTS_ROTATING_ART_GALLERY = REPORTS + '/rotating-art-gallery';

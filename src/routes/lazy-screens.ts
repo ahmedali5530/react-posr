@@ -962,3 +962,7 @@ export const LiveMusicPerformanceScreen = lazy(() =>
 export const WindowTreatmentCurtainScreen = lazy(() =>
   import('@/screens/reports/window-treatment-curtain.report.tsx').then(m => ({default: m.WindowTreatmentCurtainScreen}))
 );
+
+export const RotatingArtGalleryScreen = lazy(() =>
+  import('@/screens/reports/rotating-art-gallery.report.tsx').then(m => ({default: m.RotatingArtGalleryScreen}))
+);
