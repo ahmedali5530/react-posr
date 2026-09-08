@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faDatabase, faSeedling, faBitcoinSign, faCube, faMicrochip, faRecycle, faGlobe, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faDatabase, faSeedling, faBitcoinSign, faCube, faMicrochip, faRecycle, faGlobe, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree, faDna,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -265,6 +265,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_SMART_RESTAURANT_IOT_CONNECTED_DEVICE,
   REPORTS_ZERO_WASTE_CIRCULAR_ECONOMY,
   REPORTS_METAVERSE_VIRTUAL_RESTAURANT_DINING,
+  REPORTS_PERSONALIZED_NUTRITION_DNA_GENOMIC_DINING,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -345,6 +346,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         smartRestaurantIotData,
         zeroWasteData,
         metaverseData,
+        personalizedNutritionData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -586,6 +588,7 @@ fetchRecipeScaleSummary(db),
         fetchSmartRestaurantIotSummary(db),
         fetchZeroWasteSummary(db),
         fetchMetaverseSummary(db),
+        fetchPersonalizedNutritionSummary(db),
       ]);
 
       setMetrics([
@@ -630,6 +633,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         smartRestaurantIotData,
         zeroWasteData,
         metaverseData,
+        personalizedNutritionData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -6012,6 +6016,33 @@ async function fetchMetaverseSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.novirtualrestaurant > 0 || f.novrdining > 0 ? 'warning' : 'good'), link: REPORTS_METAVERSE_VIRTUAL_RESTAURANT_DINING, linkLabel: 'View metaverse',
     };
   } catch { return neutralCard('Metaverse', faGlobe, 'text-violet-600', REPORTS_METAVERSE_VIRTUAL_RESTAURANT_DINING); }
+}
+
+async function fetchPersonalizedNutritionSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'personalized_nutrition_strategy_absent') AS nostrategy,
+              math::count(rule_id = 'dna_testing_partnership_absent') AS nodna,
+              math::count(rule_id = 'genomic_menu_personalization_absent') AS nomenu,
+              math::count(rule_id = 'nutrigenomic_dietary_targeting_absent') AS notargeting,
+              math::count(rule_id = 'biomarker_integration_absent') AS nobiomarker,
+              math::count(rule_id = 'health_outcome_tracking_absent') AS nooutcomes,
+              math::count(rule_id = 'genetic_counselor_partnership_absent') AS nocounselor,
+              math::count(rule_id = 'privacy_genomic_data_compliance_weak') AS weakprivacy
+       FROM personalized_nutrition_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('DNA Nutrition', faDna, 'text-violet-600', REPORTS_PERSONALIZED_NUTRITION_DNA_GENOMIC_DINING);
+    return {
+      title: 'DNA Nutrition', icon: faDna, color: 'text-violet-600',
+      primary: `${f.nostrategy} no strategy · ${f.nodna} no DNA testing`,
+      secondary: `${f.total} alerts · ${f.nomenu} no genomic menu · ${f.notargeting} no nutrigenomic · ${f.nobiomarker} no biomarker · ${f.nooutcomes} no outcomes · ${f.nocounselor} no counselor · ${f.weakprivacy} weak privacy`,
+      health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.nodna > 0 || f.nomenu > 0 ? 'warning' : 'good'), link: REPORTS_PERSONALIZED_NUTRITION_DNA_GENOMIC_DINING, linkLabel: 'View DNA nutrition',
+    };
+  } catch { return neutralCard('DNA Nutrition', faDna, 'text-violet-600', REPORTS_PERSONALIZED_NUTRITION_DNA_GENOMIC_DINING); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

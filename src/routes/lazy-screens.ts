@@ -1071,3 +1071,7 @@ export const MetaverseVirtualRestaurantDiningScreen = lazy(() =>
   import('@/screens/reports/metaverse-virtual-restaurant-dining.report.tsx').then(m => ({default: m.MetaverseVirtualRestaurantDiningScreen}))
 );
 
+export const PersonalizedNutritionDnaGenomicDiningScreen = lazy(() =>
+  import('@/screens/reports/personalized-nutrition-dna-genomic-dining.report.tsx').then(m => ({default: m.PersonalizedNutritionDnaGenomicDiningScreen}))
+);
+
