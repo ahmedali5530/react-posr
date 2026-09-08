@@ -257,6 +257,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_FRANCHISE_MULTI_UNIT_OPERATIONS,
   REPORTS_KITCHEN_ROBOTICS_AUTOMATION,
   REPORTS_DATA_MONETIZATION_API_REVENUE,
+  REPORTS_AR_MENU_IMMERSIVE_DINING,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -329,6 +330,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         franchiseOperationsData,
         kitchenRoboticsData,
         dataMonetizationData,
+        arMenuData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -562,6 +564,7 @@ fetchRecipeScaleSummary(db),
         fetchFranchiseOperationsSummary(db),
         fetchKitchenRoboticsSummary(db),
         fetchDataMonetizationSummary(db),
+        fetchArMenuSummary(db),
       ]);
 
       setMetrics([
@@ -598,6 +601,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         franchiseOperationsData,
         kitchenRoboticsData,
         dataMonetizationData,
+        arMenuData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5764,6 +5768,33 @@ async function fetchDataMonetizationSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.noapi > 0 || f.weakprivacy > 0 ? 'warning' : 'good'), link: REPORTS_DATA_MONETIZATION_API_REVENUE, linkLabel: 'View data monet',
     };
   } catch { return neutralCard('Data Monet', faDatabase, 'text-violet-600', REPORTS_DATA_MONETIZATION_API_REVENUE); }
+}
+
+async function fetchArMenuSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'ar_menu_strategy_absent') AS nostrategy,
+              math::count(rule_id = 'ar_food_visualization_absent') AS novisualization,
+              math::count(rule_id = 'ar_immersive_dining_experience_absent') AS noimmersive,
+              math::count(rule_id = 'ar_allergen_nutrition_overlay_absent') AS noallergen,
+              math::count(rule_id = 'ar_multilingual_visual_menu_absent') AS nomultilingual,
+              math::count(rule_id = 'ar_menu_platform_optimization_absent') AS noplatform,
+              math::count(rule_id = 'ar_content_production_program_absent') AS nocontent,
+              math::count(rule_id = 'ar_menu_roi_tracking_absent') AS noroi
+       FROM ar_menu_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('AR Menu', faWandMagicSparkles, 'text-violet-600', REPORTS_AR_MENU_IMMERSIVE_DINING);
+    return {
+      title: 'AR Menu', icon: faWandMagicSparkles, color: 'text-violet-600',
+      primary: `${f.nostrategy} no strategy · ${f.novisualization} no 3D models`,
+      secondary: `${f.total} alerts · ${f.noimmersive} no immersive · ${f.noallergen} no allergen · ${f.nomultilingual} no multilingual · ${f.noplatform} no platform · ${f.nocontent} no content · ${f.noroi} no ROI`,
+      health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.novisualization > 0 || f.noplatform > 0 ? 'warning' : 'good'), link: REPORTS_AR_MENU_IMMERSIVE_DINING, linkLabel: 'View AR menu',
+    };
+  } catch { return neutralCard('AR Menu', faWandMagicSparkles, 'text-violet-600', REPORTS_AR_MENU_IMMERSIVE_DINING); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

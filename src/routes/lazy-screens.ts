@@ -1039,3 +1039,7 @@ export const DataMonetizationApiRevenueScreen = lazy(() =>
   import('@/screens/reports/data-monetization-api-revenue.report.tsx').then(m => ({default: m.DataMonetizationApiRevenueScreen}))
 );
 
+export const ArMenuImmersiveDiningScreen = lazy(() =>
+  import('@/screens/reports/ar-menu-immersive-dining.report.tsx').then(m => ({default: m.ArMenuImmersiveDiningScreen}))
+);
+
