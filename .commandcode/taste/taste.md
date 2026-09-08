@@ -1,0 +1,5 @@
+- Prefers reviewing prior implementation branches and failure history before redesigning, so recurring architectural mistakes are identified and not repeated. Confidence: 0.9
+- Prefers robust, long-term remediation plans with a stronger failure-resistant workflow over incremental symptom fixes. Confidence: 0.9
+- Wants relevant purpose-built tools and architectural alternatives evaluated before committing to an implementation approach. Confidence: 0.8
+- Requires local-first architecture per the project ADR: application rendering, pricing, reference, and operational reads should use local stores in both online and offline modes, with remote synchronization happening in the background; all order mutations must route through PosStore (Dexie → outbox → SurrealDB) instead of writing SurrealDB directly so terminals stay operational during outages; proactively audit similar remote-read and direct-write dependencies rather than fixing isolated screens. Confidence: 0.98
+- Guards destructive local-cache operations in offline mode (e.g., disable cache clear/reload while offline, since there would be no way to rehydrate from the server). Confidence: 0.8
