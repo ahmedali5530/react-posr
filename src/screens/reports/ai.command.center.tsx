@@ -258,6 +258,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_KITCHEN_ROBOTICS_AUTOMATION,
   REPORTS_DATA_MONETIZATION_API_REVENUE,
   REPORTS_AR_MENU_IMMERSIVE_DINING,
+  REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -331,6 +332,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         kitchenRoboticsData,
         dataMonetizationData,
         arMenuData,
+        droneDeliveryData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -565,6 +567,7 @@ fetchRecipeScaleSummary(db),
         fetchKitchenRoboticsSummary(db),
         fetchDataMonetizationSummary(db),
         fetchArMenuSummary(db),
+        fetchDroneDeliverySummary(db),
       ]);
 
       setMetrics([
@@ -602,6 +605,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         kitchenRoboticsData,
         dataMonetizationData,
         arMenuData,
+        droneDeliveryData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5795,6 +5799,33 @@ async function fetchArMenuSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.novisualization > 0 || f.noplatform > 0 ? 'warning' : 'good'), link: REPORTS_AR_MENU_IMMERSIVE_DINING, linkLabel: 'View AR menu',
     };
   } catch { return neutralCard('AR Menu', faWandMagicSparkles, 'text-violet-600', REPORTS_AR_MENU_IMMERSIVE_DINING); }
+}
+
+async function fetchDroneDeliverySummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'drone_delivery_strategy_absent') AS nostrategy,
+              math::count(rule_id = 'drone_fleet_management_absent') AS nofleet,
+              math::count(rule_id = 'drone_delivery_route_optimization_absent') AS noroute,
+              math::count(rule_id = 'drone_regulatory_compliance_absent') AS noregulatory,
+              math::count(rule_id = 'drone_weather_adaptation_absent') AS noweather,
+              math::count(rule_id = 'drone_payload_packaging_optimization_absent') AS nopayload,
+              math::count(rule_id = 'drone_battery_charging_infrastructure_absent') AS nobattery,
+              math::count(rule_id = 'drone_delivery_roi_tracking_absent') AS noroi
+       FROM drone_delivery_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Drone Delivery', faRocket, 'text-violet-600', REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS);
+    return {
+      title: 'Drone Delivery', icon: faRocket, color: 'text-violet-600',
+      primary: `${f.nostrategy} no strategy · ${f.nofleet} no fleet`,
+      secondary: `${f.total} alerts · ${f.noroute} no route · ${f.noregulatory} no regulatory · ${f.noweather} no weather · ${f.nopayload} no payload · ${f.nobattery} no battery · ${f.noroi} no ROI`,
+      health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.nofleet > 0 || f.noregulatory > 0 ? 'warning' : 'good'), link: REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS, linkLabel: 'View drone delivery',
+    };
+  } catch { return neutralCard('Drone Delivery', faRocket, 'text-violet-600', REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

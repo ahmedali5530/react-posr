@@ -361,3 +361,4 @@ export const REPORTS_FRANCHISE_MULTI_UNIT_OPERATIONS = REPORTS + '/franchise-mul
 export const REPORTS_KITCHEN_ROBOTICS_AUTOMATION = REPORTS + '/kitchen-robotics-automation';
 export const REPORTS_DATA_MONETIZATION_API_REVENUE = REPORTS + '/data-monetization-api-revenue';
 export const REPORTS_AR_MENU_IMMERSIVE_DINING = REPORTS + '/ar-menu-immersive-dining';
+export const REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS = REPORTS + '/drone-delivery-aerial-logistics';

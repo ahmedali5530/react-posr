@@ -1043,3 +1043,7 @@ export const ArMenuImmersiveDiningScreen = lazy(() =>
   import('@/screens/reports/ar-menu-immersive-dining.report.tsx').then(m => ({default: m.ArMenuImmersiveDiningScreen}))
 );
 
+export const DroneDeliveryAerialLogisticsScreen = lazy(() =>
+  import('@/screens/reports/drone-delivery-aerial-logistics.report.tsx').then(m => ({default: m.DroneDeliveryAerialLogisticsScreen}))
+);
+
