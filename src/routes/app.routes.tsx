@@ -278,6 +278,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_SENSORY_FRIENDLY_SPACE,
   REPORTS_PET_FRIENDLY_SERVICE_ANIMAL,
   REPORTS_ACCESSIBILITY_MENU_ADA,
+  REPORTS_SEASONAL_HOLIDAY_DECOR,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -527,6 +528,7 @@ RecipeScalingScreen,
   SensoryFriendlySpaceScreen,
   PetFriendlyServiceAnimalScreen,
   AccessibilityMenuAdaScreen,
+  SeasonalHolidayDecorScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -782,6 +784,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_SENSORY_FRIENDLY_SPACE} element={<SensoryFriendlySpaceScreen/>}/>
         <Route path={REPORTS_PET_FRIENDLY_SERVICE_ANIMAL} element={<PetFriendlyServiceAnimalScreen/>}/>
         <Route path={REPORTS_ACCESSIBILITY_MENU_ADA} element={<AccessibilityMenuAdaScreen/>}/>
+        <Route path={REPORTS_SEASONAL_HOLIDAY_DECOR} element={<SeasonalHolidayDecorScreen/>}/>
 <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>

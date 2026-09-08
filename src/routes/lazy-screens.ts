@@ -995,3 +995,7 @@ export const AccessibilityMenuAdaScreen = lazy(() =>
   import('@/screens/reports/accessibility-menu-ada.report.tsx').then(m => ({default: m.AccessibilityMenuAdaScreen}))
 );
 
+export const SeasonalHolidayDecorScreen = lazy(() =>
+  import('@/screens/reports/seasonal-holiday-decor.report.tsx').then(m => ({default: m.SeasonalHolidayDecorScreen}))
+);
+
