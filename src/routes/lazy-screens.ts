@@ -1031,3 +1031,7 @@ export const FranchiseMultiUnitOperationsScreen = lazy(() =>
   import('@/screens/reports/franchise-multi-unit-operations.report.tsx').then(m => ({default: m.FranchiseMultiUnitOperationsScreen}))
 );
 
+export const KitchenRoboticsAutomationScreen = lazy(() =>
+  import('@/screens/reports/kitchen-robotics-automation.report.tsx').then(m => ({default: m.KitchenRoboticsAutomationScreen}))
+);
+

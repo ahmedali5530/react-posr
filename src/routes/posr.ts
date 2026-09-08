@@ -358,3 +358,4 @@ export const REPORTS_SUBSCRIPTION_MEMBERSHIP_PROGRAM = REPORTS + '/subscription-
 export const REPORTS_VOICE_ORDERING_CONVERSATIONAL_AI = REPORTS + '/voice-ordering-conversational-ai';
 export const REPORTS_CRISIS_COMMUNICATION_PR_REPUTATION = REPORTS + '/crisis-communication-pr-reputation';
 export const REPORTS_FRANCHISE_MULTI_UNIT_OPERATIONS = REPORTS + '/franchise-multi-unit-operations';
+export const REPORTS_KITCHEN_ROBOTICS_AUTOMATION = REPORTS + '/kitchen-robotics-automation';
