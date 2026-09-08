@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -250,6 +250,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_CELEBRATION_SERVICE_OPTIMIZER,
   REPORTS_INFLUENCER_OUTREACH_OPTIMIZER,
   REPORTS_STAFF_MENTAL_HEALTH_WELLNESS,
+  REPORTS_GHOST_KITCHEN_VIRTUAL_BRAND,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -315,6 +316,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         celebrationServiceData,
         influencerOutreachData,
         staffMentalHealthData,
+        ghostKitchenData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -541,6 +543,7 @@ fetchRecipeScaleSummary(db),
         fetchCelebrationServiceSummary(db),
         fetchInfluencerOutreachSummary(db),
         fetchStaffMentalHealthSummary(db),
+        fetchGhostKitchenSummary(db),
       ]);
 
       setMetrics([
@@ -570,6 +573,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         celebrationServiceData,
         influencerOutreachData,
         staffMentalHealthData,
+        ghostKitchenData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5547,6 +5551,33 @@ async function fetchStaffMentalHealthSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.noeap > 0 || f.noburnout > 0 || f.nobenefits > 0 ? 'warning' : 'good'), link: REPORTS_STAFF_MENTAL_HEALTH_WELLNESS, linkLabel: 'View wellness',
     };
   } catch { return neutralCard('Staff Wellness', faShieldHeart, 'text-rose-600', REPORTS_STAFF_MENTAL_HEALTH_WELLNESS); }
+}
+
+async function fetchGhostKitchenSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'ghost_kitchen_strategy_absent') AS nostrategy,
+              math::count(rule_id = 'virtual_brand_portfolio_thin') AS thinportfolio,
+              math::count(rule_id = 'delivery_platform_optimization_absent') AS noplatform,
+              math::count(rule_id = 'cross_brand_prep_efficiency_absent') AS nocrossbrand,
+              math::count(rule_id = 'virtual_brand_menu_delivery_unoptimized') AS nodeliverymenu,
+              math::count(rule_id = 'ghost_kitchen_roi_tracking_absent') AS noroi,
+              math::count(rule_id = 'virtual_brand_market_expansion_absent') AS noexpansion,
+              math::count(rule_id = 'ghost_kitchen_quality_consistency_absent') AS noquality
+       FROM ghost_kitchen_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Ghost Kitchen', faGhost, 'text-violet-600', REPORTS_GHOST_KITCHEN_VIRTUAL_BRAND);
+    return {
+      title: 'Ghost Kitchen', icon: faGhost, color: 'text-violet-600',
+      primary: `${f.nostrategy} no strategy · ${f.thinportfolio} thin portfolio`,
+      secondary: `${f.total} alerts · ${f.noplatform} no platform · ${f.nocrossbrand} no cross-brand · ${f.nodeliverymenu} no delivery menu · ${f.noroi} no ROI · ${f.noexpansion} no expansion · ${f.noquality} no quality`,
+      health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.thinportfolio > 0 || f.noplatform > 0 ? 'warning' : 'good'), link: REPORTS_GHOST_KITCHEN_VIRTUAL_BRAND, linkLabel: 'View ghost kitchen',
+    };
+  } catch { return neutralCard('Ghost Kitchen', faGhost, 'text-violet-600', REPORTS_GHOST_KITCHEN_VIRTUAL_BRAND); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

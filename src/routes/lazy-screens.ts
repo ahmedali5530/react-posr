@@ -1011,3 +1011,7 @@ export const StaffMentalHealthWellnessScreen = lazy(() =>
   import('@/screens/reports/staff-mental-health-wellness.report.tsx').then(m => ({default: m.StaffMentalHealthWellnessScreen}))
 );
 
+export const GhostKitchenVirtualBrandScreen = lazy(() =>
+  import('@/screens/reports/ghost-kitchen-virtual-brand.report.tsx').then(m => ({default: m.GhostKitchenVirtualBrandScreen}))
+);
+

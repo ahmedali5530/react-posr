@@ -353,3 +353,4 @@ export const REPORTS_SEASONAL_HOLIDAY_DECOR = REPORTS + '/seasonal-holiday-decor
 export const REPORTS_CELEBRATION_SERVICE_OPTIMIZER = REPORTS + '/celebration-service-optimizer';
 export const REPORTS_INFLUENCER_OUTREACH_OPTIMIZER = REPORTS + '/influencer-outreach-optimizer';
 export const REPORTS_STAFF_MENTAL_HEALTH_WELLNESS = REPORTS + '/staff-mental-health-wellness';
+export const REPORTS_GHOST_KITCHEN_VIRTUAL_BRAND = REPORTS + '/ghost-kitchen-virtual-brand';

@@ -282,6 +282,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_CELEBRATION_SERVICE_OPTIMIZER,
   REPORTS_INFLUENCER_OUTREACH_OPTIMIZER,
   REPORTS_STAFF_MENTAL_HEALTH_WELLNESS,
+  REPORTS_GHOST_KITCHEN_VIRTUAL_BRAND,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -535,6 +536,7 @@ RecipeScalingScreen,
   CelebrationServiceOptimizerScreen,
   InfluencerOutreachOptimizerScreen,
   StaffMentalHealthWellnessScreen,
+  GhostKitchenVirtualBrandScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -794,6 +796,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_CELEBRATION_SERVICE_OPTIMIZER} element={<CelebrationServiceOptimizerScreen/>}/>
         <Route path={REPORTS_INFLUENCER_OUTREACH_OPTIMIZER} element={<InfluencerOutreachOptimizerScreen/>}/>
         <Route path={REPORTS_STAFF_MENTAL_HEALTH_WELLNESS} element={<StaffMentalHealthWellnessScreen/>}/>
+        <Route path={REPORTS_GHOST_KITCHEN_VIRTUAL_BRAND} element={<GhostKitchenVirtualBrandScreen/>}/>
         <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>
