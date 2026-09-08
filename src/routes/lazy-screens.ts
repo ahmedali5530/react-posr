@@ -999,3 +999,7 @@ export const SeasonalHolidayDecorScreen = lazy(() =>
   import('@/screens/reports/seasonal-holiday-decor.report.tsx').then(m => ({default: m.SeasonalHolidayDecorScreen}))
 );
 
+export const CelebrationServiceOptimizerScreen = lazy(() =>
+  import('@/screens/reports/celebration-service-optimizer.report.tsx').then(m => ({default: m.CelebrationServiceOptimizerScreen}))
+);
+

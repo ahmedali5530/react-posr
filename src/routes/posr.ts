@@ -350,3 +350,4 @@ export const REPORTS_SENSORY_FRIENDLY_SPACE = REPORTS + '/sensory-friendly-space
 export const REPORTS_PET_FRIENDLY_SERVICE_ANIMAL = REPORTS + '/pet-friendly-service-animal';
 export const REPORTS_ACCESSIBILITY_MENU_ADA = REPORTS + '/accessibility-menu-ada';
 export const REPORTS_SEASONAL_HOLIDAY_DECOR = REPORTS + '/seasonal-holiday-decor';
+export const REPORTS_CELEBRATION_SERVICE_OPTIMIZER = REPORTS + '/celebration-service-optimizer';
