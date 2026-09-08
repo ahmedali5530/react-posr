@@ -1015,3 +1015,7 @@ export const GhostKitchenVirtualBrandScreen = lazy(() =>
   import('@/screens/reports/ghost-kitchen-virtual-brand.report.tsx').then(m => ({default: m.GhostKitchenVirtualBrandScreen}))
 );
 
+export const SubscriptionMembershipProgramScreen = lazy(() =>
+  import('@/screens/reports/subscription-membership-program.report.tsx').then(m => ({default: m.SubscriptionMembershipProgramScreen}))
+);
+
