@@ -1055,3 +1055,7 @@ export const BlockchainLoyaltyTokenizedRewardsScreen = lazy(() =>
   import('@/screens/reports/blockchain-loyalty-tokenized-rewards.report.tsx').then(m => ({default: m.BlockchainLoyaltyTokenizedRewardsScreen}))
 );
 
+export const Food3dPrintingCustomizedCuisineScreen = lazy(() =>
+  import('@/screens/reports/3d-food-printing-customized-cuisine.report.tsx').then(m => ({default: m.Food3dPrintingCustomizedCuisineScreen}))
+);
+

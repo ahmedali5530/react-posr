@@ -364,3 +364,4 @@ export const REPORTS_AR_MENU_IMMERSIVE_DINING = REPORTS + '/ar-menu-immersive-di
 export const REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS = REPORTS + '/drone-delivery-aerial-logistics';
 export const REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE = REPORTS + '/on-site-farm-hyperlocal-agriculture';
 export const REPORTS_BLOCKCHAIN_LOYALTY_TOKENIZED_REWARDS = REPORTS + '/blockchain-loyalty-tokenized-rewards';
+export const REPORTS_3D_FOOD_PRINTING_CUSTOMIZED_CUISINE = REPORTS + '/3d-food-printing-customized-cuisine';
