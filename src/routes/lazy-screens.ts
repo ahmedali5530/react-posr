@@ -986,3 +986,7 @@ export const DriveThruPickupWindowScreen = lazy(() =>
 export const SensoryFriendlySpaceScreen = lazy(() =>
   import('@/screens/reports/sensory-friendly-space.report.tsx').then(m => ({default: m.SensoryFriendlySpaceScreen}))
 );
+
+export const PetFriendlyServiceAnimalScreen = lazy(() =>
+  import('@/screens/reports/pet-friendly-service-animal.report.tsx').then(m => ({default: m.PetFriendlyServiceAnimalScreen}))
+);

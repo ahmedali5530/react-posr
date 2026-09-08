@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -244,6 +244,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_TAKEOUT_PACKAGING_CONTAINER,
   REPORTS_DRIVE_THRU_PICKUP_WINDOW,
   REPORTS_SENSORY_FRIENDLY_SPACE,
+  REPORTS_PET_FRIENDLY_SERVICE_ANIMAL,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -303,6 +304,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         takeoutPackagingData,
         driveThruData,
         sensoryFriendlyData,
+        petFriendlyData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -523,6 +525,7 @@ fetchRecipeScaleSummary(db),
         fetchTakeoutPackagingSummary(db),
         fetchDriveThruSummary(db),
         fetchSensoryFriendlySummary(db),
+        fetchPetFriendlySummary(db),
       ]);
 
       setMetrics([
@@ -546,6 +549,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         takeoutPackagingData,
         driveThruData,
         sensoryFriendlyData,
+        petFriendlyData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5361,6 +5365,33 @@ async function fetchSensoryFriendlySummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nozone > 0 || f.nohours > 0 || f.notraining > 0 || f.nocert > 0 ? 'warning' : 'good'), link: REPORTS_SENSORY_FRIENDLY_SPACE, linkLabel: 'View sensory',
     };
   } catch { return neutralCard('Sensory-Friendly', faUniversalAccess, 'text-violet-600', REPORTS_SENSORY_FRIENDLY_SPACE); }
+}
+
+async function fetchPetFriendlySummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'pet_friendly_patio_absent') AS nopatio,
+              math::count(rule_id = 'service_animal_protocol_absent') AS noprotocol,
+              math::count(rule_id = 'pet_amenities_missing') AS noamenity,
+              math::count(rule_id = 'pet_menu_items_absent') AS nomenu,
+              math::count(rule_id = 'yappy_hour_event_absent') AS noyappy,
+              math::count(rule_id = 'pet_policy_unclear') AS nopolicy,
+              math::count(rule_id = 'pet_photography_spot_absent') AS nophoto,
+              math::count(rule_id = 'service_animal_refusal_risk') AS refusals
+       FROM pet_friendly_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Pet-Friendly', faDog, 'text-amber-600', REPORTS_PET_FRIENDLY_SERVICE_ANIMAL);
+    return {
+      title: 'Pet-Friendly', icon: faDog, color: 'text-amber-600',
+      primary: `${f.nopatio} no patio · ${f.refusals} refusals`,
+      secondary: `${f.total} alerts · ${f.noprotocol} no protocol · ${f.noamenity} no amenities · ${f.nomenu} no menu · ${f.noyappy} no yappy · ${f.nophoto} no photo`,
+      health: f.critical > 0 ? 'critical' : (f.nopatio > 0 || f.noprotocol > 0 || f.refusals > 0 ? 'warning' : 'good'), link: REPORTS_PET_FRIENDLY_SERVICE_ANIMAL, linkLabel: 'View pet-friendly',
+    };
+  } catch { return neutralCard('Pet-Friendly', faDog, 'text-amber-600', REPORTS_PET_FRIENDLY_SERVICE_ANIMAL); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {
