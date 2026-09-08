@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -252,6 +252,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_STAFF_MENTAL_HEALTH_WELLNESS,
   REPORTS_GHOST_KITCHEN_VIRTUAL_BRAND,
   REPORTS_SUBSCRIPTION_MEMBERSHIP_PROGRAM,
+  REPORTS_VOICE_ORDERING_CONVERSATIONAL_AI,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -319,6 +320,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         staffMentalHealthData,
         ghostKitchenData,
         subscriptionProgramData,
+        voiceOrderingData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -547,6 +549,7 @@ fetchRecipeScaleSummary(db),
         fetchStaffMentalHealthSummary(db),
         fetchGhostKitchenSummary(db),
         fetchSubscriptionProgramSummary(db),
+        fetchVoiceOrderingSummary(db),
       ]);
 
       setMetrics([
@@ -578,6 +581,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         staffMentalHealthData,
         ghostKitchenData,
         subscriptionProgramData,
+        voiceOrderingData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5609,6 +5613,33 @@ async function fetchSubscriptionProgramSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.noprogram > 0 || f.highchurn > 0 || f.lowbenefit > 0 ? 'warning' : 'good'), link: REPORTS_SUBSCRIPTION_MEMBERSHIP_PROGRAM, linkLabel: 'View subscriptions',
     };
   } catch { return neutralCard('Subscriptions', faRepeat, 'text-violet-600', REPORTS_SUBSCRIPTION_MEMBERSHIP_PROGRAM); }
+}
+
+async function fetchVoiceOrderingSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'voice_ai_strategy_absent') AS nostrategy,
+              math::count(rule_id = 'voice_order_accuracy_low') AS lowaccuracy,
+              math::count(rule_id = 'voice_ai_upsell_automation_absent') AS noupsell,
+              math::count(rule_id = 'voice_ai_multilingual_absent') AS nomultilingual,
+              math::count(rule_id = 'voice_ai_accent_adaptation_absent') AS noaccent,
+              math::count(rule_id = 'voice_biometrics_absent') AS nobiometrics,
+              math::count(rule_id = 'voice_ai_human_handoff_absent') AS nohandoff,
+              math::count(rule_id = 'voice_ai_accessibility_absent') AS noaccessibility
+       FROM voice_ordering_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Voice AI', faMicrophoneLines, 'text-sky-600', REPORTS_VOICE_ORDERING_CONVERSATIONAL_AI);
+    return {
+      title: 'Voice AI', icon: faMicrophoneLines, color: 'text-sky-600',
+      primary: `${f.nostrategy} no strategy · ${f.lowaccuracy} low accuracy`,
+      secondary: `${f.total} alerts · ${f.noupsell} no upsell · ${f.nomultilingual} no multilingual · ${f.noaccent} no accent · ${f.nobiometrics} no biometrics · ${f.nohandoff} no handoff · ${f.noaccessibility} no accessibility`,
+      health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.lowaccuracy > 0 || f.nohandoff > 0 ? 'warning' : 'good'), link: REPORTS_VOICE_ORDERING_CONVERSATIONAL_AI, linkLabel: 'View voice AI',
+    };
+  } catch { return neutralCard('Voice AI', faMicrophoneLines, 'text-sky-600', REPORTS_VOICE_ORDERING_CONVERSATIONAL_AI); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

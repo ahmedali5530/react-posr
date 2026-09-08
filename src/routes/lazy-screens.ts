@@ -1019,3 +1019,7 @@ export const SubscriptionMembershipProgramScreen = lazy(() =>
   import('@/screens/reports/subscription-membership-program.report.tsx').then(m => ({default: m.SubscriptionMembershipProgramScreen}))
 );
 
+export const VoiceOrderingConversationalAiScreen = lazy(() =>
+  import('@/screens/reports/voice-ordering-conversational-ai.report.tsx').then(m => ({default: m.VoiceOrderingConversationalAiScreen}))
+);
+

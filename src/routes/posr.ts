@@ -355,3 +355,4 @@ export const REPORTS_INFLUENCER_OUTREACH_OPTIMIZER = REPORTS + '/influencer-outr
 export const REPORTS_STAFF_MENTAL_HEALTH_WELLNESS = REPORTS + '/staff-mental-health-wellness';
 export const REPORTS_GHOST_KITCHEN_VIRTUAL_BRAND = REPORTS + '/ghost-kitchen-virtual-brand';
 export const REPORTS_SUBSCRIPTION_MEMBERSHIP_PROGRAM = REPORTS + '/subscription-membership-program';
+export const REPORTS_VOICE_ORDERING_CONVERSATIONAL_AI = REPORTS + '/voice-ordering-conversational-ai';
