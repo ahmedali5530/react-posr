@@ -1,4 +1,0 @@
-- The POS UI is touch-first: never show visible scrollbars (they break touch scrolling); size modals and content to fit the viewport instead of allowing overflow to scroll. Confidence: 0.85
-- Prefers a permanent, page-consistent status indicator — an icon-only bottom toolbar on every page whose color reflects sync status — over transient sync banners/toasts that flicker and disappear; the toolbar is intended to host other operations later. Confidence: 0.85
-- Wants consistent spacing and layout across all screens (e.g., uniform bottom-toolbar spacing) and prefers replacing ad-hoc calc(100vh - x) height hacks with one proper shared layout fix applied everywhere. Confidence: 0.85
-- End users should never see or think about sync mechanics: syncing should be automatic with self-retrying; expose a bulk manual fallback ("sync all" button) only for items stuck in the manual queue. Confidence: 0.9

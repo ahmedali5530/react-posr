@@ -1,4 +1,0 @@
-- Executes work through pre-written plan files: implement the plan as specified, never edit the plan file itself, work through the pre-created to-dos in order (marking each in_progress as you go), and don't stop until all to-dos are complete. Confidence: 0.95
-- When joining in-progress or multi-agent work, first inspect the current working files and plan/to-do state, then continue from where the previous agent left off rather than restarting. Confidence: 0.85
-- After a bug fix, verify the complete user flow still works end-to-end, not just the fixed step. Confidence: 0.7
-- Sensitive to slow feedback loops: dislikes hanging terminal commands, stuck agents, and overly long test runs; wants failing tests fixed quickly so work can move on to the next task. Confidence: 0.75
