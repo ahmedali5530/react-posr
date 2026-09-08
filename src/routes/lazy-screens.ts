@@ -1051,3 +1051,7 @@ export const OnSiteFarmHyperlocalAgricultureScreen = lazy(() =>
   import('@/screens/reports/on-site-farm-hyperlocal-agriculture.report.tsx').then(m => ({default: m.OnSiteFarmHyperlocalAgricultureScreen}))
 );
 
+export const BlockchainLoyaltyTokenizedRewardsScreen = lazy(() =>
+  import('@/screens/reports/blockchain-loyalty-tokenized-rewards.report.tsx').then(m => ({default: m.BlockchainLoyaltyTokenizedRewardsScreen}))
+);
+

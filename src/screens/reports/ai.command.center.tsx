@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faDatabase, faSeedling, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faDatabase, faSeedling, faBitcoinSign, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -260,6 +260,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_AR_MENU_IMMERSIVE_DINING,
   REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS,
   REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE,
+  REPORTS_BLOCKCHAIN_LOYALTY_TOKENIZED_REWARDS,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -335,6 +336,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         arMenuData,
         droneDeliveryData,
         onSiteFarmData,
+        blockchainLoyaltyData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -571,6 +573,7 @@ fetchRecipeScaleSummary(db),
         fetchArMenuSummary(db),
         fetchDroneDeliverySummary(db),
         fetchOnSiteFarmSummary(db),
+        fetchBlockchainLoyaltySummary(db),
       ]);
 
       setMetrics([
@@ -610,6 +613,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         arMenuData,
         droneDeliveryData,
         onSiteFarmData,
+        blockchainLoyaltyData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5857,6 +5861,33 @@ async function fetchOnSiteFarmSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.nohydroponic > 0 || f.nomicrogreen > 0 ? 'warning' : 'good'), link: REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE, linkLabel: 'View on-site farm',
     };
   } catch { return neutralCard('On-Site Farm', faSeedling, 'text-emerald-600', REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE); }
+}
+
+async function fetchBlockchainLoyaltySummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'blockchain_loyalty_strategy_absent') AS nostrategy,
+              math::count(rule_id = 'nft_membership_program_absent') AS nonft,
+              math::count(rule_id = 'token_reward_system_absent') AS notoken,
+              math::count(rule_id = 'smart_contract_loyalty_tiers_absent') AS nosmartcontract,
+              math::count(rule_id = 'token_gated_experiences_absent') AS notokengated,
+              math::count(rule_id = 'on_chain_achievement_badges_absent') AS nobadges,
+              math::count(rule_id = 'crypto_payment_integration_absent') AS nocrypto,
+              math::count(rule_id = 'blockchain_loyalty_roi_tracking_absent') AS noroi
+       FROM blockchain_loyalty_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Blockchain', faBitcoinSign, 'text-amber-600', REPORTS_BLOCKCHAIN_LOYALTY_TOKENIZED_REWARDS);
+    return {
+      title: 'Blockchain', icon: faBitcoinSign, color: 'text-amber-600',
+      primary: `${f.nostrategy} no strategy · ${f.nonft} no NFT`,
+      secondary: `${f.total} alerts · ${f.notoken} no token · ${f.nosmartcontract} no smart contract · ${f.notokengated} no token-gated · ${f.nobadges} no badges · ${f.nocrypto} no crypto pay · ${f.noroi} no ROI`,
+      health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.nonft > 0 || f.notoken > 0 ? 'warning' : 'good'), link: REPORTS_BLOCKCHAIN_LOYALTY_TOKENIZED_REWARDS, linkLabel: 'View blockchain',
+    };
+  } catch { return neutralCard('Blockchain', faBitcoinSign, 'text-amber-600', REPORTS_BLOCKCHAIN_LOYALTY_TOKENIZED_REWARDS); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {
