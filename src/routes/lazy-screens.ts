@@ -1007,3 +1007,7 @@ export const InfluencerOutreachOptimizerScreen = lazy(() =>
   import('@/screens/reports/influencer-outreach-optimizer.report.tsx').then(m => ({default: m.InfluencerOutreachOptimizerScreen}))
 );
 
+export const StaffMentalHealthWellnessScreen = lazy(() =>
+  import('@/screens/reports/staff-mental-health-wellness.report.tsx').then(m => ({default: m.StaffMentalHealthWellnessScreen}))
+);
+

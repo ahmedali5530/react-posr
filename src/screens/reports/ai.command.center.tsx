@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -249,6 +249,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_SEASONAL_HOLIDAY_DECOR,
   REPORTS_CELEBRATION_SERVICE_OPTIMIZER,
   REPORTS_INFLUENCER_OUTREACH_OPTIMIZER,
+  REPORTS_STAFF_MENTAL_HEALTH_WELLNESS,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -313,6 +314,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         seasonalDecorData,
         celebrationServiceData,
         influencerOutreachData,
+        staffMentalHealthData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -538,6 +540,7 @@ fetchRecipeScaleSummary(db),
         fetchSeasonalDecorSummary(db),
         fetchCelebrationServiceSummary(db),
         fetchInfluencerOutreachSummary(db),
+        fetchStaffMentalHealthSummary(db),
       ]);
 
       setMetrics([
@@ -566,6 +569,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         seasonalDecorData,
         celebrationServiceData,
         influencerOutreachData,
+        staffMentalHealthData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5516,6 +5520,33 @@ async function fetchInfluencerOutreachSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.noprogram > 0 || f.nomicro > 0 || f.notiktok > 0 ? 'warning' : 'good'), link: REPORTS_INFLUENCER_OUTREACH_OPTIMIZER, linkLabel: 'View influencers',
     };
   } catch { return neutralCard('Influencers', faShareNodes, 'text-rose-600', REPORTS_INFLUENCER_OUTREACH_OPTIMIZER); }
+}
+
+async function fetchStaffMentalHealthSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'eap_program_absent') AS noeap,
+              math::count(rule_id = 'burnout_prevention_program_absent') AS noburnout,
+              math::count(rule_id = 'mindfulness_stress_management_absent') AS nomindfulness,
+              math::count(rule_id = 'mental_health_days_absent') AS nomhdays,
+              math::count(rule_id = 'work_life_balance_flexible_scheduling_absent') AS nowlb,
+              math::count(rule_id = 'manager_mental_health_training_absent') AS nomgrtraining,
+              math::count(rule_id = 'mental_health_benefits_insurance_absent') AS nobenefits,
+              math::count(rule_id = 'wellness_program_participation_low') AS lowwellness
+       FROM staff_mental_health_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Staff Wellness', faShieldHeart, 'text-rose-600', REPORTS_STAFF_MENTAL_HEALTH_WELLNESS);
+    return {
+      title: 'Staff Wellness', icon: faShieldHeart, color: 'text-rose-600',
+      primary: `${f.noeap} no EAP · ${f.noburnout} no burnout prev`,
+      secondary: `${f.total} alerts · ${f.nomindfulness} no mindfulness · ${f.nomhdays} no MH days · ${f.nowlb} no flex · ${f.nomgrtraining} no mgr training · ${f.nobenefits} no benefits · ${f.lowwellness} low wellness`,
+      health: f.critical > 0 ? 'critical' : (f.noeap > 0 || f.noburnout > 0 || f.nobenefits > 0 ? 'warning' : 'good'), link: REPORTS_STAFF_MENTAL_HEALTH_WELLNESS, linkLabel: 'View wellness',
+    };
+  } catch { return neutralCard('Staff Wellness', faShieldHeart, 'text-rose-600', REPORTS_STAFF_MENTAL_HEALTH_WELLNESS); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {
