@@ -367,3 +367,4 @@ export const REPORTS_BLOCKCHAIN_LOYALTY_TOKENIZED_REWARDS = REPORTS + '/blockcha
 export const REPORTS_3D_FOOD_PRINTING_CUSTOMIZED_CUISINE = REPORTS + '/3d-food-printing-customized-cuisine';
 export const REPORTS_SMART_RESTAURANT_IOT_CONNECTED_DEVICE = REPORTS + '/smart-restaurant-iot-connected-device';
 export const REPORTS_ZERO_WASTE_CIRCULAR_ECONOMY = REPORTS + '/zero-waste-circular-economy';
+export const REPORTS_METAVERSE_VIRTUAL_RESTAURANT_DINING = REPORTS + '/metaverse-virtual-restaurant-dining';

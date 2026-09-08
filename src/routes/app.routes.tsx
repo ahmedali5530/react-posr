@@ -296,6 +296,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_3D_FOOD_PRINTING_CUSTOMIZED_CUISINE,
   REPORTS_SMART_RESTAURANT_IOT_CONNECTED_DEVICE,
   REPORTS_ZERO_WASTE_CIRCULAR_ECONOMY,
+  REPORTS_METAVERSE_VIRTUAL_RESTAURANT_DINING,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -563,6 +564,7 @@ RecipeScalingScreen,
   Food3dPrintingCustomizedCuisineScreen,
   SmartRestaurantIotConnectedDeviceScreen,
   ZeroWasteCircularEconomyScreen,
+  MetaverseVirtualRestaurantDiningScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -836,6 +838,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_3D_FOOD_PRINTING_CUSTOMIZED_CUISINE} element={<Food3dPrintingCustomizedCuisineScreen/>}/>
         <Route path={REPORTS_SMART_RESTAURANT_IOT_CONNECTED_DEVICE} element={<SmartRestaurantIotConnectedDeviceScreen/>}/>
         <Route path={REPORTS_ZERO_WASTE_CIRCULAR_ECONOMY} element={<ZeroWasteCircularEconomyScreen/>}/>
+        <Route path={REPORTS_METAVERSE_VIRTUAL_RESTAURANT_DINING} element={<MetaverseVirtualRestaurantDiningScreen/>}/>
         <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>

@@ -1067,3 +1067,7 @@ export const ZeroWasteCircularEconomyScreen = lazy(() =>
   import('@/screens/reports/zero-waste-circular-economy.report.tsx').then(m => ({default: m.ZeroWasteCircularEconomyScreen}))
 );
 
+export const MetaverseVirtualRestaurantDiningScreen = lazy(() =>
+  import('@/screens/reports/metaverse-virtual-restaurant-dining.report.tsx').then(m => ({default: m.MetaverseVirtualRestaurantDiningScreen}))
+);
+
