@@ -245,6 +245,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_DRIVE_THRU_PICKUP_WINDOW,
   REPORTS_SENSORY_FRIENDLY_SPACE,
   REPORTS_PET_FRIENDLY_SERVICE_ANIMAL,
+  REPORTS_ACCESSIBILITY_MENU_ADA,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -305,6 +306,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         driveThruData,
         sensoryFriendlyData,
         petFriendlyData,
+        accessibilityAdaData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -526,6 +528,7 @@ fetchRecipeScaleSummary(db),
         fetchDriveThruSummary(db),
         fetchSensoryFriendlySummary(db),
         fetchPetFriendlySummary(db),
+        fetchAccessibilityAdaSummary(db),
       ]);
 
       setMetrics([
@@ -550,6 +553,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         driveThruData,
         sensoryFriendlyData,
         petFriendlyData,
+        accessibilityAdaData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5392,6 +5396,33 @@ async function fetchPetFriendlySummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nopatio > 0 || f.noprotocol > 0 || f.refusals > 0 ? 'warning' : 'good'), link: REPORTS_PET_FRIENDLY_SERVICE_ANIMAL, linkLabel: 'View pet-friendly',
     };
   } catch { return neutralCard('Pet-Friendly', faDog, 'text-amber-600', REPORTS_PET_FRIENDLY_SERVICE_ANIMAL); }
+}
+
+async function fetchAccessibilityAdaSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'large_print_menu_absent') AS nolargeprint,
+              math::count(rule_id = 'braille_menu_absent') AS nobraille,
+              math::count(rule_id = 'audio_menu_absent') AS noaudio,
+              math::count(rule_id = 'ada_table_noncompliant') AS notable,
+              math::count(rule_id = 'wheelchair_path_obstructed') AS nopath,
+              math::count(rule_id = 'accessible_restroom_noncompliant') AS norestroom,
+              math::count(rule_id = 'staff_disability_training_absent') AS notraining,
+              math::count(rule_id = 'accessible_parking_noncompliant') AS noparking
+       FROM accessibility_ada_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Accessibility', faUniversalAccess, 'text-violet-600', REPORTS_ACCESSIBILITY_MENU_ADA);
+    return {
+      title: 'Accessibility', icon: faUniversalAccess, color: 'text-violet-600',
+      primary: `${f.norestroom} restroom · ${f.notable} tables`,
+      secondary: `${f.total} alerts · ${f.nolargeprint} no large print · ${f.nobraille} no braille · ${f.noaudio} no audio · ${f.nopath} path · ${f.notraining} no training · ${f.noparking} parking`,
+      health: f.critical > 0 ? 'critical' : (f.norestroom > 0 || f.notable > 0 || f.nopath > 0 ? 'warning' : 'good'), link: REPORTS_ACCESSIBILITY_MENU_ADA, linkLabel: 'View accessibility',
+    };
+  } catch { return neutralCard('Accessibility', faUniversalAccess, 'text-violet-600', REPORTS_ACCESSIBILITY_MENU_ADA); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

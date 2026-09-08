@@ -348,3 +348,4 @@ export const REPORTS_TAKEOUT_PACKAGING_CONTAINER = REPORTS + '/takeout-packaging
 export const REPORTS_DRIVE_THRU_PICKUP_WINDOW = REPORTS + '/drive-thru-pickup-window';
 export const REPORTS_SENSORY_FRIENDLY_SPACE = REPORTS + '/sensory-friendly-space';
 export const REPORTS_PET_FRIENDLY_SERVICE_ANIMAL = REPORTS + '/pet-friendly-service-animal';
+export const REPORTS_ACCESSIBILITY_MENU_ADA = REPORTS + '/accessibility-menu-ada';

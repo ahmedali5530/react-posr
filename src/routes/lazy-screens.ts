@@ -991,3 +991,7 @@ export const PetFriendlyServiceAnimalScreen = lazy(() =>
   import('@/screens/reports/pet-friendly-service-animal.report.tsx').then(m => ({default: m.PetFriendlyServiceAnimalScreen}))
 );
 
+export const AccessibilityMenuAdaScreen = lazy(() =>
+  import('@/screens/reports/accessibility-menu-ada.report.tsx').then(m => ({default: m.AccessibilityMenuAdaScreen}))
+);
+
