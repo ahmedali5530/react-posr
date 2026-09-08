@@ -1035,3 +1035,7 @@ export const KitchenRoboticsAutomationScreen = lazy(() =>
   import('@/screens/reports/kitchen-robotics-automation.report.tsx').then(m => ({default: m.KitchenRoboticsAutomationScreen}))
 );
 
+export const DataMonetizationApiRevenueScreen = lazy(() =>
+  import('@/screens/reports/data-monetization-api-revenue.report.tsx').then(m => ({default: m.DataMonetizationApiRevenueScreen}))
+);
+

@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faDatabase, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -256,6 +256,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_CRISIS_COMMUNICATION_PR_REPUTATION,
   REPORTS_FRANCHISE_MULTI_UNIT_OPERATIONS,
   REPORTS_KITCHEN_ROBOTICS_AUTOMATION,
+  REPORTS_DATA_MONETIZATION_API_REVENUE,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -327,6 +328,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         crisisCommunicationData,
         franchiseOperationsData,
         kitchenRoboticsData,
+        dataMonetizationData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -559,6 +561,7 @@ fetchRecipeScaleSummary(db),
         fetchCrisisCommunicationSummary(db),
         fetchFranchiseOperationsSummary(db),
         fetchKitchenRoboticsSummary(db),
+        fetchDataMonetizationSummary(db),
       ]);
 
       setMetrics([
@@ -594,6 +597,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         crisisCommunicationData,
         franchiseOperationsData,
         kitchenRoboticsData,
+        dataMonetizationData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5733,6 +5737,33 @@ async function fetchKitchenRoboticsSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.lowcooking > 0 || f.nomaintenance > 0 ? 'warning' : 'good'), link: REPORTS_KITCHEN_ROBOTICS_AUTOMATION, linkLabel: 'View robotics',
     };
   } catch { return neutralCard('Robotics', faRobot, 'text-violet-600', REPORTS_KITCHEN_ROBOTICS_AUTOMATION); }
+}
+
+async function fetchDataMonetizationSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'data_monetization_strategy_absent') AS nostrategy,
+              math::count(rule_id = 'api_revenue_program_absent') AS noapi,
+              math::count(rule_id = 'data_licensing_program_absent') AS nolicensing,
+              math::count(rule_id = 'third_party_integration_ecosystem_thin') AS thinpartners,
+              math::count(rule_id = 'benchmarking_data_product_absent') AS nobenchmarking,
+              math::count(rule_id = 'predictive_model_api_absent') AS nopredictive,
+              math::count(rule_id = 'privacy_compliance_program_weak') AS weakprivacy,
+              math::count(rule_id = 'data_valuation_tracking_absent') AS novaluation
+       FROM data_monetization_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Data Monet', faDatabase, 'text-violet-600', REPORTS_DATA_MONETIZATION_API_REVENUE);
+    return {
+      title: 'Data Monet', icon: faDatabase, color: 'text-violet-600',
+      primary: `${f.nostrategy} no strategy · ${f.noapi} no API`,
+      secondary: `${f.total} alerts · ${f.nolicensing} no licensing · ${f.thinpartners} thin partners · ${f.nobenchmarking} no benchmark · ${f.nopredictive} no predictive · ${f.weakprivacy} weak privacy · ${f.novaluation} no valuation`,
+      health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.noapi > 0 || f.weakprivacy > 0 ? 'warning' : 'good'), link: REPORTS_DATA_MONETIZATION_API_REVENUE, linkLabel: 'View data monet',
+    };
+  } catch { return neutralCard('Data Monet', faDatabase, 'text-violet-600', REPORTS_DATA_MONETIZATION_API_REVENUE); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

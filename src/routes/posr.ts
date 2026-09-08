@@ -359,3 +359,4 @@ export const REPORTS_VOICE_ORDERING_CONVERSATIONAL_AI = REPORTS + '/voice-orderi
 export const REPORTS_CRISIS_COMMUNICATION_PR_REPUTATION = REPORTS + '/crisis-communication-pr-reputation';
 export const REPORTS_FRANCHISE_MULTI_UNIT_OPERATIONS = REPORTS + '/franchise-multi-unit-operations';
 export const REPORTS_KITCHEN_ROBOTICS_AUTOMATION = REPORTS + '/kitchen-robotics-automation';
+export const REPORTS_DATA_MONETIZATION_API_REVENUE = REPORTS + '/data-monetization-api-revenue';
