@@ -1063,3 +1063,7 @@ export const SmartRestaurantIotConnectedDeviceScreen = lazy(() =>
   import('@/screens/reports/smart-restaurant-iot-connected-device.report.tsx').then(m => ({default: m.SmartRestaurantIotConnectedDeviceScreen}))
 );
 
+export const ZeroWasteCircularEconomyScreen = lazy(() =>
+  import('@/screens/reports/zero-waste-circular-economy.report.tsx').then(m => ({default: m.ZeroWasteCircularEconomyScreen}))
+);
+
