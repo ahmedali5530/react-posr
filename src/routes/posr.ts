@@ -351,3 +351,4 @@ export const REPORTS_PET_FRIENDLY_SERVICE_ANIMAL = REPORTS + '/pet-friendly-serv
 export const REPORTS_ACCESSIBILITY_MENU_ADA = REPORTS + '/accessibility-menu-ada';
 export const REPORTS_SEASONAL_HOLIDAY_DECOR = REPORTS + '/seasonal-holiday-decor';
 export const REPORTS_CELEBRATION_SERVICE_OPTIMIZER = REPORTS + '/celebration-service-optimizer';
+export const REPORTS_INFLUENCER_OUTREACH_OPTIMIZER = REPORTS + '/influencer-outreach-optimizer';

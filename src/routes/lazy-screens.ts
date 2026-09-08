@@ -1003,3 +1003,7 @@ export const CelebrationServiceOptimizerScreen = lazy(() =>
   import('@/screens/reports/celebration-service-optimizer.report.tsx').then(m => ({default: m.CelebrationServiceOptimizerScreen}))
 );
 
+export const InfluencerOutreachOptimizerScreen = lazy(() =>
+  import('@/screens/reports/influencer-outreach-optimizer.report.tsx').then(m => ({default: m.InfluencerOutreachOptimizerScreen}))
+);
+

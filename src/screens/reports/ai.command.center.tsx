@@ -248,6 +248,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_ACCESSIBILITY_MENU_ADA,
   REPORTS_SEASONAL_HOLIDAY_DECOR,
   REPORTS_CELEBRATION_SERVICE_OPTIMIZER,
+  REPORTS_INFLUENCER_OUTREACH_OPTIMIZER,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -311,6 +312,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         accessibilityAdaData,
         seasonalDecorData,
         celebrationServiceData,
+        influencerOutreachData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -535,6 +537,7 @@ fetchRecipeScaleSummary(db),
         fetchAccessibilityAdaSummary(db),
         fetchSeasonalDecorSummary(db),
         fetchCelebrationServiceSummary(db),
+        fetchInfluencerOutreachSummary(db),
       ]);
 
       setMetrics([
@@ -562,6 +565,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         accessibilityAdaData,
         seasonalDecorData,
         celebrationServiceData,
+        influencerOutreachData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5485,6 +5489,33 @@ async function fetchCelebrationServiceSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nobirthday > 0 || f.noanniversary > 0 || f.noparty > 0 ? 'warning' : 'good'), link: REPORTS_CELEBRATION_SERVICE_OPTIMIZER, linkLabel: 'View celebrations',
     };
   } catch { return neutralCard('Celebrations', faChampagneGlasses, 'text-pink-600', REPORTS_CELEBRATION_SERVICE_OPTIMIZER); }
+}
+
+async function fetchInfluencerOutreachSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'influencer_partnership_program_absent') AS noprogram,
+              math::count(rule_id = 'micro_influencer_strategy_absent') AS nomicro,
+              math::count(rule_id = 'food_blogger_outreach_absent') AS noblogger,
+              math::count(rule_id = 'tiktok_strategy_absent') AS notiktok,
+              math::count(rule_id = 'influencer_content_rights_unclear') AS norights,
+              math::count(rule_id = 'influencer_niche_misalignment') AS nicmisalign,
+              math::count(rule_id = 'influencer_engagement_rate_low') AS lowengagement,
+              math::count(rule_id = 'influencer_roi_tracking_absent') AS noroi
+       FROM influencer_outreach_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Influencers', faShareNodes, 'text-rose-600', REPORTS_INFLUENCER_OUTREACH_OPTIMIZER);
+    return {
+      title: 'Influencers', icon: faShareNodes, color: 'text-rose-600',
+      primary: `${f.noprogram} no program · ${f.nomicro} no micro`,
+      secondary: `${f.total} alerts · ${f.noblogger} no blogger · ${f.notiktok} no tiktok · ${f.norights} no rights · ${f.nicmisalign} niche mismatch · ${f.lowengagement} low eng · ${f.noroi} no ROI`,
+      health: f.critical > 0 ? 'critical' : (f.noprogram > 0 || f.nomicro > 0 || f.notiktok > 0 ? 'warning' : 'good'), link: REPORTS_INFLUENCER_OUTREACH_OPTIMIZER, linkLabel: 'View influencers',
+    };
+  } catch { return neutralCard('Influencers', faShareNodes, 'text-rose-600', REPORTS_INFLUENCER_OUTREACH_OPTIMIZER); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

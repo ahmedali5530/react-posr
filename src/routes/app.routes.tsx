@@ -280,6 +280,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_ACCESSIBILITY_MENU_ADA,
   REPORTS_SEASONAL_HOLIDAY_DECOR,
   REPORTS_CELEBRATION_SERVICE_OPTIMIZER,
+  REPORTS_INFLUENCER_OUTREACH_OPTIMIZER,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -531,6 +532,7 @@ RecipeScalingScreen,
   AccessibilityMenuAdaScreen,
   SeasonalHolidayDecorScreen,
   CelebrationServiceOptimizerScreen,
+  InfluencerOutreachOptimizerScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -788,6 +790,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_ACCESSIBILITY_MENU_ADA} element={<AccessibilityMenuAdaScreen/>}/>
         <Route path={REPORTS_SEASONAL_HOLIDAY_DECOR} element={<SeasonalHolidayDecorScreen/>}/>
         <Route path={REPORTS_CELEBRATION_SERVICE_OPTIMIZER} element={<CelebrationServiceOptimizerScreen/>}/>
+        <Route path={REPORTS_INFLUENCER_OUTREACH_OPTIMIZER} element={<InfluencerOutreachOptimizerScreen/>}/>
         <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>
