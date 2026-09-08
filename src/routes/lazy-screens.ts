@@ -1047,3 +1047,7 @@ export const DroneDeliveryAerialLogisticsScreen = lazy(() =>
   import('@/screens/reports/drone-delivery-aerial-logistics.report.tsx').then(m => ({default: m.DroneDeliveryAerialLogisticsScreen}))
 );
 
+export const OnSiteFarmHyperlocalAgricultureScreen = lazy(() =>
+  import('@/screens/reports/on-site-farm-hyperlocal-agriculture.report.tsx').then(m => ({default: m.OnSiteFarmHyperlocalAgricultureScreen}))
+);
+

@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faDatabase, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faDatabase, faSeedling, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -259,6 +259,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_DATA_MONETIZATION_API_REVENUE,
   REPORTS_AR_MENU_IMMERSIVE_DINING,
   REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS,
+  REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -333,6 +334,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         dataMonetizationData,
         arMenuData,
         droneDeliveryData,
+        onSiteFarmData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -568,6 +570,7 @@ fetchRecipeScaleSummary(db),
         fetchDataMonetizationSummary(db),
         fetchArMenuSummary(db),
         fetchDroneDeliverySummary(db),
+        fetchOnSiteFarmSummary(db),
       ]);
 
       setMetrics([
@@ -606,6 +609,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         dataMonetizationData,
         arMenuData,
         droneDeliveryData,
+        onSiteFarmData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5826,6 +5830,33 @@ async function fetchDroneDeliverySummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.nofleet > 0 || f.noregulatory > 0 ? 'warning' : 'good'), link: REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS, linkLabel: 'View drone delivery',
     };
   } catch { return neutralCard('Drone Delivery', faRocket, 'text-violet-600', REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS); }
+}
+
+async function fetchOnSiteFarmSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'on_site_farm_strategy_absent') AS nostrategy,
+              math::count(rule_id = 'hydroponic_vertical_farming_absent') AS nohydroponic,
+              math::count(rule_id = 'microgreen_herb_cultivation_absent') AS nomicrogreen,
+              math::count(rule_id = 'rooftop_garden_utilization_low') AS lowrooftop,
+              math::count(rule_id = 'aquaponics_system_absent') AS noaquaponics,
+              math::count(rule_id = 'composting_waste_recycling_absent') AS nocomposting,
+              math::count(rule_id = 'farm_to_table_traceability_absent') AS notraceability,
+              math::count(rule_id = 'led_grow_optimization_absent') AS noled
+       FROM on_site_farm_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('On-Site Farm', faSeedling, 'text-emerald-600', REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE);
+    return {
+      title: 'On-Site Farm', icon: faSeedling, color: 'text-emerald-600',
+      primary: `${f.nostrategy} no strategy · ${f.nohydroponic} no hydroponic`,
+      secondary: `${f.total} alerts · ${f.nomicrogreen} no microgreen · ${f.lowrooftop} low rooftop · ${f.noaquaponics} no aquaponics · ${f.nocomposting} no composting · ${f.notraceability} no traceability · ${f.noled} no LED`,
+      health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.nohydroponic > 0 || f.nomicrogreen > 0 ? 'warning' : 'good'), link: REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE, linkLabel: 'View on-site farm',
+    };
+  } catch { return neutralCard('On-Site Farm', faSeedling, 'text-emerald-600', REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

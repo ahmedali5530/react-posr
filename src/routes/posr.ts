@@ -362,3 +362,4 @@ export const REPORTS_KITCHEN_ROBOTICS_AUTOMATION = REPORTS + '/kitchen-robotics-
 export const REPORTS_DATA_MONETIZATION_API_REVENUE = REPORTS + '/data-monetization-api-revenue';
 export const REPORTS_AR_MENU_IMMERSIVE_DINING = REPORTS + '/ar-menu-immersive-dining';
 export const REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS = REPORTS + '/drone-delivery-aerial-logistics';
+export const REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE = REPORTS + '/on-site-farm-hyperlocal-agriculture';

@@ -291,6 +291,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_DATA_MONETIZATION_API_REVENUE,
   REPORTS_AR_MENU_IMMERSIVE_DINING,
   REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS,
+  REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -553,6 +554,7 @@ RecipeScalingScreen,
   DataMonetizationApiRevenueScreen,
   ArMenuImmersiveDiningScreen,
   DroneDeliveryAerialLogisticsScreen,
+  OnSiteFarmHyperlocalAgricultureScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -821,6 +823,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_DATA_MONETIZATION_API_REVENUE} element={<DataMonetizationApiRevenueScreen/>}/>
         <Route path={REPORTS_AR_MENU_IMMERSIVE_DINING} element={<ArMenuImmersiveDiningScreen/>}/>
         <Route path={REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS} element={<DroneDeliveryAerialLogisticsScreen/>}/>
+        <Route path={REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE} element={<OnSiteFarmHyperlocalAgricultureScreen/>}/>
         <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>
