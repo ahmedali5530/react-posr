@@ -285,6 +285,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_GHOST_KITCHEN_VIRTUAL_BRAND,
   REPORTS_SUBSCRIPTION_MEMBERSHIP_PROGRAM,
   REPORTS_VOICE_ORDERING_CONVERSATIONAL_AI,
+  REPORTS_CRISIS_COMMUNICATION_PR_REPUTATION,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -541,6 +542,7 @@ RecipeScalingScreen,
   GhostKitchenVirtualBrandScreen,
   SubscriptionMembershipProgramScreen,
   VoiceOrderingConversationalAiScreen,
+  CrisisCommunicationPrReputationScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -803,6 +805,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_GHOST_KITCHEN_VIRTUAL_BRAND} element={<GhostKitchenVirtualBrandScreen/>}/>
         <Route path={REPORTS_SUBSCRIPTION_MEMBERSHIP_PROGRAM} element={<SubscriptionMembershipProgramScreen/>}/>
         <Route path={REPORTS_VOICE_ORDERING_CONVERSATIONAL_AI} element={<VoiceOrderingConversationalAiScreen/>}/>
+        <Route path={REPORTS_CRISIS_COMMUNICATION_PR_REPUTATION} element={<CrisisCommunicationPrReputationScreen/>}/>
         <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>

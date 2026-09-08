@@ -1023,3 +1023,7 @@ export const VoiceOrderingConversationalAiScreen = lazy(() =>
   import('@/screens/reports/voice-ordering-conversational-ai.report.tsx').then(m => ({default: m.VoiceOrderingConversationalAiScreen}))
 );
 
+export const CrisisCommunicationPrReputationScreen = lazy(() =>
+  import('@/screens/reports/crisis-communication-pr-reputation.report.tsx').then(m => ({default: m.CrisisCommunicationPrReputationScreen}))
+);
+
