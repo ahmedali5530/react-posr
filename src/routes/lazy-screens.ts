@@ -1027,3 +1027,7 @@ export const CrisisCommunicationPrReputationScreen = lazy(() =>
   import('@/screens/reports/crisis-communication-pr-reputation.report.tsx').then(m => ({default: m.CrisisCommunicationPrReputationScreen}))
 );
 
+export const FranchiseMultiUnitOperationsScreen = lazy(() =>
+  import('@/screens/reports/franchise-multi-unit-operations.report.tsx').then(m => ({default: m.FranchiseMultiUnitOperationsScreen}))
+);
+

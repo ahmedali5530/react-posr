@@ -286,6 +286,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_SUBSCRIPTION_MEMBERSHIP_PROGRAM,
   REPORTS_VOICE_ORDERING_CONVERSATIONAL_AI,
   REPORTS_CRISIS_COMMUNICATION_PR_REPUTATION,
+  REPORTS_FRANCHISE_MULTI_UNIT_OPERATIONS,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -543,6 +544,7 @@ RecipeScalingScreen,
   SubscriptionMembershipProgramScreen,
   VoiceOrderingConversationalAiScreen,
   CrisisCommunicationPrReputationScreen,
+  FranchiseMultiUnitOperationsScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -806,6 +808,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_SUBSCRIPTION_MEMBERSHIP_PROGRAM} element={<SubscriptionMembershipProgramScreen/>}/>
         <Route path={REPORTS_VOICE_ORDERING_CONVERSATIONAL_AI} element={<VoiceOrderingConversationalAiScreen/>}/>
         <Route path={REPORTS_CRISIS_COMMUNICATION_PR_REPUTATION} element={<CrisisCommunicationPrReputationScreen/>}/>
+        <Route path={REPORTS_FRANCHISE_MULTI_UNIT_OPERATIONS} element={<FranchiseMultiUnitOperationsScreen/>}/>
         <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>

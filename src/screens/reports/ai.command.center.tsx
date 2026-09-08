@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faHandshake, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -254,6 +254,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_SUBSCRIPTION_MEMBERSHIP_PROGRAM,
   REPORTS_VOICE_ORDERING_CONVERSATIONAL_AI,
   REPORTS_CRISIS_COMMUNICATION_PR_REPUTATION,
+  REPORTS_FRANCHISE_MULTI_UNIT_OPERATIONS,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -323,6 +324,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         subscriptionProgramData,
         voiceOrderingData,
         crisisCommunicationData,
+        franchiseOperationsData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -553,6 +555,7 @@ fetchRecipeScaleSummary(db),
         fetchSubscriptionProgramSummary(db),
         fetchVoiceOrderingSummary(db),
         fetchCrisisCommunicationSummary(db),
+        fetchFranchiseOperationsSummary(db),
       ]);
 
       setMetrics([
@@ -586,6 +589,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         subscriptionProgramData,
         voiceOrderingData,
         crisisCommunicationData,
+        franchiseOperationsData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5671,6 +5675,33 @@ async function fetchCrisisCommunicationSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.noplan > 0 || f.slowviral > 0 || f.nofoodsafety > 0 ? 'warning' : 'good'), link: REPORTS_CRISIS_COMMUNICATION_PR_REPUTATION, linkLabel: 'View crisis comms',
     };
   } catch { return neutralCard('Crisis Comms', faTriangleExclamation, 'text-rose-600', REPORTS_CRISIS_COMMUNICATION_PR_REPUTATION); }
+}
+
+async function fetchFranchiseOperationsSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'franchise_strategy_absent') AS nostrategy,
+              math::count(rule_id = 'franchisee_profitability_low') AS lowprofit,
+              math::count(rule_id = 'brand_consistency_across_units_low') AS lowconsistency,
+              math::count(rule_id = 'franchisee_support_program_absent') AS nosupport,
+              math::count(rule_id = 'franchise_development_pipeline_thin') AS thinpipeline,
+              math::count(rule_id = 'territory_management_cannibalization') AS cannibalization,
+              math::count(rule_id = 'franchise_compliance_monitoring_absent') AS nocompliance,
+              math::count(rule_id = 'franchisee_onboarding_program_weak') AS weakonboarding
+       FROM franchise_operations_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Franchise', faHandshake, 'text-violet-600', REPORTS_FRANCHISE_MULTI_UNIT_OPERATIONS);
+    return {
+      title: 'Franchise', icon: faHandshake, color: 'text-violet-600',
+      primary: `${f.nostrategy} no strategy · ${f.lowprofit} low profit`,
+      secondary: `${f.total} alerts · ${f.lowconsistency} low consistency · ${f.nosupport} no support · ${f.thinpipeline} thin pipeline · ${f.cannibalization} cannibalization · ${f.nocompliance} no compliance · ${f.weakonboarding} weak onboarding`,
+      health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.lowprofit > 0 || f.nosupport > 0 ? 'warning' : 'good'), link: REPORTS_FRANCHISE_MULTI_UNIT_OPERATIONS, linkLabel: 'View franchise',
+    };
+  } catch { return neutralCard('Franchise', faHandshake, 'text-violet-600', REPORTS_FRANCHISE_MULTI_UNIT_OPERATIONS); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {
