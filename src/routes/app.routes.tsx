@@ -294,6 +294,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE,
   REPORTS_BLOCKCHAIN_LOYALTY_TOKENIZED_REWARDS,
   REPORTS_3D_FOOD_PRINTING_CUSTOMIZED_CUISINE,
+  REPORTS_SMART_RESTAURANT_IOT_CONNECTED_DEVICE,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -559,6 +560,7 @@ RecipeScalingScreen,
   OnSiteFarmHyperlocalAgricultureScreen,
   BlockchainLoyaltyTokenizedRewardsScreen,
   Food3dPrintingCustomizedCuisineScreen,
+  SmartRestaurantIotConnectedDeviceScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -830,6 +832,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE} element={<OnSiteFarmHyperlocalAgricultureScreen/>}/>
         <Route path={REPORTS_BLOCKCHAIN_LOYALTY_TOKENIZED_REWARDS} element={<BlockchainLoyaltyTokenizedRewardsScreen/>}/>
         <Route path={REPORTS_3D_FOOD_PRINTING_CUSTOMIZED_CUISINE} element={<Food3dPrintingCustomizedCuisineScreen/>}/>
+        <Route path={REPORTS_SMART_RESTAURANT_IOT_CONNECTED_DEVICE} element={<SmartRestaurantIotConnectedDeviceScreen/>}/>
         <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>

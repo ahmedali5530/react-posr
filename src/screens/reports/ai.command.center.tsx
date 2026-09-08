@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faDatabase, faSeedling, faBitcoinSign, faCube, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faDatabase, faSeedling, faBitcoinSign, faCube, faMicrochip, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faRecycle, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -262,6 +262,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE,
   REPORTS_BLOCKCHAIN_LOYALTY_TOKENIZED_REWARDS,
   REPORTS_3D_FOOD_PRINTING_CUSTOMIZED_CUISINE,
+  REPORTS_SMART_RESTAURANT_IOT_CONNECTED_DEVICE,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -339,6 +340,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         onSiteFarmData,
         blockchainLoyaltyData,
         food3dPrintingData,
+        smartRestaurantIotData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -577,6 +579,7 @@ fetchRecipeScaleSummary(db),
         fetchOnSiteFarmSummary(db),
         fetchBlockchainLoyaltySummary(db),
         fetchFood3dPrintingSummary(db),
+        fetchSmartRestaurantIotSummary(db),
       ]);
 
       setMetrics([
@@ -618,6 +621,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         onSiteFarmData,
         blockchainLoyaltyData,
         food3dPrintingData,
+        smartRestaurantIotData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -5919,6 +5923,33 @@ async function fetchFood3dPrintingSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.nonutrition > 0 || f.nonovel > 0 ? 'warning' : 'good'), link: REPORTS_3D_FOOD_PRINTING_CUSTOMIZED_CUISINE, linkLabel: 'View 3D printing',
     };
   } catch { return neutralCard('3D Food Printing', faCube, 'text-violet-600', REPORTS_3D_FOOD_PRINTING_CUSTOMIZED_CUISINE); }
+}
+
+async function fetchSmartRestaurantIotSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'smart_iot_strategy_absent') AS nostrategy,
+              math::count(rule_id = 'predictive_maintenance_absent') AS nomaintenance,
+              math::count(rule_id = 'food_safety_iot_monitoring_absent') AS nofoodsafety,
+              math::count(rule_id = 'occupancy_tracking_absent') AS nooccupancy,
+              math::count(rule_id = 'energy_iot_absent') AS noenergy,
+              math::count(rule_id = 'unified_iot_dashboard_absent') AS nodashboard,
+              math::count(rule_id = 'iot_security_program_absent') AS nosecurity,
+              math::count(rule_id = 'iot_roi_tracking_absent') AS noroi
+       FROM smart_restaurant_iot_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Smart IoT', faMicrochip, 'text-sky-600', REPORTS_SMART_RESTAURANT_IOT_CONNECTED_DEVICE);
+    return {
+      title: 'Smart IoT', icon: faMicrochip, color: 'text-sky-600',
+      primary: `${f.nostrategy} no strategy · ${f.nomaintenance} no maintenance`,
+      secondary: `${f.total} alerts · ${f.nofoodsafety} no food safety · ${f.nooccupancy} no occupancy · ${f.noenergy} no energy · ${f.nodashboard} no dashboard · ${f.nosecurity} no security · ${f.noroi} no ROI`,
+      health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.nomaintenance > 0 || f.nofoodsafety > 0 ? 'warning' : 'good'), link: REPORTS_SMART_RESTAURANT_IOT_CONNECTED_DEVICE, linkLabel: 'View smart IoT',
+    };
+  } catch { return neutralCard('Smart IoT', faMicrochip, 'text-sky-600', REPORTS_SMART_RESTAURANT_IOT_CONNECTED_DEVICE); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

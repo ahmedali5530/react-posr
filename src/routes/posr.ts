@@ -365,3 +365,4 @@ export const REPORTS_DRONE_DELIVERY_AERIAL_LOGISTICS = REPORTS + '/drone-deliver
 export const REPORTS_ON_SITE_FARM_HYPERLOCAL_AGRICULTURE = REPORTS + '/on-site-farm-hyperlocal-agriculture';
 export const REPORTS_BLOCKCHAIN_LOYALTY_TOKENIZED_REWARDS = REPORTS + '/blockchain-loyalty-tokenized-rewards';
 export const REPORTS_3D_FOOD_PRINTING_CUSTOMIZED_CUISINE = REPORTS + '/3d-food-printing-customized-cuisine';
+export const REPORTS_SMART_RESTAURANT_IOT_CONNECTED_DEVICE = REPORTS + '/smart-restaurant-iot-connected-device';
