@@ -419,7 +419,7 @@ export const runGiftCardFraudScan = async (
     () => checkStaffIssuanceSpike(db, config),
   ];
   const total = checks.length;
-  let allAlerts: GiftCardFraudAlert[] = [];
+  const allAlerts: GiftCardFraudAlert[] = [];
 
   for (let i = 0; i < checks.length; i++) {
     if (onProgress) onProgress(i, total);

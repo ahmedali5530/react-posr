@@ -230,13 +230,13 @@ export const runDeliveryRouteOptimization = async (
   }
 
   // Persist
-  try { await db.query(`DELETE FROM delivery_route_suggestion WHERE created_at < time::now() - 1h AND status = 'pending'`); } catch { }
+  try { await db.query(`DELETE FROM delivery_route_suggestion WHERE created_at < time::now() - 1h AND status = 'pending'`); } catch { /* ignore */ }
   for (const route of routes) {
     try {
       await db.query(`CREATE delivery_route_suggestion CONTENT $data`, {
         data: { ...route, created_at: route.created_at.toISOString() },
       });
-    } catch { }
+    } catch { /* ignore */ }
   }
 
   if (onProgress) onProgress(2, 2);

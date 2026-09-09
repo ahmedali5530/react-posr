@@ -161,7 +161,7 @@ export const runGamificationEngine = async (
     const rows = Array.isArray(result) ? result.flat() : [];
 
     // Fetch lifetime order count + consecutive days per staff
-    let lifetimeStats: Map<string, { lifetime: number; consecutive: number }> = new Map();
+    const lifetimeStats: Map<string, { lifetime: number; consecutive: number }> = new Map();
     try {
       const lifetimeResult = await db.query(
         `SELECT

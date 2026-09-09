@@ -201,9 +201,9 @@ export const runDishProfitAnalysis = async (
   if (config.aiEnabled && dishes.length > 0) await enhanceWithAI(dishes);
 
   // Persist
-  try { await db.query(`DELETE FROM dish_profitability WHERE analyzed_at < time::now() - 1h`); } catch { }
+  try { await db.query(`DELETE FROM dish_profitability WHERE analyzed_at < time::now() - 1h`); } catch { /* ignore */ }
   for (const d of dishes) {
-    try { await db.query(`CREATE dish_profitability CONTENT $data`, { data: { ...d, analyzed_at: d.analyzed_at.toISOString() } }); } catch { }
+    try { await db.query(`CREATE dish_profitability CONTENT $data`, { data: { ...d, analyzed_at: d.analyzed_at.toISOString() } }); } catch { /* ignore */ }
   }
 
   if (onProgress) onProgress(2, 2);

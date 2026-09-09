@@ -156,7 +156,7 @@ export const runCrossSellEngine = async (
   if (menuItems.length === 0) return { suggestions: [], generated: 0 };
 
   // 2. Fetch co-purchase data from order history
-  let coPurchaseMap: Map<string, Map<string, number>> = new Map();
+  const coPurchaseMap: Map<string, Map<string, number>> = new Map();
   try {
     const result = await db.query(
       `SELECT

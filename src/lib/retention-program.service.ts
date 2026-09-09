@@ -125,7 +125,7 @@ export const runRetentionEngine = async (
     const rows = Array.isArray(result) ? result.flat() : [];
 
     // Fetch shift data for tenure + hours
-    let shiftStats: Map<string, { tenure_days: number; avg_hours: number; shift_count: number }> = new Map();
+    const shiftStats: Map<string, { tenure_days: number; avg_hours: number; shift_count: number }> = new Map();
     try {
       const shiftResult = await db.query(
         `SELECT
@@ -150,7 +150,7 @@ export const runRetentionEngine = async (
     } catch { /* ignore */ }
 
     // Fetch performance notes
-    let notesMap: Map<string, string[]> = new Map();
+    const notesMap: Map<string, string[]> = new Map();
     try {
       const notesResult = await db.query(
         `SELECT user.id AS sid, note AS text

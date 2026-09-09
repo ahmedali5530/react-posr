@@ -99,7 +99,7 @@ export const runStressEngine = async (
   // 1. Fetch current cash balance
   let currentBalance = 5000; // default fallback
   let avgDailyRevenue = config.avgDailyRevenue;
-  let avgDailyCost = config.avgDailyCost;
+  const avgDailyCost = config.avgDailyCost;
 
   try {
     const revResult = await db.query(

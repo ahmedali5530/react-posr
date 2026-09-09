@@ -193,7 +193,7 @@ export const runWeatherAnalysis = async (
           else if (rec.includes('increase')) aiRec = 'increase_staffing';
           else aiRec = 'no_action';
         }
-      } catch { }
+      } catch { /* ignore */ }
     }
   }
 
@@ -216,8 +216,8 @@ export const runWeatherAnalysis = async (
   };
 
   // Persist
-  try { await db.query(`DELETE FROM weather_impact WHERE analyzed_at < time::now() - 6h`); } catch { }
-  try { await db.query(`CREATE weather_impact CONTENT $data`, { data: { ...impact, analysis_date: impact.analysis_date.toISOString(), analyzed_at: impact.analyzed_at.toISOString() } }); } catch { }
+  try { await db.query(`DELETE FROM weather_impact WHERE analyzed_at < time::now() - 6h`); } catch { /* ignore */ }
+  try { await db.query(`CREATE weather_impact CONTENT $data`, { data: { ...impact, analysis_date: impact.analysis_date.toISOString(), analyzed_at: impact.analyzed_at.toISOString() } }); } catch { /* ignore */ }
 
   if (onProgress) onProgress(2, 2);
   return { impact };

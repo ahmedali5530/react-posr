@@ -163,7 +163,7 @@ export const runMilestoneEngine = async (
     const rows = Array.isArray(result) ? result.flat() : [];
 
     // Fetch order stats per customer
-    let orderStats: Map<string, { count: number; spend: number }> = new Map();
+    const orderStats: Map<string, { count: number; spend: number }> = new Map();
     try {
       const statsResult = await db.query(
         `SELECT

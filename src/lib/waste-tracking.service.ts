@@ -631,8 +631,8 @@ const ruleBasedInsights = (patterns: WastePattern[]): void => {
     let insight_type: InsightType = 'monitor';
     let insight_text = '';
     let recommended_action = '';
-    let projected_savings = p.total_cost * 0.5;
-    let priority: InsightPriority = p.severity === 'critical' ? 'high' : p.severity === 'high' ? 'medium' : 'low';
+    const projected_savings = p.total_cost * 0.5;
+    const priority: InsightPriority = p.severity === 'critical' ? 'high' : p.severity === 'high' ? 'medium' : 'low';
 
     switch (p.pattern_type) {
       case 'item_recurring':

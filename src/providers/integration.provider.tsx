@@ -90,6 +90,7 @@ export const IntegrationProvider = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     let mounted = true;
+    // eslint-disable-next-line prefer-const
     let queueTimer: ReturnType<typeof setInterval> | undefined;
 
     const refreshProviderStates = async () => {
@@ -160,6 +161,7 @@ export const IntegrationProvider = ({ children }: PropsWithChildren) => {
       }
     });
 
+    // eslint-disable-next-line prefer-const
     queueTimer = setInterval(() => {
       void manager.processQueue();
     }, 1200);

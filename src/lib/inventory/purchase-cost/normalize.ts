@@ -110,7 +110,7 @@ export const normalizePurchaseExtra = (
       ? extra.inventory_treatment
       : defaultTreatmentForCategory(category);
 
-  let tax_behavior: PurchaseTaxBehavior | null =
+  const tax_behavior: PurchaseTaxBehavior | null =
     extra.tax_behavior && VALID_TAX.has(extra.tax_behavior)
       ? extra.tax_behavior
       : defaultTaxBehaviorForCategory(category, settings);

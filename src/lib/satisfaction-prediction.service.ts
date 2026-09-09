@@ -150,7 +150,7 @@ const fetchRecentOrders = async (db: any, cfg: SatisfactionConfig): Promise<Orde
 
     // Get modification counts per order
     const orderIds = rows.map((r: any) => r.id?.toString?.()).filter(Boolean);
-    let modCounts = new Map<string, number>();
+    const modCounts = new Map<string, number>();
     if (orderIds.length > 0) {
       try {
         const modResult = await db.query(

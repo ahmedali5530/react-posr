@@ -564,7 +564,7 @@ export const runYieldVarianceScan = async (
     () => checkStaffVariance(db, config),
   ];
   const total = checks.length;
-  let allAlerts: YieldVarianceAlert[] = [];
+  const allAlerts: YieldVarianceAlert[] = [];
 
   for (let i = 0; i < checks.length; i++) {
     if (onProgress) onProgress(i, total);

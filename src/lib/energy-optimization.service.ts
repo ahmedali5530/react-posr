@@ -531,7 +531,7 @@ export const runEnergyScan = async (
     () => checkTariffMismatch(db, config),
   ];
   const total = checks.length;
-  let allAlerts: EnergyAlert[] = [];
+  const allAlerts: EnergyAlert[] = [];
 
   for (let i = 0; i < checks.length; i++) {
     if (onProgress) onProgress(i, total);

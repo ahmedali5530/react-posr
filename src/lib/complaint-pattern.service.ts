@@ -268,14 +268,14 @@ export const runComplaintPatternScan = async (
     () => checkUnrespondedCritical(db, config),
   ];
   const total = checks.length;
-  let allAlerts: ComplaintPatternAlert[] = [];
+  const allAlerts: ComplaintPatternAlert[] = [];
   for (let i = 0; i < checks.length; i++) {
     if (onProgress) onProgress(i, total);
     try { allAlerts.push(...await checks[i]()); } catch (err) { console.warn('[complaint] check', i, err); }
   }
   if (config.aiEnabled && allAlerts.length > 0) await enhanceWithAI(allAlerts);
   for (const alert of allAlerts) {
-    try { await db.query(`CREATE complaint_pattern_alert CONTENT $data`, { data: { ...alert, detected_at: alert.detected_at.toISOString() } }); } catch { }
+    try { await db.query(`CREATE complaint_pattern_alert CONTENT $data`, { data: { ...alert, detected_at: alert.detected_at.toISOString() } }); } catch { /* ignore */ }
   }
   if (onProgress) onProgress(total, total);
   return { alerts: allAlerts, checked: total };

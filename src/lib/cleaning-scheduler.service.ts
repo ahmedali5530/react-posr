@@ -165,7 +165,7 @@ export const runCleaningEngine = async (
   }
 
   // 2. Fetch last cleaning logs per task
-  let cleaningLogs: Map<string, CleaningLog> = new Map();
+  const cleaningLogs: Map<string, CleaningLog> = new Map();
   try {
     const result = await db.query(
       `SELECT task_name, zone, completed_at, completed_by

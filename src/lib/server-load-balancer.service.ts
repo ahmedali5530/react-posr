@@ -138,7 +138,7 @@ export const runServerBalancer = async (
       `SELECT id, customer_name, party_size FROM waitlist_entry WHERE status IN ['waiting', 'called'] LIMIT 20`
     );
     parties = Array.isArray(waitlistResult) ? waitlistResult.flat() : [];
-  } catch { }
+  } catch { /* ignore */ }
 
   // 3. Score each server
   const scoredServers = servers.map(s => {
@@ -200,15 +200,15 @@ export const runServerBalancer = async (
           ], { temperature: 0.3, maxTokens: 100 });
           const text = typeof response === 'string' ? response : (response as any)?.content ?? '';
           a.ai_insight = text.slice(0, 200);
-        } catch { }
+        } catch { /* ignore */ }
       }
     }
   }
 
   // 6. Persist
-  try { await db.query(`DELETE FROM server_assignment WHERE assigned_at < time::now() - 30m AND status = 'pending'`); } catch { }
+  try { await db.query(`DELETE FROM server_assignment WHERE assigned_at < time::now() - 30m AND status = 'pending'`); } catch { /* ignore */ }
   for (const a of assignments) {
-    try { await db.query(`CREATE server_assignment CONTENT $data`, { data: { ...a, assigned_at: a.assigned_at.toISOString() } }); } catch { }
+    try { await db.query(`CREATE server_assignment CONTENT $data`, { data: { ...a, assigned_at: a.assigned_at.toISOString() } }); } catch { /* ignore */ }
   }
 
   if (onProgress) onProgress(2, 2);

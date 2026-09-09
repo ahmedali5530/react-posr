@@ -505,7 +505,7 @@ export const runFoodSafetyScan = async (
     () => checkExpiredStock(db, config),
   ];
   const total = checks.length;
-  let allAlerts: FoodSafetyAlert[] = [];
+  const allAlerts: FoodSafetyAlert[] = [];
 
   for (let i = 0; i < checks.length; i++) {
     if (onProgress) onProgress(i, total);

@@ -128,15 +128,15 @@ export const runPeakPricingEngine = async (
           ], { temperature: 0.3, maxTokens: 100 });
           const text = typeof response === 'string' ? response : (response as any)?.content ?? '';
           rule.ai_insight = text.slice(0, 200);
-        } catch { }
+        } catch { /* ignore */ }
       }
     }
   }
 
   // 5. Persist
-  try { await db.query(`DELETE FROM peak_pricing_rule WHERE status = 'pending' AND created_at < time::now() - 1h`); } catch { }
+  try { await db.query(`DELETE FROM peak_pricing_rule WHERE status = 'pending' AND created_at < time::now() - 1h`); } catch { /* ignore */ }
   for (const rule of rules) {
-    try { await db.query(`CREATE peak_pricing_rule CONTENT $data`, { data: { ...rule, created_at: rule.created_at.toISOString() } }); } catch { }
+    try { await db.query(`CREATE peak_pricing_rule CONTENT $data`, { data: { ...rule, created_at: rule.created_at.toISOString() } }); } catch { /* ignore */ }
   }
 
   return { rules, generated: rules.length };

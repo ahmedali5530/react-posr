@@ -502,7 +502,7 @@ export const runPromoAbuseScan = async (
     () => checkStaffDiscountAbuse(db, config),
   ];
   const total = checks.length;
-  let allAlerts: PromoAbuseAlert[] = [];
+  const allAlerts: PromoAbuseAlert[] = [];
 
   for (let i = 0; i < checks.length; i++) {
     if (onProgress) onProgress(i, total);

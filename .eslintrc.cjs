@@ -19,6 +19,12 @@ module.exports = {
     "no-useless-catch": "off",
     "no-unused-vars": "off",
     "@typescript-eslint/ban-ts-comment": "off",
-    "@typescript-eslint/no-var-requires": "off"
+    "@typescript-eslint/no-var-requires": "off",
+    "no-case-declarations": "off",
+    "no-empty": "off",
+    "@typescript-eslint/no-unused-expressions": "off",
+    "no-useless-escape": "off",
+    "@typescript-eslint/no-require-imports": "off",
+    "@typescript-eslint/no-empty-object-type": "off"
   },
 }

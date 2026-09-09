@@ -57,6 +57,7 @@ export const Input = forwardRef((props: InputProps, ref: Ref<any>) => {
   } = props;
   let formContext: ReturnType<typeof useFormContext> | null = null;
   try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     formContext = useFormContext();
   } catch (e) {
     formContext = null;

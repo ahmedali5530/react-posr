@@ -143,7 +143,7 @@ export const runFloorPlanEngine = async (
     const rows = Array.isArray(result) ? result.flat() : [];
 
     // Fetch usage stats per table
-    let tableStats: Map<string, { orders: number; revenue: number; occupied_hours: number; party_sizes: number[] }> = new Map();
+    const tableStats: Map<string, { orders: number; revenue: number; occupied_hours: number; party_sizes: number[] }> = new Map();
     try {
       const statsResult = await db.query(
         `SELECT

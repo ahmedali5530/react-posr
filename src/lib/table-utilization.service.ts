@@ -203,7 +203,7 @@ export const runTableUtilScan = async (
   if (config.aiEnabled && alerts.length > 0) await enhanceWithAI(alerts);
 
   for (const alert of alerts) {
-    try { await db.query(`CREATE table_utilization_alert CONTENT $data`, { data: { ...alert, detected_at: alert.detected_at.toISOString() } }); } catch { }
+    try { await db.query(`CREATE table_utilization_alert CONTENT $data`, { data: { ...alert, detected_at: alert.detected_at.toISOString() } }); } catch { /* ignore */ }
   }
 
   return { alerts, scanned: tables.length };

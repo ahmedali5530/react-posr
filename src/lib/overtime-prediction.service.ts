@@ -180,9 +180,9 @@ export const runOvertimePrediction = async (
   if (config.aiEnabled && predictions.length > 0) await enhanceWithAI(predictions, config);
 
   // Persist
-  try { await db.query(`DELETE FROM overtime_prediction WHERE predicted_at < time::now() - 1h`); } catch { }
+  try { await db.query(`DELETE FROM overtime_prediction WHERE predicted_at < time::now() - 1h`); } catch { /* ignore */ }
   for (const pred of predictions) {
-    try { await db.query(`CREATE overtime_prediction CONTENT $data`, { data: { ...pred, predicted_at: pred.predicted_at.toISOString() } }); } catch { }
+    try { await db.query(`CREATE overtime_prediction CONTENT $data`, { data: { ...pred, predicted_at: pred.predicted_at.toISOString() } }); } catch { /* ignore */ }
   }
 
   return { predictions, scanned: employees.length };

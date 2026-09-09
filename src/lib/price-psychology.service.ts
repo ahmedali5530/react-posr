@@ -140,7 +140,7 @@ export const runPricePsychEngine = async (
     const rows = Array.isArray(result) ? result.flat() : [];
 
     // Fetch sales counts
-    let salesMap: Map<string, number> = new Map();
+    const salesMap: Map<string, number> = new Map();
     try {
       const salesResult = await db.query(
         `SELECT item.id AS item_id, math::sum(quantity) AS qty

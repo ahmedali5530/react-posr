@@ -209,13 +209,13 @@ export const runBuffetDemandPrediction = async (
   }
 
   // 4. Persist (refresh)
-  try { await db.query(`DELETE FROM buffet_demand_prediction WHERE predicted_at < time::now() - 1h`); } catch { }
+  try { await db.query(`DELETE FROM buffet_demand_prediction WHERE predicted_at < time::now() - 1h`); } catch { /* ignore */ }
   for (const pred of predictions) {
     try {
       await db.query(`CREATE buffet_demand_prediction CONTENT $data`, {
         data: { ...pred, business_date: pred.business_date.toISOString(), predicted_at: pred.predicted_at.toISOString() },
       });
-    } catch { }
+    } catch { /* ignore */ }
   }
 
   if (onProgress) onProgress(2, 2);

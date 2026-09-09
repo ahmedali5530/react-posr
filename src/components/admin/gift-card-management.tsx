@@ -61,7 +61,7 @@ export function GiftCardManagement() {
         })
       );
       // Copy code to clipboard for convenience
-      try { await navigator.clipboard.writeText(card.code); } catch {}
+      try { await navigator.clipboard.writeText(card.code); } catch { /* ignore */ }
     } catch (err: any) {
       toast.error(err?.message || t("admin:giftCard.issueFailed", { defaultValue: "Failed to issue gift card" }));
     } finally {

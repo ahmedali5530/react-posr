@@ -377,7 +377,7 @@ export const runShrinkageDetection = async (
     () => checkHighValueLoss(db, config),
   ];
   const total = checks.length;
-  let allAlerts: ShrinkageAlert[] = [];
+  const allAlerts: ShrinkageAlert[] = [];
 
   for (let i = 0; i < checks.length; i++) {
     if (onProgress) onProgress(i, total);

@@ -164,7 +164,7 @@ export const runRecipeScaleEngine = async (
   const now = new Date();
 
   // 1. Fetch recipes with ingredients
-  let recipes: RecipeData[] = [];
+  const recipes: RecipeData[] = [];
   try {
     const result = await db.query(
       `SELECT

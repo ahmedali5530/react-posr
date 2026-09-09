@@ -540,7 +540,7 @@ export const runKitchenBottleneckScan = async (
     () => checkSlowItem(db, config),
   ];
   const total = checks.length;
-  let allAlerts: KitchenBottleneckAlert[] = [];
+  const allAlerts: KitchenBottleneckAlert[] = [];
 
   for (let i = 0; i < checks.length; i++) {
     if (onProgress) onProgress(i, total);

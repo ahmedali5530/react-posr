@@ -164,7 +164,7 @@ export const runPackagingEngine = async (
   const now = new Date();
 
   // 1. Fetch order frequency per item (last 30 days) for savings calculation
-  let itemFrequency: Map<string, number> = new Map();
+  const itemFrequency: Map<string, number> = new Map();
   try {
     const result = await db.query(
       `SELECT item.name AS item, count() AS cnt

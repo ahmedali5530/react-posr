@@ -282,14 +282,14 @@ export const runCashDrawerScan = async (
     () => checkRepeatedShortages(db, config),
   ];
   const total = checks.length;
-  let allAlerts: CashDrawerAlert[] = [];
+  const allAlerts: CashDrawerAlert[] = [];
   for (let i = 0; i < checks.length; i++) {
     if (onProgress) onProgress(i, total);
     try { allAlerts.push(...await checks[i]()); } catch (err) { console.warn('[cash-drawer] check', i, err); }
   }
   if (config.aiEnabled && allAlerts.length > 0) await enhanceWithAI(allAlerts);
   for (const alert of allAlerts) {
-    try { await db.query(`CREATE cash_drawer_alert CONTENT $data`, { data: { ...alert, shift_date: alert.shift_date?.toISOString(), detected_at: alert.detected_at.toISOString() } }); } catch { }
+    try { await db.query(`CREATE cash_drawer_alert CONTENT $data`, { data: { ...alert, shift_date: alert.shift_date?.toISOString(), detected_at: alert.detected_at.toISOString() } }); } catch { /* ignore */ }
   }
   if (onProgress) onProgress(total, total);
   return { alerts: allAlerts, checked: total };

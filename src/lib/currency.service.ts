@@ -64,8 +64,8 @@ export interface CurrencyConfig {
 // In-memory caches (survive within a session; flushed on rate refresh)
 // ---------------------------------------------------------------------------
 
-let currencyCache: Map<string, Currency> = new Map();
-let rateCache: Map<string, number> = new Map(); // key = `${base}→${target}`
+const currencyCache: Map<string, Currency> = new Map();
+const rateCache: Map<string, number> = new Map(); // key = `${base}→${target}`
 let rateFetchedAt: Date | null = null;
 let configCache: CurrencyConfig | null = null;
 

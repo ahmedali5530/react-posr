@@ -160,7 +160,7 @@ export function createModifierGroupImportConfig({
         throw new Error(t("common:csvImport.multipleMatches"));
       }
 
-      let group = groups[0];
+      const group = groups[0];
       const existingModifier = group ? modifierForDish(group, dishId) : undefined;
 
       if (ctx.mode === "update") {

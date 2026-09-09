@@ -278,14 +278,14 @@ export const runRefundAbuseScan = async (
     () => checkRepeatedItemRefund(db, config),
   ];
   const total = checks.length;
-  let allAlerts: RefundAbuseAlert[] = [];
+  const allAlerts: RefundAbuseAlert[] = [];
   for (let i = 0; i < checks.length; i++) {
     if (onProgress) onProgress(i, total);
     try { allAlerts.push(...await checks[i]()); } catch (err) { console.warn('[refund-abuse] check', i, err); }
   }
   if (config.aiEnabled && allAlerts.length > 0) await enhanceWithAI(allAlerts);
   for (const alert of allAlerts) {
-    try { await db.query(`CREATE refund_abuse_alert CONTENT $data`, { data: { ...alert, detected_at: alert.detected_at.toISOString() } }); } catch { }
+    try { await db.query(`CREATE refund_abuse_alert CONTENT $data`, { data: { ...alert, detected_at: alert.detected_at.toISOString() } }); } catch { /* ignore */ }
   }
   if (onProgress) onProgress(total, total);
   return { alerts: allAlerts, checked: total };

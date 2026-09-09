@@ -201,13 +201,13 @@ export const runCashWarning = async (
         else if (lowerText.includes('credit') || lowerText.includes('loan')) warning.ai_recommendation = 'arrange_credit';
         else if (lowerText.includes('reduce') || lowerText.includes('cut')) warning.ai_recommendation = 'reduce_spending';
         else warning.ai_recommendation = 'no_action';
-      } catch { }
+      } catch { /* ignore */ }
     }
   }
 
   // Persist
-  try { await db.query(`DELETE FROM cash_early_warning WHERE predicted_at < time::now() - 1h`); } catch { }
-  try { await db.query(`CREATE cash_early_warning CONTENT $data`, { data: { ...warning, projected_date: warning.projected_date.toISOString(), min_balance_date: warning.min_balance_date?.toISOString(), predicted_at: warning.predicted_at.toISOString() } }); } catch { }
+  try { await db.query(`DELETE FROM cash_early_warning WHERE predicted_at < time::now() - 1h`); } catch { /* ignore */ }
+  try { await db.query(`CREATE cash_early_warning CONTENT $data`, { data: { ...warning, projected_date: warning.projected_date.toISOString(), min_balance_date: warning.min_balance_date?.toISOString(), predicted_at: warning.predicted_at.toISOString() } }); } catch { /* ignore */ }
 
   if (onProgress) onProgress(2, 2);
   return { warning };

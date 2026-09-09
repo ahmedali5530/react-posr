@@ -190,7 +190,7 @@ export const runExpiryEngine = async (
   if (items.length === 0) return { alerts: [], generated: 0 };
 
   // 2. Fetch consumption rate per item (from order_item history)
-  let consumptionRates: Map<string, number> = new Map();
+  const consumptionRates: Map<string, number> = new Map();
   try {
     const rateResult = await db.query(
       `SELECT

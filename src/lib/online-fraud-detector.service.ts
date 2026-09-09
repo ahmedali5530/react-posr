@@ -148,7 +148,7 @@ export const runOnlineFraudEngine = async (
     const rows = Array.isArray(result) ? result.flat() : [];
 
     // Fetch order count per customer to determine first orders
-    let customerOrderCounts: Map<string, number> = new Map();
+    const customerOrderCounts: Map<string, number> = new Map();
     try {
       const countResult = await db.query(
         `SELECT customer.id AS cid, count() AS cnt

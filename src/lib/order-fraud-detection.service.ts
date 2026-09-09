@@ -575,7 +575,7 @@ export const runFraudDetection = async (
     () => checkLargeCashNearClose(db, config),
   ];
   const total = checks.length;
-  let allAlerts: OrderFraudAlert[] = [];
+  const allAlerts: OrderFraudAlert[] = [];
 
   for (let i = 0; i < checks.length; i++) {
     if (onProgress) onProgress(i, total);

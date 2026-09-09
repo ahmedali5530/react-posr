@@ -24,7 +24,7 @@ export const allocateProportionally = (
     return { id: w.id, amount: floored, remainder: raw - floored }
   })
 
-  let allocated = rounded.reduce((s, r) => s + r.amount, 0)
+  const allocated = rounded.reduce((s, r) => s + r.amount, 0)
   let cents = roundCurrency(total - allocated)
   const sorted = [...rounded].sort((a, b) => b.remainder - a.remainder)
 
