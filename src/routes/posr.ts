@@ -369,3 +369,4 @@ export const REPORTS_SMART_RESTAURANT_IOT_CONNECTED_DEVICE = REPORTS + '/smart-r
 export const REPORTS_ZERO_WASTE_CIRCULAR_ECONOMY = REPORTS + '/zero-waste-circular-economy';
 export const REPORTS_METAVERSE_VIRTUAL_RESTAURANT_DINING = REPORTS + '/metaverse-virtual-restaurant-dining';
 export const REPORTS_PERSONALIZED_NUTRITION_DNA_GENOMIC_DINING = REPORTS + '/personalized-nutrition-dna-genomic-dining';
+export const REPORTS_NEURO_EMOTION_BIOMETRIC_DINING = REPORTS + '/neuro-emotion-biometric-dining';

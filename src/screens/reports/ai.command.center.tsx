@@ -266,6 +266,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_ZERO_WASTE_CIRCULAR_ECONOMY,
   REPORTS_METAVERSE_VIRTUAL_RESTAURANT_DINING,
   REPORTS_PERSONALIZED_NUTRITION_DNA_GENOMIC_DINING,
+  REPORTS_NEURO_EMOTION_BIOMETRIC_DINING,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -347,6 +348,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         zeroWasteData,
         metaverseData,
         personalizedNutritionData,
+        neuroEmotionData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -589,6 +591,7 @@ fetchRecipeScaleSummary(db),
         fetchZeroWasteSummary(db),
         fetchMetaverseSummary(db),
         fetchPersonalizedNutritionSummary(db),
+        fetchNeuroEmotionSummary(db),
       ]);
 
       setMetrics([
@@ -634,6 +637,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         zeroWasteData,
         metaverseData,
         personalizedNutritionData,
+        neuroEmotionData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -6043,6 +6047,33 @@ async function fetchPersonalizedNutritionSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.nodna > 0 || f.nomenu > 0 ? 'warning' : 'good'), link: REPORTS_PERSONALIZED_NUTRITION_DNA_GENOMIC_DINING, linkLabel: 'View DNA nutrition',
     };
   } catch { return neutralCard('DNA Nutrition', faDna, 'text-violet-600', REPORTS_PERSONALIZED_NUTRITION_DNA_GENOMIC_DINING); }
+}
+
+async function fetchNeuroEmotionSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'neuro_emotion_strategy_absent') AS nostrategy,
+              math::count(rule_id = 'facial_emotion_recognition_absent') AS nofacial,
+              math::count(rule_id = 'biometric_mood_ambiance_adaptation_absent') AS nomood,
+              math::count(rule_id = 'gaze_tracking_menu_engagement_absent') AS nogaze,
+              math::count(rule_id = 'emotional_journey_mapping_absent') AS nojourney,
+              math::count(rule_id = 'neuro_marketing_insights_absent') AS noneuromarketing,
+              math::count(rule_id = 'opt_in_biometric_loyalty_absent') AS noloyalty,
+              math::count(rule_id = 'biometric_privacy_compliance_weak') AS weakprivacy
+       FROM neuro_emotion_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Neuro-Emotion', faBrain, 'text-violet-600', REPORTS_NEURO_EMOTION_BIOMETRIC_DINING);
+    return {
+      title: 'Neuro-Emotion', icon: faBrain, color: 'text-violet-600',
+      primary: `${f.nostrategy} no strategy · ${f.nofacial} no facial AI`,
+      secondary: `${f.total} alerts · ${f.nomood} no mood ambiance · ${f.nogaze} no gaze · ${f.nojourney} no journey · ${f.noneuromarketing} no neuro-mktg · ${f.noloyalty} no biometric loyalty · ${f.weakprivacy} weak privacy`,
+      health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.nofacial > 0 || f.nomood > 0 ? 'warning' : 'good'), link: REPORTS_NEURO_EMOTION_BIOMETRIC_DINING, linkLabel: 'View neuro-emotion',
+    };
+  } catch { return neutralCard('Neuro-Emotion', faBrain, 'text-violet-600', REPORTS_NEURO_EMOTION_BIOMETRIC_DINING); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

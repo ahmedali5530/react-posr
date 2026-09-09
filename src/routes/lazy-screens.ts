@@ -1075,3 +1075,7 @@ export const PersonalizedNutritionDnaGenomicDiningScreen = lazy(() =>
   import('@/screens/reports/personalized-nutrition-dna-genomic-dining.report.tsx').then(m => ({default: m.PersonalizedNutritionDnaGenomicDiningScreen}))
 );
 
+export const NeuroEmotionBiometricDiningScreen = lazy(() =>
+  import('@/screens/reports/neuro-emotion-biometric-dining.report.tsx').then(m => ({default: m.NeuroEmotionBiometricDiningScreen}))
+);
+
