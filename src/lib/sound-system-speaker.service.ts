@@ -105,6 +105,7 @@ export interface SoundSystemAlert {
   audio_quality_score?: number;                            // 0-100 perceived audio clarity/fidelity
   coverage_consistency_score?: number;                     // 0-100 evenness of coverage across venue
   bass_response_score?: number;                            // 0-100 warmth/fullness of low frequencies
+  bass_response_score_change?: number;
   // Customer perception + economics
   perceived_quality_score?: number;                        // 0-100 customer-perceived restaurant quality
   customer_satisfaction_score?: number;                    // 0-100

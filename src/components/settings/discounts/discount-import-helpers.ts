@@ -190,8 +190,8 @@ export function parseSchedules(raw: unknown): DiscountSchedule[] {
         : [],
       start_time: String(row.start_time ?? ""),
       end_time: String(row.end_time ?? ""),
-      start_date: row.start_date ?? null,
-      end_date: row.end_date ?? null,
+      start_date: (row.start_date as string) ?? null,
+      end_date: (row.end_date as string) ?? null,
     };
   });
 }

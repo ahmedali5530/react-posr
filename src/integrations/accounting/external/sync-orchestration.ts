@@ -243,7 +243,7 @@ export class SyncOrchestrator {
     let retried = 0;
     let failed = 0;
 
-    for (const row of (rows as any[]) ?? []) {
+    for (const row of (rows ?? []) as any[]) {
       try {
         // Re-enqueue for retry — the provider's execute method handles this
         await this.db.merge(row.id, {

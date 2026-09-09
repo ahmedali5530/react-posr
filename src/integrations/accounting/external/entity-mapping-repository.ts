@@ -88,7 +88,7 @@ export class EntityMappingRepository {
     sql += ' ORDER BY entity_type, posr_id';
 
     const [rows] = await this.db.query<EntityMapping[]>(sql, params);
-    return (rows as EntityMapping[]) ?? [];
+    return (rows ?? []) as EntityMapping[];
   }
 
   async delete(providerId: string, tenantId: string, entityType: ExternalEntityType, posrId: string): Promise<void> {

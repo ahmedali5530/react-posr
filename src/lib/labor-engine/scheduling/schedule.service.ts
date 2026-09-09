@@ -149,7 +149,7 @@ export const deleteSchedule = async (
     `UPDATE ${Tables.scheduled_shifts} SET status = 'cancelled' WHERE work_schedule = $scheduleId`,
     { scheduleId }
   )
-  await db.delete(scheduleId)
+  await (db as any).delete(scheduleId)
 
   await logLaborChange(db, {
     entityType: 'work_schedule',

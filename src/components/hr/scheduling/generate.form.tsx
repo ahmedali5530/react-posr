@@ -158,7 +158,7 @@ export const GenerateScheduleForm = ({open, onClose}: Props) => {
                     isMulti
                     options={employeeOptions as never}
                     value={field.value as never}
-                    onChange={(opts) => field.onChange((opts as SelectOption[] | null) ?? [])}
+                    onChange={(opts) => field.onChange((opts as unknown as SelectOption[] | null) ?? [])}
                   />
                 )}
               />

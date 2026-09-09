@@ -64,7 +64,7 @@ describe('FbrProvider execute', () => {
     );
 
     expect(response.success).toBe(true);
-    expect(response.data?.invoiceNumber).toBe('FBR-INV-1');
+    expect((response.data as any)?.invoiceNumber).toBe('FBR-INV-1');
     expect(send).toHaveBeenCalledWith(
       expect.objectContaining({
         endpoint: apiUrl('/fiscal/invoice'),

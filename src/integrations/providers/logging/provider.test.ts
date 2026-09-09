@@ -143,7 +143,7 @@ describe('EventLoggerProvider', () => {
     const adapter: TransportAdapter = {
       async send(request) {
         sent.push(request);
-        return { ok: true, status: 200, body: { ok: true } };
+        return { ok: true, status: 200, body: { ok: true } as any };
       },
     };
     const router = new TransportRouter();

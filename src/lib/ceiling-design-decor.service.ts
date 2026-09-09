@@ -112,6 +112,7 @@ export interface CeilingDesignDecorAlert {
   perceived_spaciousness_score?: number;                   // 0-100
   perceived_quality_score?: number;                        // 0-100
   perceived_design_intentionality_score?: number;          // 0-100
+  perceived_design_intentionality_score_change?: number;
   brand_positioning_score?: number;                        // 0-100
   customer_satisfaction_score?: number;                    // 0-100
   // Atmosphere metrics

@@ -68,7 +68,7 @@ export const listOrderFiscalSubmissions = async (
      ORDER BY submitted_at DESC`,
     { orderId: toRecordId(orderId) }
   );
-  return rows ?? [];
+  return (rows ?? []) as OrderFiscalSubmission[];
 };
 
 export const createOrderFiscalSubmission = async (

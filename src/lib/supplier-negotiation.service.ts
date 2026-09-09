@@ -41,6 +41,7 @@ export interface SupplierNegotiation {
   supplier_name?: string;
   total_spend_90d: number;
   item_count: number;
+  order_count?: number;
   avg_price: number;
   market_price?: number;
   price_gap_pct: number;

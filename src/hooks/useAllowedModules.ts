@@ -29,7 +29,7 @@ export const useAllowedModules = (user?: User): string[] => {
 
     void (async () => {
       const stableDb = {
-        query: (sql: string, params?: unknown) => queryRef.current(sql, params),
+        query: (sql: string, params?: any) => queryRef.current(sql, params),
       };
       const fetched = await fetchUserModules(stableDb, currentUser);
       if (!cancelled) {

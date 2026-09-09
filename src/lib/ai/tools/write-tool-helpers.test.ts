@@ -23,10 +23,10 @@ describe("buildWriteToolDefinitionsFromFields", () => {
     expect(tools[0].function.name).toBe("propose_create_categories");
     expect(tools[1].function.name).toBe("propose_update_categories");
 
-    const createItems = tools[0].function.parameters?.properties?.categories as any;
+    const createItems = (tools[0].function.parameters?.properties as any)?.categories;
     expect(createItems.items.required).toContain("name");
 
-    const updateItems = tools[1].function.parameters?.properties?.categories as any;
+    const updateItems = (tools[1].function.parameters?.properties as any)?.categories;
     expect(updateItems.items.required).toContain("name");
   });
 

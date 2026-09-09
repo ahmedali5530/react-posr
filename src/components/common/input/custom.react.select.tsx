@@ -4,7 +4,7 @@ import Select, {
   GroupBase,
   Props,
 } from "react-select";
-import {Theme} from "react-select/dist/declarations/src/";
+import type {Theme} from "react-select";
 import Spinner from "@/assets/images/spinner.svg";
 
 const primaryColor = "23 23 23";

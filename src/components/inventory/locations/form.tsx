@@ -130,10 +130,7 @@ export const InventoryLocationForm = ({ open, onClose, data }: Props) => {
             control={control}
             render={({ field }) => (
               <ReactSelect
-                label={t("columns.locationType")}
-                options={typeOptions}
-                value={typeOptions.find((o) => o.value === field.value) ?? null}
-                onChange={(opt: any) => field.onChange(opt?.value ?? "Store")}
+                {...({ label: t("columns.locationType"), options: typeOptions, value: typeOptions.find((o) => o.value === field.value) ?? null, onChange: (opt: any) => field.onChange(opt?.value ?? "Store") } as any)}
               />
             )}
           />
