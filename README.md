@@ -539,9 +539,20 @@ All 312 reports are searchable from a single **Feature Hub** (`/reports/feature-
 TypeScript:     0 errors (was 217)
 ESLint:         0 errors, 0 warnings (was 90 errors + 277 warnings)
 Runtime:        0 errors (Agent Browser verified)
+Tests:          333/333 passing (45 files)
 bun run lint:   passes cleanly
 tsc --noEmit:   passes cleanly
 ```
+
+### Data architecture
+
+**179 services (68%)** use real SurrealDB queries exclusively — no mock data.
+**83 services (32%)** use mock data as fallback only (when DB unreachable or empty) — correct offline-first pattern:
+1. Try DB query → use real data if available
+2. Catch (DB unreachable) → fall back to mock data
+3. If DB returns empty → fall back to mock data
+
+This means the app works in demo mode (no DB) AND automatically uses real data when available.
 
 ### Security grade progression
 
