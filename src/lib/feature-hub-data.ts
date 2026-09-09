@@ -1,4 +1,4 @@
-// Auto-generated from src/routes/posr.ts — 312 reports in 13 categories
+// Auto-generated from src/routes/posr.ts — 313 reports in 13 categories
 // Do not edit manually. Regenerate with: python3 scripts/gen-feature-hub-data.py
 
 export interface FeatureHubReport {
@@ -259,6 +259,7 @@ export const FEATURE_HUB_REPORTS: FeatureHubReport[] = [
   { name: "CROSS_SELL", path: "cross-sell", title: "Cross Sell", category: "Other Reports", icon: "chartBar" },
   { name: "CULINARY_EXPERIENCE_COOKING_CLASS", path: "culinary-experience-cooking-class", title: "Culinary Experience Cooking Class", category: "Other Reports", icon: "chartBar" },
   { name: "EQUIPMENT_MAINTENANCE", path: "equipment-maintenance", title: "Equipment Maintenance", category: "Other Reports", icon: "chartBar" },
+  { name: "FEATURE_HUB", path: "feature-hub", title: "Feature Hub", category: "Other Reports", icon: "chartBar" },
   { name: "FOOD_COST_TRENDS", path: "food-cost-trends", title: "Food Cost Trends", category: "Other Reports", icon: "chartBar" },
   { name: "ISSUE", path: "issue", title: "Issue", category: "Other Reports", icon: "chartBar" },
   { name: "ISSUE_RETURN", path: "issue-return", title: "Issue Return", category: "Other Reports", icon: "chartBar" },
@@ -336,6 +337,6 @@ export const FEATURE_HUB_CATEGORIES = [
   { name: "Menu & Recipes", count: 26 },
   { name: "Multi-Location", count: 3 },
   { name: "Orders & POS", count: 12 },
-  { name: "Other Reports", count: 32 },
+  { name: "Other Reports", count: 33 },
   { name: "Staff & HR", count: 44 },
 ];
