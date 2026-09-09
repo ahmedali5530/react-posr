@@ -77,6 +77,8 @@ export interface LightingAlert {
   predicted_spend_change_pct?: number;
   predicted_satisfaction_change?: number;
   predicted_photo_sharing_lift_pct?: number;
+  photo_sharing_rate_pct?: number;
+  optimal_photo_sharing_rate_pct?: number;
   // LED ROI
   led_upgrade_cost?: number;
   led_annual_savings?: number;

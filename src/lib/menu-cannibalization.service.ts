@@ -332,7 +332,7 @@ export const runMenuCannibEngine = async (
           item_b_orders: p.item_b_orders,
           combined_orders: p.combined_orders,
           est_monthly_opportunity: Math.round(weakerOrders * Math.min(p.item_a_price, p.item_b_price)),
-          description: `${p.item_a} vs ${p.item_b}: DOMINANCE — one item captures ${dominantPct.toFixed(0)}% of demand (${Math.max(p.item_a_orders, p.item_b_orders)}/${p.combined_orders}). ${weakerItem} only ${weakerOrders} orders (${100 - dominantPct.toFixed(0)}%). The weak item is dead weight — occupies menu space + prep capacity + inventory without meaningful contribution. PROMOTE DOMINANT item (feature it more) + consider REMOVING weak item. Menu real estate is valuable — don't waste on items nobody orders.`,
+          description: `${p.item_a} vs ${p.item_b}: DOMINANCE — one item captures ${dominantPct.toFixed(0)}% of demand (${Math.max(p.item_a_orders, p.item_b_orders)}/${p.combined_orders}). ${weakerItem} only ${weakerOrders} orders (${(100 - dominantPct).toFixed(0)}%). The weak item is dead weight — occupies menu space + prep capacity + inventory without meaningful contribution. PROMOTE DOMINANT item (feature it more) + consider REMOVING weak item. Menu real estate is valuable — don't waste on items nobody orders.`,
           ai_recommendation: 'promote_dominant',
           status: 'open', detected_at: now,
         });

@@ -108,7 +108,7 @@ const OFFER_COSTS: Record<SuggestedOffer, number> = {
 
 // Estimated revenue lift from milestone visit
 // (customers spend 2-3x more on celebration visits — Experian)
-const estimateRevenueLift = (customerLtv: number, offer: SuggestedOffer): number => {
+const estimateRevenueLift = (customerLtv: number, _offer: SuggestedOffer): number => {
   const avgTicket = customerLtv > 0 ? customerLtv / 10 : 40; // estimate 10 visits
   const celebrationMultiplier = 2.5; // 2.5x normal spend on celebrations
   const additionalGuests = 2; // celebration visits bring more people

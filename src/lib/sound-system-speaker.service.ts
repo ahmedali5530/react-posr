@@ -589,7 +589,7 @@ export const runSoundSystemEngine = async (
         customer_satisfaction_score: d.customer_satisfaction_score,
         competitive_differentiation_score: d.competitive_differentiation_score,
         replacement_cost_estimate: d.replacement_cost_estimate,
-        bass_response_score: d.bass_response_score,
+        bass_response_score_change: d.bass_response_score,
         audio_quality_change: Math.round(10),
         perceived_quality_change: Math.round(missedWarmthPct * 0.5),
         satisfaction_change: Math.round(missedWarmthPct * 0.4),

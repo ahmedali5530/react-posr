@@ -32,9 +32,11 @@ export function requireRefIds(
   });
 }
 
-export function parseImportBool(value: any): boolean {
+export function parseImportBool(value: any, defaultValue: boolean = false): boolean {
+  if (value === undefined || value === null || value === "") return defaultValue;
   if (typeof value === "boolean") return value;
   const s = String(value ?? "").trim().toLowerCase();
+  if (s === "") return defaultValue;
   return ["true", "1", "yes", "y"].includes(s);
 }
 

@@ -109,6 +109,7 @@ interface TableUsageData {
   occupied_hours: number;
   total_open_hours: number;
   revenue: number;
+  utilization_pct?: number;
   party_sizes: number[];  // average party sizes that sat here
 }
 

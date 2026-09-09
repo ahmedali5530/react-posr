@@ -377,6 +377,7 @@ export const SplitAmount = ({
                           variant="danger"
                           icon={faTrash}
                          
+                          label="Remove split"
                           size="sm"
                           onClick={() => removeSplit(split.id)}
                         />

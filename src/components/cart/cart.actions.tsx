@@ -190,8 +190,8 @@ export const CartActions = () => {
             items: kitchenItems[kitchenId],
             order: {
               ...order,
-              order_type: state?.orderType ?? order?.order_type,
-              user: page?.user ?? order?.user,
+              order_type: state?.orderType ?? (order as any)?.order_type,
+              user: page?.user ?? (order as any)?.user,
             },
             kitchenName: k.name,
             table: state?.table,

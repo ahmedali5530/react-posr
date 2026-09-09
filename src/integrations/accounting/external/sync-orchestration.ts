@@ -23,7 +23,7 @@ export class SyncOrchestrator {
       tenantId,
       mode,
       status: 'running',
-      startedAt: nowSurrealDateTime(),
+      startedAt: nowSurrealDateTime() as unknown as string,
     };
 
     const result = await this.db.create('integration_sync_run', {
@@ -243,7 +243,7 @@ export class SyncOrchestrator {
     let retried = 0;
     let failed = 0;
 
-    for (const row of rows ?? []) {
+    for (const row of (rows as any[]) ?? []) {
       try {
         // Re-enqueue for retry — the provider's execute method handles this
         await this.db.merge(row.id, {

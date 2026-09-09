@@ -210,13 +210,13 @@ export const runCateringEngine = async (
     ];
 
     for (const scenario of scenarios) {
-      const opt = await generateCateringOptimization(db, config, scenario.event_name, scenario.guest_count, scenario.event_type, dishes, now);
+      const opt = await generateCateringOptimization(config, scenario.event_name, scenario.guest_count, scenario.event_type, dishes, now);
       if (opt) optimizations.push(opt);
     }
   } else {
     // Generate optimization per real event
     for (const event of events) {
-      const opt = await generateCateringOptimization(db, config, event.event_name, event.guest_count, event.event_type, dishes, now, event.order_id);
+      const opt = await generateCateringOptimization(config, event.event_name, event.guest_count, event.event_type, dishes, now, event.order_id);
       if (opt) optimizations.push(opt);
     }
   }
@@ -265,7 +265,6 @@ export const runCateringEngine = async (
 // ---------------------------------------------------------------------------
 
 const generateCateringOptimization = async (
-  db: ReturnType<typeof useDB>,
   config: CateringConfig,
   eventName: string,
   guestCount: number,

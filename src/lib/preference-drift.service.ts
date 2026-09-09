@@ -60,6 +60,7 @@ export interface PrefDriftAlert {
   profile_age_months?: number;
   staleness_days?: number;
   recommendation_accuracy_pct?: number;
+  preference_changes_6mo?: number;
   est_monthly_opportunity: number;
   description: string;
   ai_insight?: string;

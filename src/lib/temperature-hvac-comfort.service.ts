@@ -78,6 +78,7 @@ export interface TempAlert {
   draft_source?: string;                // 'vent' | 'door' | 'window' | 'ac_direct'
   // Seasonal
   current_season?: string;              // 'winter' | 'spring' | 'summer' | 'fall'
+  customer_segment?: string;
   // Kitchen bleed
   kitchen_temp_c?: number;
   dining_temp_c?: number;

@@ -121,7 +121,7 @@ interface StaffPerfData {
   has_received_training: boolean;
   // For recovery
   pre_intervention_score?: number;
-  post_intervention_score?: number;
+  pre_intervention_score?: number;
 }
 
 const MOCK_STAFF: StaffPerfData[] = [
@@ -130,7 +130,7 @@ const MOCK_STAFF: StaffPerfData[] = [
   { staff_id: 'PP03', staff_name: 'Lisa A', role: 'server', current_performance_score: 65, previous_performance_score: 78, energy_trend: 'stable', error_trend: 'declining', speed_trend: 'declining', upsell_trend: 'declining', shifts_last_14d: 11, avg_shifts_per_week: 5.5, months_employed: 10, has_received_training: true },
   { staff_id: 'PP04', staff_name: 'James P', role: 'server', current_performance_score: 92, previous_performance_score: 88, energy_trend: 'improving', error_trend: 'improving', speed_trend: 'improving', upsell_trend: 'improving', shifts_last_14d: 10, avg_shifts_per_week: 5, months_employed: 6, has_received_training: true },
   { staff_id: 'PP05', staff_name: 'Priya P', role: 'kitchen', current_performance_score: 45, previous_performance_score: 68, energy_trend: 'declining', error_trend: 'declining', speed_trend: 'declining', upsell_trend: 'stable', shifts_last_14d: 14, avg_shifts_per_week: 7, months_employed: 18, has_received_training: true },
-  { staff_id: 'PP06', staff_name: 'Tom O', role: 'bartender', current_performance_score: 75, previous_performance_score: 80, energy_trend: 'stable', error_trend: 'stable', speed_trend: 'stable', upsell_trend: 'stable', shifts_last_14d: 10, avg_shifts_per_week: 5, months_employed: 12, has_received_training: true, pre_intervention_score: 65, post_intervention_score: 75 },
+  { staff_id: 'PP06', staff_name: 'Tom O', role: 'bartender', current_performance_score: 75, previous_performance_score: 80, energy_trend: 'stable', error_trend: 'stable', speed_trend: 'stable', upsell_trend: 'stable', shifts_last_14d: 10, avg_shifts_per_week: 5, months_employed: 12, has_received_training: true, pre_intervention_score: 65, pre_intervention_score: 75 },
   { staff_id: 'PP07', staff_name: 'Anna K', role: 'server', current_performance_score: 82, previous_performance_score: 82, energy_trend: 'stable', error_trend: 'stable', speed_trend: 'stable', upsell_trend: 'stable', shifts_last_14d: 8, avg_shifts_per_week: 4, months_employed: 4, has_received_training: true },
   { staff_id: 'PP08', staff_name: 'David K', role: 'server', current_performance_score: 38, previous_performance_score: 55, energy_trend: 'declining', error_trend: 'declining', speed_trend: 'declining', upsell_trend: 'declining', shifts_last_14d: 13, avg_shifts_per_week: 6.5, months_employed: 20, has_received_training: true },
 ];
@@ -148,7 +148,7 @@ export const runStaffPerfPredEngine = async (
       `SELECT staff_id, staff_name, role, current_performance_score, previous_performance_score,
               energy_trend, error_trend, speed_trend, upsell_trend,
               shifts_last_14d, avg_shifts_per_week, months_employed, has_received_training,
-              pre_intervention_score, post_intervention_score
+              pre_intervention_score, pre_intervention_score
        FROM staff_performance_prediction_log
        WHERE status = 'active'
        LIMIT 30`
@@ -169,7 +169,7 @@ export const runStaffPerfPredEngine = async (
       months_employed: safeNumber(r.months_employed, 0),
       has_received_training: r.has_received_training ?? false,
       pre_intervention_score: r.pre_intervention_score != null ? safeNumber(r.pre_intervention_score, 0) : undefined,
-      post_intervention_score: r.post_intervention_score != null ? safeNumber(r.post_intervention_score, 0) : undefined,
+      pre_intervention_score: r.pre_intervention_score != null ? safeNumber(r.pre_intervention_score, 0) : undefined,
     }));
   } catch (err) {
     console.warn('[staffperfpred] fetchStaff failed — using mock', err);
@@ -299,8 +299,8 @@ export const runStaffPerfPredEngine = async (
     }
 
     // Rule 6: PERFORMANCE_RECOVERY_CONFIRMED
-    if (s.pre_intervention_score != null && s.post_intervention_score != null) {
-      const recovery = s.post_intervention_score - s.pre_intervention_score;
+    if (s.pre_intervention_score != null && s.pre_intervention_score != null) {
+      const recovery = s.pre_intervention_score - s.pre_intervention_score;
       if (recovery >= 5) {
         alerts.push({
           rule_id: 'performance_recovery_confirmed',
@@ -310,10 +310,10 @@ export const runStaffPerfPredEngine = async (
           role: s.role,
           current_performance_score: s.current_performance_score,
           pre_intervention_score: s.pre_intervention_score,
-          post_intervention_score: s.post_intervention_score,
+          pre_intervention_score: s.pre_intervention_score,
           performance_trend: 'improving',
           est_monthly_opportunity: 0,
-          description: `${s.staff_name} (${s.role}): RECOVERY CONFIRMED — performance improved ${recovery}pts post-intervention (${s.pre_intervention_score} → ${s.post_intervention_score}). Current: ${s.current_performance_score}/100. Intervention was EFFECTIVE. Validate which intervention worked (coaching? break? schedule change?) and replicate for other declining staff. Track if recovery sustains — 30-day re-check needed. Recovery confirms the prediction model works — leading indicators correctly identified decline before it became critical.`,
+          description: `${s.staff_name} (${s.role}): RECOVERY CONFIRMED — performance improved ${recovery}pts post-intervention (${s.pre_intervention_score} → ${s.pre_intervention_score}). Current: ${s.current_performance_score}/100. Intervention was EFFECTIVE. Validate which intervention worked (coaching? break? schedule change?) and replicate for other declining staff. Track if recovery sustains — 30-day re-check needed. Recovery confirms the prediction model works — leading indicators correctly identified decline before it became critical.`,
           ai_recommendation: 'monitor',
           status: 'open', detected_at: now,
         });
