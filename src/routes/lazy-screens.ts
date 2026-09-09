@@ -1,5 +1,9 @@
 import {lazy} from "react";
 
+export const FeatureHubScreen = lazy(() =>
+  import('@/screens/reports/feature.hub.tsx').then(m => ({default: m.FeatureHubScreen}))
+);
+
 export const TablesideScreen = lazy(() =>
   import('@/screens/tableside').then(m => ({default: m.TablesideScreen}))
 );

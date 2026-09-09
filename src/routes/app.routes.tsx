@@ -224,6 +224,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_PRODUCT_HOURLY,
   REPORTS_PRODUCT_LIST,
   REPORTS_PRODUCT_MIX_SUMMARY,
+  REPORTS_FEATURE_HUB,
   REPORTS_PRODUCT_MIX_WEEKLY,
   REPORTS_PURCHASE,
   REPORTS_PURCHASE_ORDER,
@@ -599,6 +600,7 @@ RecipeScalingScreen,
   DishPopularityScreen,
   WaitlistOptimizerScreen,
   TablesideScreen,
+  FeatureHubScreen,
 } from "@/routes/lazy-screens.ts";
 
 export const AppRoutes = () => (
@@ -873,6 +875,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_PRODUCT_HOURLY} element={<ProductHourlyReport/>}/>
         <Route path={REPORTS_PRODUCT_LIST} element={<ProductListReport/>}/>
         <Route path={REPORTS_PRODUCT_MIX_SUMMARY} element={<ProductMixSummaryReport/>}/>
+        <Route path={REPORTS_FEATURE_HUB} element={<FeatureHubScreen/>}/>
         <Route path={REPORTS_PRODUCT_MIX_WEEKLY} element={<ProductMixWeeklyReport/>}/>
         <Route path={REPORTS_SALES_ADVANCED} element={<SalesAdvancedReport/>}/>
         <Route path={REPORTS_DELIVERY_DENSITY} element={<DeliveryDensityReport/>}/>

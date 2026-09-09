@@ -33,6 +33,7 @@ export const TIP_DISTRIBUTION = '/tip-distribution';
 export const ACCOUNTS = '/accounts';
 
 export const REPORTS = '/reports';
+export const REPORTS_FEATURE_HUB = REPORTS + '/feature-hub';
 export const REPORTS_PRODUCT_MIX_WEEKLY = REPORTS + '/product-mix-weekly';
 export const REPORTS_SALES_DASHBOARD = REPORTS + '/sales-dashboard';
 export const REPORTS_INVENTORY_DASHBOARD = REPORTS + '/inventory-dashboard';
