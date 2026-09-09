@@ -113,11 +113,13 @@ export const DeliveryBannersSection = () => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     return () => {
       previewUrlsRef.current.forEach((url) => revokeUrl(url));
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       previewUrlsRef.current.clear();
     };
   }, []);

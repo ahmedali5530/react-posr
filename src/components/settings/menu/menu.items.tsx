@@ -183,6 +183,7 @@ export const MenuItems = ({
       fetchTaxes();
       fetchCategories();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
@@ -424,6 +425,7 @@ export const MenuItems = ({
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const items = formItems.length > 0 ? formItems : [];
 
   // Group items by category

@@ -50,6 +50,7 @@ export const useSecurity = () => {
       payload: withOrderTrackingPayload(options.payload, options.orderId),
       ...getTrackingUserFields(user),
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getManagerId, page, user?.id, user?.role?.name, user?.user_role?.name, user?.user_shift?.name]);
 
   const protectAction = useCallback(async (

@@ -105,6 +105,7 @@ export const ClosingCycleEnforcementProvider: React.FC<ClosingCycleEnforcementPr
         clearTimeout(timeoutId);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page?.user?.id, setEnforcement]);
 
   return <>{children}</>;

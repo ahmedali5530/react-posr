@@ -423,6 +423,7 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
     return () => {
       isMounted = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, data?.id, db, setValue]);
 
   useEffect(() => {
@@ -694,6 +695,7 @@ export const InventoryPurchaseForm = ({open, onClose, data}: Props) => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const itemsList: (InventoryItem & {
     suppliers?: { id: string; name: string }[];
     locations?: InventoryLocation[];

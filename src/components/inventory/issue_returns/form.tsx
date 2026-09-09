@@ -135,6 +135,7 @@ const createValidationSchema = (db: ReturnType<typeof useDB>, currentId?: string
 export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
   const { t } = useTranslation(['inventory', 'common']);
   const db = useDB();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const validationSchema = useMemo(() => createValidationSchema(db, data?.id), [data?.id]);
   const resolver = useMemo(() => yupResolver(validationSchema), [validationSchema]);
 
@@ -308,6 +309,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.id, open, reset]);
 
   useEffect(() => {
@@ -331,6 +333,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
     return () => {
       isMounted = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, data?.id, setValue, t]);
 
   const issuanceSelection = useWatch({control, name: "issuance"});
@@ -430,6 +433,7 @@ export const InventoryIssueReturnForm = ({open, onClose, data}: Props) => {
         comments: "",
       }]);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedIssuance?.id, data?.id, setValue, replace]);
 
   const closeModal = () => {

@@ -339,6 +339,7 @@ export const KitchenScreen = () => {
     setOrdersHydrated(true);
 
     await calculateAverageTime(kitchenId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupKitchenOrderItems, page?.user?.id]);
 
   const loadCompletedOrders = useCallback(async (kitchenId: string) => {
@@ -372,6 +373,7 @@ export const KitchenScreen = () => {
     } finally {
       setLoadingCompletedOrders(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupIntoBatches, page?.user?.id]);
 
   const openCompletedOrdersModal = async () => {
@@ -478,6 +480,7 @@ export const KitchenScreen = () => {
       kitchenItemsLiveQuery?.kill().catch(() => undefined);
       orderItemsLiveQuery?.kill().catch(() => undefined);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kitchen]);
 
   const calculateAverageTime = useCallback(async (kitchenId: string) => {
@@ -528,6 +531,7 @@ export const KitchenScreen = () => {
       durations.reduce((sum, value) => sum + value, 0) / durations.length
     );
     setAvgTime(t('kitchen:labels.avgTimeMins', { count: averageMinutes }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t]);
 
   const completeAllOrders = async () => {

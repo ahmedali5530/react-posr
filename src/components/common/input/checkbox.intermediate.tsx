@@ -11,6 +11,7 @@ export function IndeterminateCheckbox({
     if( typeof indeterminate === 'boolean' ) {
       ref.current.indeterminate = !rest.checked && indeterminate
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref, indeterminate])
 
   return (

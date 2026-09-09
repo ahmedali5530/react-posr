@@ -160,6 +160,7 @@ export const TableBulkForm = ({
       fetchPaymentTypes();
       fetchOrderTypes();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   return (

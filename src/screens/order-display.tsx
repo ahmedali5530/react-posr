@@ -117,6 +117,7 @@ export const OrderDisplayScreen = () => {
     setKitchenRowsByOrderItemId(
       buildKitchenRowsMap(Array.isArray(kitchenRows) ? (kitchenRows as OrderItemKitchen[]) : [])
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [whereClauses]);
 
   useEffect(() => {
@@ -153,6 +154,7 @@ export const OrderDisplayScreen = () => {
       liveOrdersRef.current = null;
       liveKitchenRef.current = null;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchOrders]);
 
   const { preparing, ready } = useMemo(

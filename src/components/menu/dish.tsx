@@ -113,6 +113,7 @@ export const MenuDish = ({
     }
 
     return state.cart.filter(item => item.dish === dish).reduce((prev, item) => prev + item.quantity, 0)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.cart]);
 
   const menuTaxFields = useMemo(() => ({

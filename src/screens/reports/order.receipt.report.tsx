@@ -141,6 +141,7 @@ export const OrderReceiptReport = () => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lookup, t]);
 
   const baseName = `order-receipt-${invoiceLabel || "order"}`;

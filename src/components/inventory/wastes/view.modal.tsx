@@ -43,6 +43,7 @@ export const InventoryWasteViewModal = ({open, waste, onClose}: Props) => {
     };
 
     fetchDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, waste?.id]);
 
   if (!open) {

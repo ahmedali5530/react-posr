@@ -45,6 +45,7 @@ export const InventoryIssueViewModal = ({open, issue, onClose}: Props) => {
     };
 
     fetchDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, issue?.id]);
 
   const totals = useMemo(() => {

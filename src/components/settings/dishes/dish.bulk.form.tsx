@@ -173,6 +173,7 @@ export const DishBulkForm = ({ open, onClose, data }: Props) => {
       fetchWorkflows();
       reset(defaultValues);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const {

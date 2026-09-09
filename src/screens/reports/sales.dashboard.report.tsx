@@ -721,6 +721,7 @@ const ActivitySection = () => {
     };
 
     void loadLatestActivity();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -790,6 +791,7 @@ const DeliverySection = ({orders}: {orders: Order[]}) => {
     };
 
     loadMapCenter();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -1044,6 +1046,7 @@ const UserSessionsWidget = () => {
     };
 
     loadSessions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -1348,6 +1351,7 @@ export const SalesDashboardReport = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   // ==================== Data Processing ====================

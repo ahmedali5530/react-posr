@@ -224,6 +224,7 @@ export const UserRoleForm = ({ open, onClose, data }: Props) => {
   const language = i18n.language;
   const moduleCatalog = useMemo(
     () => (open ? buildModuleCatalog() : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [open, language]
   );
 

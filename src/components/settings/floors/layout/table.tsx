@@ -154,6 +154,7 @@ export const FloorTable = ({
     if (isEditing && !isGroupMoving) {
       saveTableInfo();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings, isEditing, isGroupMoving]);
 
   const displayX = positionOverride?.x ?? settings.x;

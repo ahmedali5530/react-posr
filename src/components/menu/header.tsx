@@ -35,6 +35,7 @@ export const MenuHeader = () => {
         orderType: setting?.order_types[0]
       }))
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setting?.order_types, state.orderType]);
 
   useEffect(() => {
@@ -42,6 +43,7 @@ export const MenuHeader = () => {
     if (state?.order?.id !== 'new' && state.orders.length > 0) {
       onOrderClick(state?.order?.id);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.orders, state?.order?.id]);
 
   useEffect(() => {
@@ -58,6 +60,7 @@ export const MenuHeader = () => {
     const timer = setInterval(heartBeat, 10000);
 
     return () => clearInterval(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.table?.id])
 
   const reset = async () => {

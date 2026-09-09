@@ -92,6 +92,7 @@ export const PayrollRunForm = ({open, onClose, onSuccess}: Props) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, selectedPeriod?.value, setValue]);
 
   const closeModal = () => {

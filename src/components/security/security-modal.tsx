@@ -23,6 +23,7 @@ export const SecurityModal = () => {
     if (isModalOpen && currentAction) {
       setSelectedAuthType(currentAction.authType ?? 'pin');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isModalOpen, currentAction?.id, currentAction?.authType]);
 
   if (!isModalOpen || !currentAction) {

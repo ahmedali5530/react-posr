@@ -65,6 +65,7 @@ const AccountField = ({
     return () => {
       mounted = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const selected = useMemo(
@@ -127,6 +128,7 @@ const ExternalEntityField = ({
     };
     void load();
     return () => { mounted = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [providerId, field.entityType]);
 
   const selected = useMemo(

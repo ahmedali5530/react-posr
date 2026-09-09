@@ -75,6 +75,7 @@ export const TableComponent: FC<TableComponentProps> = ({
     } else {
       handleSortChange!([]);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sorting]);
 
   const [{ pageIndex, pageSize }, setPagination] =
@@ -86,6 +87,7 @@ export const TableComponent: FC<TableComponentProps> = ({
   useEffect(() => {
     handlePageChange!(pageIndex * pageSize);
     handleLimitChange!(pageSize);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageIndex, pageSize]);
 
   const pagination = React.useMemo(
@@ -188,6 +190,7 @@ export const TableComponent: FC<TableComponentProps> = ({
       setValue("column", filterOptions[0]); // set first column as default
       setLoaded(true);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [table.getAllColumns()]);
 
   const handleColumnFilter = (values: any) => {

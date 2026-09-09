@@ -90,7 +90,6 @@ export const IntegrationProvider = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     let mounted = true;
-    // eslint-disable-next-line prefer-const
     let queueTimer: ReturnType<typeof setInterval> | undefined;
 
     const refreshProviderStates = async () => {
@@ -176,6 +175,7 @@ export const IntegrationProvider = ({ children }: PropsWithChildren) => {
       });
       bootstrappedRef.current = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manager, isConnected, sessionReady]);
 
   const refreshProviderStates = async () => {

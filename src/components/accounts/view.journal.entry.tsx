@@ -44,6 +44,7 @@ export const ViewJournalEntry = ({open, entry, onClose}: Props) => {
     };
 
     fetchDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, entry?.id]);
 
   if (!open) {

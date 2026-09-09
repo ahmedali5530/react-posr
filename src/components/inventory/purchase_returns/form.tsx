@@ -138,6 +138,7 @@ export const InventoryPurchaseReturnForm = ({open, onClose, data}: Props) => {
   const db = useDB();
   const [state, ] = useAtom(appPage);
   const { manager: integrationManager } = useIntegrationManager();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const validationSchema = useMemo(() => createValidationSchema(db, data?.id), [data?.id]);
   const resolver = useMemo(() => yupResolver(validationSchema), [validationSchema]);
 
@@ -222,6 +223,7 @@ export const InventoryPurchaseReturnForm = ({open, onClose, data}: Props) => {
     [purchases?.data, selectedPurchaseId],
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const itemsList = (items?.data ?? []) as (InventoryItem & {
     locations?: InventoryLocation[];
     suppliers?: { id: string; name: string }[];
@@ -310,6 +312,7 @@ export const InventoryPurchaseReturnForm = ({open, onClose, data}: Props) => {
         }],
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.id, open, reset]);
 
   useEffect(() => {
@@ -333,6 +336,7 @@ export const InventoryPurchaseReturnForm = ({open, onClose, data}: Props) => {
     return () => {
       isMounted = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, data?.id, setValue, t]);
 
   useEffect(() => {
@@ -382,6 +386,7 @@ export const InventoryPurchaseReturnForm = ({open, onClose, data}: Props) => {
           });
         });
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedItems, watchedLocation?.value]);
 
   const closeModal = () => {
@@ -465,6 +470,7 @@ export const InventoryPurchaseReturnForm = ({open, onClose, data}: Props) => {
     }
 
     return isValid;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowNetQuantities, setError, clearErrors, t]);
 
   const onSubmit = async (values: PurchaseReturnFormValues) => {

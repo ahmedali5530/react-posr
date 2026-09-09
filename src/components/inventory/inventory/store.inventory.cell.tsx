@@ -163,6 +163,7 @@ export const StoreInventoryCell = ({locationId, item}: {locationId: string, item
     list.sort((a, b) => a.created_at.getTime() - b.created_at.getTime());
 
     return list;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [records, item]);
 
   const split = useMemo(() => ({

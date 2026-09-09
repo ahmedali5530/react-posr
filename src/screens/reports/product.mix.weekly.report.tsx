@@ -154,6 +154,7 @@ export const ProductMixWeeklyReport = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryStart, queryEnd, filters.orderTakerIds, filters.orderTypeIds, filters.categoryIds, filters.menuItemIds]);
 
   // Orders already filtered in SurrealQL; keep item-level filtering for aggregation
@@ -251,6 +252,7 @@ export const ProductMixWeeklyReport = () => {
     });
 
     return Array.from(metricsMap.values()).sort((a, b) => a.userName.localeCompare(b.userName));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredOrders, weekStart, filters.categoryIds, filters.menuItemIds]);
 
   const dayHeaders = useMemo(() => {

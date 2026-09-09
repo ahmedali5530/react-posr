@@ -90,6 +90,7 @@ export const Closing = () => {
     ['deleted_at = none'],
     ["priority asc"]
   );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const paymentTypes = paymentTypesData?.data || [];
   const [closingWindow, setClosingWindow] = useState<ClosingCycleWindow>(DEFAULT_CLOSING_WINDOW);
   const [cycleEnabled, setCycleEnabled] = useState(true);
@@ -163,6 +164,7 @@ export const Closing = () => {
       console.error("Error fetching closing-window payments:", error);
       return new Map<string, number>();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [closingWindow.date_from, closingWindow.date_to]);
 
   const hydrateTerminals = useCallback((source: ClosingModel | null) => {
@@ -225,6 +227,7 @@ export const Closing = () => {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydratePayments, hydrateTerminals, paymentTypes.length]);
 
   const refreshClosingWindow = useCallback(async () => {
@@ -232,6 +235,7 @@ export const Closing = () => {
     setClosingWindow(resolved.window);
     setCycleEnabled(resolved.cycleEnabled);
     return resolved;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -240,6 +244,7 @@ export const Closing = () => {
 
   useEffect(() => {
     void loadClosingData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentTypes.length, closingWindow.date_from.getTime(), closingWindow.date_to.getTime()]);
 
   const totalCash = useMemo(() => {

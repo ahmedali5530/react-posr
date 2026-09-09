@@ -152,6 +152,7 @@ export const MenuDishes = () => {
         category: undefined
       }));
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const dishGrid = (

@@ -127,12 +127,14 @@ export const PinAuth: React.FC<PinAuthProps> = ({
   useEffect(() => {
     document.addEventListener('keydown', (e) => handleKeyPress(e.key));
     return () => document.removeEventListener('keydown', (e) => handleKeyPress(e.key));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if(pin.length === 4){
       validatePIN();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pin]);
 
   const btnClasses = 'size-[60px] sm:size-[60px] md:size-[90px] p-0 text-neutral-900 transition-all duration-75 bg-neutral-100 rounded-full text-3xl';

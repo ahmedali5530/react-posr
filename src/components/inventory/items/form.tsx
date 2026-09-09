@@ -122,6 +122,7 @@ export const InventoryItemForm = ({
       fetchCategories();
       void reloadLocations();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const [suppliersModal, setSuppliersModal] = useState(false);

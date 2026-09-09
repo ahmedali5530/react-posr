@@ -79,6 +79,7 @@ export const KitchenForm = ({
         })),
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const db = useDB();
@@ -158,6 +159,7 @@ export const KitchenForm = ({
       fetchPrinters();
       fetchDishes();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const [printersModal, setPrintersModal] = useState(false);

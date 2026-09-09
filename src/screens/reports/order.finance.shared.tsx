@@ -145,6 +145,7 @@ export const OrderFinanceReport = ({title, metric, metricHeader}: Props) => {
     };
 
     void fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.couponId, filters.discountId, filters.endDate, filters.startDate, filters.taxId, metric, title]);
 
   const totalMetric = useMemo(() => {

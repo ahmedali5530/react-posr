@@ -170,6 +170,7 @@ export const AdminFloorLayout = ({
     if (arrangedCount > 0) {
       toast.success(t('toast:admin.tablesArranged', { count: arrangedCount }));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db, effectiveGridWidth, fetchTables, layoutGap, tables?.data]);
 
   const toggleTableSelection = useCallback((tableId: string) => {
@@ -292,6 +293,7 @@ export const AdminFloorLayout = ({
 
     await fetchTables();
     toast.success(t('toast:admin.tablesUpdated', { count: selectedTableIds.length }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bulkSettings.background, bulkSettings.color, bulkSettings.height, bulkSettings.rounded, bulkSettings.width, db, fetchTables, selectedTableIds]);
 
   return (

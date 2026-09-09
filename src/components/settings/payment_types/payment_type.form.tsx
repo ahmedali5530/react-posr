@@ -154,6 +154,7 @@ export const PaymentTypeForm = ({
         } : undefined),
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const db = useDB();
@@ -291,6 +292,7 @@ export const PaymentTypeForm = ({
     if(open){
       fetchTaxes();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const [taxModal, setTaxModal] = useState(false);

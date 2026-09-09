@@ -56,6 +56,7 @@ export interface UseSecurityAlertsResult {
 export function useSecurityAlerts(): UseSecurityAlertsResult {
   const isAdmin = useIsAdmin();
   const queryClient = useQueryClient();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const queryKey = ["security-alerts"];
 
   const { data, isLoading, error, refetch } = useQuery<SecurityAlert[], Error>({

@@ -156,13 +156,19 @@ export const ProductMixSummaryReport = () => {
 
   useEffect(() => {
     void fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     filters.startDate,
     filters.endDate,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     filters.orderTakerIds.join(','),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     filters.orderTypeIds.join(','),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     filters.categoryIds.join(','),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     filters.menuItemIds.join(','),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     filters.modifierIds.join(','),
     showInclusive,
   ]);

@@ -38,6 +38,7 @@ export const Countdown = ({time, showAll}: Props) => {
     }, 1000);
 
     return () => clearInterval(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [time, showAll]);
 
   return (

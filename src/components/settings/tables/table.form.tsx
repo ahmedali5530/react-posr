@@ -105,6 +105,7 @@ export const TableForm = ({
         })),
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const db = useDB();
@@ -202,6 +203,7 @@ export const TableForm = ({
       fetchPaymentTypes();
       fetchOrderTypes();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   return (

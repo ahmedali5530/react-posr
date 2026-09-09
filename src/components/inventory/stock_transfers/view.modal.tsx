@@ -48,6 +48,7 @@ export const StockTransferViewModal = ({open, transfer, onClose}: Props) => {
     };
 
     void fetchDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, transfer?.id]);
 
   if (!open) {

@@ -409,6 +409,7 @@ const OrderPaymentReceivingContent = ({
         }
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setTax, payments]);
 
   const tendered = useMemo(() => {

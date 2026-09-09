@@ -98,6 +98,7 @@ export const DeliveryOrderPopup: React.FC<DeliveryOrderPopupProps> = ({
     if (open) {
       fetchRiders();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order.status, delivery?.rider, open]);
 
   // Find current order index and get next/previous orders

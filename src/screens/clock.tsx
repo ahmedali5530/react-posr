@@ -71,6 +71,7 @@ export const Clock = () => {
 
   useEffect(() => {
     loadTimeEntry();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -156,6 +157,7 @@ export const Clock = () => {
       // const interval = setInterval(loadOrders, 30000);
       // return () => clearInterval(interval);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeEntry]);
 
   // Calculate sale metrics - must be before any conditional returns

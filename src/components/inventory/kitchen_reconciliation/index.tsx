@@ -77,6 +77,7 @@ export const KitchenReconciliationScreen = () => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const locationOptions = useMemo(

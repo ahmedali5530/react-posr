@@ -38,6 +38,7 @@ export const HrAttendance = () => {
 
   const smartImportConfig = useMemo(
     () => createAttendanceImportConfig({db, t, user: page.user}),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [t, page.user]
   );
 

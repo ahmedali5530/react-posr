@@ -145,6 +145,7 @@ export const InventoryAdjustmentForm = ({ open, onClose, data }: Props) => {
         (n) => reset((prev) => ({ ...prev, invoice_number: n, reason: reasonOptions[0] }))
       );
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {

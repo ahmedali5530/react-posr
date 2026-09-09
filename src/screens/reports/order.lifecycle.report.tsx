@@ -171,6 +171,7 @@ export const OrderLifecycleReport = () => {
   useEffect(() => {
   
     void fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderSuffix]);
 
   const events = useMemo(() => {

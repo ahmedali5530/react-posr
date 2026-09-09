@@ -131,6 +131,7 @@ export const SalesWeeklyReport = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryStart, queryEnd]);
 
   const dayMetrics = useMemo(() => {
@@ -363,6 +364,7 @@ export const SalesWeeklyReport = () => {
     });
 
     return rowData;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dayMetrics, dayHeaders]);
 
   if (loading) {

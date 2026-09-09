@@ -177,6 +177,7 @@ export const SessionIdleProvider: React.FC<SessionIdleProviderProps> = ({ childr
       clearInterval(intervalId);
       window.removeEventListener(SESSION_SECURITY_CHANGED_EVENT, onSettingsChanged);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page?.user?.id, page?.locked]);
 
   // Activity + deadline ticker
@@ -229,6 +230,7 @@ export const SessionIdleProvider: React.FC<SessionIdleProviderProps> = ({ childr
       clearInterval(tickId);
       clearDeadline();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page?.user?.id, page?.locked]);
 
   return <>{children}</>;

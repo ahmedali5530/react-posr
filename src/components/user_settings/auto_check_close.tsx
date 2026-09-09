@@ -93,6 +93,7 @@ export const AutoCheckCloseSettingsCard = () => {
 
   useEffect(() => {
     void loadSettings();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

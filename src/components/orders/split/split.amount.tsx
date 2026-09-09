@@ -92,6 +92,7 @@ export const SplitAmount = ({
         return total + getAdjustedItemPrice(item, ratio);
       }, 0);
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [splits, allItems, orderTotal]);
 
   const updateSplitAmount = (splitId: string, amount: number) => {

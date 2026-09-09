@@ -212,11 +212,13 @@ export const useKitchenOrderAnnouncements = (
 
     knownBatchesRef.current = batches;
     knownItemsRef.current = items;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders, kitchenId, hydrated, t, i18n.language]);
 
   useEffect(() => {
     return () => {
       cancelOrderReadySpeech();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       for (const timer of highlightTimersRef.current.values()) {
         clearTimeout(timer);
       }

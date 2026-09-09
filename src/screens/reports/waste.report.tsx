@@ -107,6 +107,7 @@ export const WasteReport = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate, filters.itemIds, filters.userIds]);
 
   // Calculate totals

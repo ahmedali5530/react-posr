@@ -52,6 +52,7 @@ export const useHydrateCurrencySymbol = () => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 };
 
@@ -87,6 +88,7 @@ export const useCurrencySymbol = () => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { settings, loading };

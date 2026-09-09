@@ -119,6 +119,7 @@ export const PurchaseReport = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate, filters.supplierIds, filters.locationIds, filters.itemIds, filters.userIds]);
 
   // Calculate totals

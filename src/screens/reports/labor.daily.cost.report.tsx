@@ -37,6 +37,7 @@ export const LaborDailyCostReport = () => {
       }
     };
     void load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate]);
 
   const totals = useMemo(() => rows.reduce(

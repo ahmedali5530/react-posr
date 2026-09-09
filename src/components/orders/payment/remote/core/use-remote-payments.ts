@@ -56,6 +56,7 @@ export function useRemotePayments({
   useEffect(() => {
     return () => {
       pollStopRefs.current.forEach((stop) => stop());
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       pollStopRefs.current.clear();
     };
   }, []);

@@ -660,6 +660,7 @@ export const useStoreInventory = (initialItemId?: IdentifierValue, initialLocati
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [identifiers.itemId, identifiers.locationId]);
 
   return { identifiers, setArgs, totals, records, netQuantity, loading, error };

@@ -65,6 +65,7 @@ export const MenusSettings = () => {
     };
 
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [menus, userId]);
 
   const fetchMenus = async (ids: RecordId[]) => {

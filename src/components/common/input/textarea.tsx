@@ -36,6 +36,7 @@ export const Textarea = forwardRef((
     e.preventDefault();
     setKeyboardValue((props.value as any)?.toString?.() || '');
     setShowKeyboard(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enableKeyboard, page.touch, props.onMouseDown, props.value]);
 
   const handleKeyboardClose = useCallback(() => {
@@ -69,6 +70,7 @@ export const Textarea = forwardRef((
         setKeyboardValue(next);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.value, enableKeyboard, page.touch, showKeyboard]);
 
   return (

@@ -397,6 +397,7 @@ const DeliveryAreasEditor = ({mapAreas, onSaveAreas}: DeliveryAreasEditorProps) 
         toast.error(t('toast:delivery.mapAreasSaveFailed'));
       });
     }, 300);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serializeAndSave]);
 
   const setMapDrawingActive = useCallback(
@@ -547,6 +548,7 @@ const DeliveryAreasEditor = ({mapAreas, onSaveAreas}: DeliveryAreasEditorProps) 
       });
       addOverlay(polygon);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [addOverlay, map]
   );
 
@@ -709,6 +711,7 @@ const DeliveryAreasEditor = ({mapAreas, onSaveAreas}: DeliveryAreasEditorProps) 
       scheduleSave();
       clearActiveDraw();
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [addOverlay, clearActiveDraw, createOverlayFromPath, map, scheduleSave]
   );
 
@@ -870,6 +873,7 @@ const DeliveryAreasEditor = ({mapAreas, onSaveAreas}: DeliveryAreasEditorProps) 
       clearListeners();
       clearDrawingPreview();
       overlaysRef.current.forEach((overlay) => overlay.setMap(null));
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       overlaysRef.current.clear();
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
@@ -1019,6 +1023,7 @@ export const DeliveryAreas = () => {
     };
 
     loadMapAreas();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const saveMapAreas = useCallback(async (areas: MapArea[]) => {
@@ -1045,6 +1050,7 @@ export const DeliveryAreas = () => {
       console.error("Error saving map areas:", error);
       toast.error(t('toast:delivery.mapAreasSaveFailed'));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db]);
 
   return (

@@ -92,6 +92,7 @@ export const TipsReport = () => {
     };
 
     void fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate, filters.shiftId]);
 
   const totalTips = useMemo(

@@ -43,6 +43,7 @@ export const InventoryPurchaseReturnViewModal = ({open, purchaseReturn, onClose}
     };
 
     fetchDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, purchaseReturn?.id]);
 
   if (!open) {

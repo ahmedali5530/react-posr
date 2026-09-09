@@ -340,6 +340,7 @@ export const OrderPayment = ({
       });
       return next;
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order, isInitialized]);
 
   const total = paymentTotals.total;
@@ -693,6 +694,7 @@ export const OrderPayment = ({
       },
       user: page?.user,
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     order,
     paymentTypes,

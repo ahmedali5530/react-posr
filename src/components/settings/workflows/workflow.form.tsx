@@ -75,12 +75,14 @@ export const WorkflowForm = ({
     if (open) {
       fetchKitchens();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
     if (data?.id) {
       loadStages(data.id);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const loadStages = async (workflowId: string) => {

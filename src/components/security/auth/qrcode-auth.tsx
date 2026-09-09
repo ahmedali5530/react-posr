@@ -133,6 +133,7 @@ export const QrCodeAuth: React.FC<QrCodeAuthProps> = ({
       liveQueryRef.current?.kill().catch(() => undefined);
       liveQueryRef.current = null;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAction?.id, user.id]);
 
   return (

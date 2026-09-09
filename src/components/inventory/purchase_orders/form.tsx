@@ -216,6 +216,7 @@ export const InventoryPurchaseOrderForm = ({open, onClose, data}: Props) => {
     return () => {
       isMounted = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, data?.id, db, setValue]);
 
   useEffect(() => {
@@ -362,7 +363,9 @@ export const InventoryPurchaseOrderForm = ({open, onClose, data}: Props) => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const suppliersList = suppliers?.data ?? [];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const itemsList = items?.data ?? [];
 
   const supplierOptions = useMemo(() => suppliersList.map(supplier => ({

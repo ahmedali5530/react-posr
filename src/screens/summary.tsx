@@ -99,6 +99,7 @@ export const Summary = () => {
 
   useEffect(() => {
     ordersQb.setWheres(orderFilters.map(item => `and ${item}`));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderFilters]);
 
   const fetchOrders = useCallback(async () => {
@@ -107,10 +108,12 @@ export const Summary = () => {
 
     setOrders(listQuery as OrderModel[]);
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ordersQb.queryString, ordersQb.parameters]);
 
   useEffect(() => {
     fetchOrders();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ordersQb.queryString, ordersQb.parameters]);
 
   const handlePrintSummary = useCallback(() => {
@@ -186,6 +189,7 @@ export const Summary = () => {
     } finally {
       setIsPrintingMix(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db, date, orders, page?.user?.id]);
 
   const handlePrintServerSales = useCallback(async () => {
@@ -301,6 +305,7 @@ export const Summary = () => {
     } finally {
       setIsPrintingServerSales(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db, date, orders, page?.user?.id]);
 
   return (

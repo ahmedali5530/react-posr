@@ -46,6 +46,7 @@ export const useBumpBar = ({
     callbackRef.current = onAction;
   }, [onAction]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const mergedKeymap: BumpKeyMap = { ...DEFAULT_KEYMAP, ...keymap };
 
   const handler = useCallback(

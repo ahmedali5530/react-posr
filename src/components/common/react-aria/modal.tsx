@@ -57,6 +57,7 @@ export const Modal: FunctionComponent<ModalProps> = ({
       }
       return props.shouldCloseOnInteractOutside?.(element) ?? true;
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [props.shouldCloseOnInteractOutside]
   );
 

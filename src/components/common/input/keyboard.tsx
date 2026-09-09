@@ -131,6 +131,7 @@ export const Keyboard = (props: KeyboardProps) => {
     }
 
     return layouts[props.layout || 'default'];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.layout, props.type]);
 
   const [show, setShow] = useState(false);
@@ -153,6 +154,7 @@ export const Keyboard = (props: KeyboardProps) => {
     if( props.onchange ) {
       props.onchange(value);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, props.onchange]);
 
   const isActionBtn = (key: string) => {

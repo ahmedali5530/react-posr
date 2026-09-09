@@ -248,6 +248,7 @@ export const DiscountsReport = () => {
     };
 
     void fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.discountId, filters.endDate, filters.startDate]);
 
   const detailRows = useMemo(() => buildDetailRows(orderDiscounts), [orderDiscounts]);

@@ -98,6 +98,7 @@ export const ConsumptionReport = () => {
     };
 
     void fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate, filters.itemIds.join(","), filters.dishIds.join(","), showInclusive, t]);
 
   const totals = useMemo(() => {

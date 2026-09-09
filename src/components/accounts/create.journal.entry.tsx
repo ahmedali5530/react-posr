@@ -127,6 +127,7 @@ export const CreateJournalEntry: FC<CreateJournalEntryProps> = ({addModal, accou
                                    GROUP ALL`);
     const num = Number(rows?.[0]?.max_value || 0);
     return isFinite(num) ? num + 1 : 1;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

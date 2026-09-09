@@ -48,6 +48,7 @@ export const OrderTypeForm = ({
         priority: data.priority.toString(),
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const db = useDB();

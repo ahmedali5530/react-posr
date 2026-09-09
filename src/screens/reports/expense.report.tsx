@@ -97,6 +97,7 @@ export const ExpenseReport = () => {
     };
 
     void fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.endDate, filters.startDate]);
 
   const totalExpenses = useMemo(() => rows.reduce((sum, row) => sum + row.amount, 0), [rows]);

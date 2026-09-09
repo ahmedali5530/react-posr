@@ -127,6 +127,7 @@ export const OrderFiscalReport = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate, filters.providerIds, filters.statuses]);
 
   const statusLabel = (status: string): string => {

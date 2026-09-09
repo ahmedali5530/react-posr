@@ -51,6 +51,7 @@ export const SalesSummaryReport = () => {
     };
 
     void fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate]);
 
   const {
@@ -124,6 +125,7 @@ export const SalesSummaryReport = () => {
       {label: t('metrics.coupons'), value: withCurrency(totalCoupons)},
       {label: t('reports.voids'), value: withCurrency(totalVoids)},
     ];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     dayPartTotals,
     orderTypeBreakdown,

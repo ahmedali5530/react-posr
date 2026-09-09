@@ -351,6 +351,7 @@ export const SalesSummary2Report = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate]);
 
   // First section: Financial calculations

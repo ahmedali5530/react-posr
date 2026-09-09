@@ -76,6 +76,7 @@ const ModifierNextGroups = ({
   const { t } = useTranslation(['admin', 'common', 'validation', 'toast']);
   const modifier = useWatch({ control, name: `modifiers.${index}.modifier` });
   const allowedNextGroups: string[] = useWatch({ control, name: `modifiers.${index}.allowed_next_groups` }) ?? [];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const nextGroupOverrides: ModifierNextGroupOverride[] = useWatch({
     control,
     name: `modifiers.${index}.next_group_overrides`,
@@ -113,6 +114,7 @@ const ModifierNextGroups = ({
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modifier?.value]);
 
   const isGroupModified = useCallback((groupId) => {
@@ -301,12 +303,14 @@ export const ModifierGroupForm = ({ open, onClose, data }: Props) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, open, reset]);
 
   useEffect(() => {
     if (open) {
       fetchDishes();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const {

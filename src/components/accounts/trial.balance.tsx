@@ -53,6 +53,7 @@ export const TrialBalance = () => {
 
   useEffect(() => {
     loadTrialBalance();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const totals = useMemo(() => {

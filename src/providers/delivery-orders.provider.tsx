@@ -163,6 +163,7 @@ export const DeliveryOrdersProvider: React.FC<DeliveryOrdersProviderProps> = ({ 
       isMounted = false;
       querySubscription?.kill().catch(console.error);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canUseDeliveryOrders, fetchDeliveryOrders, user?.id, openOrderPopup]);
 
   const value: DeliveryOrdersProviderState = useMemo(

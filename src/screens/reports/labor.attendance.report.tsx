@@ -37,6 +37,7 @@ export const LaborAttendanceReport = () => {
       }
     };
     void load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate]);
 
   const subtitle = filters.startDate && filters.endDate ? `${filters.startDate} to ${filters.endDate}` : undefined;

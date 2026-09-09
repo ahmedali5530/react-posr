@@ -119,6 +119,7 @@ export const DishView = ({
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, data?.id]);
 
   useEffect(() => {
@@ -174,6 +175,7 @@ export const DishView = ({
         URL.revokeObjectURL(objectUrl);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, data]);
 
   const yesNo = (value?: boolean) => value ? t('columns.yes') : t('columns.no');

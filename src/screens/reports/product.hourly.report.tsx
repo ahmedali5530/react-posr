@@ -116,6 +116,7 @@ export const ProductHourlyReport = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate, filters.menuItemIds]);
 
   // Calculate metrics grouped by menu item and hour

@@ -62,6 +62,7 @@ export function useOfflineQueue(): UseOfflineQueueResult {
       }, 2000);
     }
     wasConnected.current = isConnected;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected]);
 
   // Listen for manual replay requests (from OfflineModeBanner retry button)
@@ -69,6 +70,7 @@ export function useOfflineQueue(): UseOfflineQueueResult {
     const handler = () => void doReplay();
     window.addEventListener('posr-db-reconnect', handler);
     return () => window.removeEventListener('posr-db-reconnect', handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Refresh count on mount
@@ -82,6 +84,7 @@ export function useOfflineQueue(): UseOfflineQueueResult {
       if (!isReplaying) void refreshCount();
     }, 5000);
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReplaying]);
 
   const doReplay = useCallback(async () => {

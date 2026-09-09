@@ -37,6 +37,7 @@ export const LaborPayrollSummaryReport = () => {
       }
     };
     void load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate]);
 
   const subtitle = summary?.periodStart && summary?.periodEnd

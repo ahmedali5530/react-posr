@@ -120,6 +120,7 @@ export const PurchaseOrderReport = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate, filters.supplierIds, filters.itemIds, filters.userIds, filters.statuses]);
 
   const totals = useMemo(() => {

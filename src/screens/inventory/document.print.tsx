@@ -51,6 +51,7 @@ export const InventoryDocumentPrintPage = () => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, t, type]);
 
   const baseName = doc?.fileBaseName || `inventory-${doc?.invoiceNumber || "receipt"}`;

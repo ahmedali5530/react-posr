@@ -120,6 +120,7 @@ export const PayrollRunSnapshots = ({open, onClose, run, onChanged}: Props) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, run?.id]);
 
   const employeeLabel = (snapshot: PayrollSnapshot) => {

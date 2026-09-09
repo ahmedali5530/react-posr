@@ -106,6 +106,7 @@ export const SessionSecuritySettingsCard = () => {
 
   useEffect(() => {
     void loadSettings();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   useEffect(() => {

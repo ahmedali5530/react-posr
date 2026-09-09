@@ -149,6 +149,7 @@ export const DishForm = ({
       setWorkflowStages([]);
       setStageOverrides({});
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const {
@@ -197,6 +198,7 @@ export const DishForm = ({
       fetchWorkflows();
       fetchKitchens();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const getModifierGroups = async (id) => {

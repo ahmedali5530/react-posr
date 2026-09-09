@@ -61,6 +61,7 @@ export const CashClosingReport = () => {
     };
 
     void fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
   const subtitle = selectedDate || "Selected day";

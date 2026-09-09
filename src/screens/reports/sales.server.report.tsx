@@ -346,6 +346,7 @@ export const SalesServerReport = () => {
     };
 
     fetchOrders();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate, filters.userIds, filters.orderTypeIds, filters.floorIds, filters.tableIds, filters.dishIds, filters.categoryIds]);
 
   const filteredOrders = orders;

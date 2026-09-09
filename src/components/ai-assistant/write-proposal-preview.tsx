@@ -112,6 +112,7 @@ export function WriteProposalPreview({proposal}: WriteProposalPreviewProps) {
       .filter((f): f is ImportField => f !== undefined);
   }, [config, proposal.fieldNames]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const matchFields = config?.matchFields ?? [];
   const useCardLayout = shouldUseCardPreviewLayout(columns.length);
 

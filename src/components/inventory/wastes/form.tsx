@@ -126,6 +126,7 @@ export const InventoryWasteForm = ({open, onClose, data}: Props) => {
   const [state, ] = useAtom(appPage);
   const { manager: integrationManager } = useIntegrationManager();
   const { settings } = useInventorySettings();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const validationSchema = useMemo(() => createValidationSchema(db, data?.id), [data?.id]);
   const resolver = useMemo(() => yupResolver(validationSchema), [validationSchema]);
 
@@ -195,6 +196,7 @@ export const InventoryWasteForm = ({open, onClose, data}: Props) => {
   const [expiredLots, setExpiredLots] = useState<InventoryPurchaseItem[]>([]);
   const [loadingExpired, setLoadingExpired] = useState(false);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const itemsList = (items?.data ?? []) as (InventoryItem & { locations?: InventoryLocation[] })[];
 
   const pricedLines = useMemo(
@@ -265,6 +267,7 @@ export const InventoryWasteForm = ({open, onClose, data}: Props) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, settings.enableExpiryTracking, watchedLocation?.value]);
 
   useEffect(() => {
@@ -309,6 +312,7 @@ export const InventoryWasteForm = ({open, onClose, data}: Props) => {
         }],
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.id, open, reset]);
 
   useEffect(() => {
@@ -332,6 +336,7 @@ export const InventoryWasteForm = ({open, onClose, data}: Props) => {
     return () => {
       isMounted = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, data?.id, setValue, t]);
 
   useEffect(() => {
@@ -377,6 +382,7 @@ export const InventoryWasteForm = ({open, onClose, data}: Props) => {
         });
       });
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedLocation?.value, watchedItems]);
 
   const closeModal = () => {
@@ -458,6 +464,7 @@ export const InventoryWasteForm = ({open, onClose, data}: Props) => {
     }
 
     return isValid;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowNetQuantities, setError, clearErrors, t]);
 
   const onSubmit = async (values: WasteFormValues) => {

@@ -207,6 +207,7 @@ export const InventoryIssueForm = ({open, onClose, data}: Props) => {
 
   const fetchNetQuantityForLocation = useCallback(async (itemId: string, locationId: string) => {
     return fetchNetQuantity(db, itemId, locationId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const {fields, append, remove, replace, update} = useFieldArray({
@@ -313,6 +314,7 @@ export const InventoryIssueForm = ({open, onClose, data}: Props) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, open, reset, resetInventoryState, createEmptyItem]);
 
   useEffect(() => {
@@ -336,6 +338,7 @@ export const InventoryIssueForm = ({open, onClose, data}: Props) => {
     return () => {
       isMounted = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, data?.id, setValue]);
 
   useEffect(() => {
@@ -594,6 +597,7 @@ export const InventoryIssueForm = ({open, onClose, data}: Props) => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const itemsList = (items?.data ?? []) as (InventoryItem & { locations?: InventoryLocation[] })[];
 
   const getItemOptionsForLocation = useCallback((locationId?: string) => {

@@ -150,6 +150,7 @@ export const Printersettings = () => {
     };
 
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [printers.length, userId]);
 
   // Upgrade bare system printer ids (e.g. "abc") to full "printer:abc" once printers load.
@@ -170,6 +171,7 @@ export const Printersettings = () => {
       }
       return changed ? next : prev;
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [printers.length]);
 
   const onSubmit = async (values: PrinterSettingsForm) => {

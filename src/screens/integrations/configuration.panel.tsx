@@ -60,6 +60,7 @@ export const ConfigurationPanel = ({
       setFormValues(values);
     };
     void load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ selectedProviderId]);
 
   // Auto-save tenantId from OAuth callback redirect URL params

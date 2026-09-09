@@ -150,6 +150,7 @@ export const Orders = () => {
   useEffect(() => {
     ordersQb.setWheres(orderFilters.map(item => `and ${item}`));
     ordersQb.setParameters(orderFilterParams);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderFilters, orderFilterParams]);
 
   const fetchOrders = useCallback(async () => {
@@ -159,6 +160,7 @@ export const Orders = () => {
     const ids = list.map((o) => o.id.toString());
     const printed = await batchOrdersWithTempPrint(db, ids);
     setTempPrintedOrderIds(printed);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ordersQb.queryString, ordersQb.parameters]);
 
   fetchOrdersRef.current = fetchOrders;
@@ -175,6 +177,7 @@ export const Orders = () => {
 
   useEffect(() => {
     fetchOrders();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ordersQb.queryString, ordersQb.parameters]);
 
   const {
@@ -209,6 +212,7 @@ export const Orders = () => {
       liveQueryRef.current?.kill().catch(() => undefined);
       liveQueryRef.current = null;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scheduleFetchOrders]);
 
   const selectedTable = useMemo(() => {

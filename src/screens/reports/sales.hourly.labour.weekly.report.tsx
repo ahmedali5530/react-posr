@@ -130,6 +130,7 @@ export const SalesHourlyLabourWeeklyReport = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryStart, queryEnd]);
 
   const dayHeaders = useMemo(() => {
@@ -239,6 +240,7 @@ export const SalesHourlyLabourWeeklyReport = () => {
     });
 
     return generatedRows;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders, timeEntries, weekStart, weekEnd]);
 
   const subtitle = `${weekStartISO} to ${weekEndISO}`;

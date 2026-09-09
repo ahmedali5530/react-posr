@@ -211,6 +211,7 @@ export const DetailedInventoryReport = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate, filters.itemIds, filters.types]);
 
   if (loading) {

@@ -127,6 +127,7 @@ export const LedgerEntriesModal = ({
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, accountId, dateFrom, dateTo, openingBalance]);
 
   const closingBalance = useMemo(() => {

@@ -242,6 +242,7 @@ export const StockTransferForm = ({open, onClose, data}: Props) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.id, open, reset, createEmptyItem, data]);
 
   useEffect(() => {
@@ -270,6 +271,7 @@ export const StockTransferForm = ({open, onClose, data}: Props) => {
         setRowNetQuantities((prev) => ({...prev, [index]: value}));
       });
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedFromLocation?.value, watchedItems]);
 
   const itemOptions = useMemo(

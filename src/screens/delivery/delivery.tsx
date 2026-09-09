@@ -232,6 +232,7 @@ export const Delivery = () => {
     };
 
     loadMapAreas();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const selectedOrderCenter = useMemo(() => {

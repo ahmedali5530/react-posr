@@ -70,6 +70,7 @@ export const MergeOrdersReport = () => {
     };
 
     void fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.endDate, filters.startDate]);
 
   if (loading) {

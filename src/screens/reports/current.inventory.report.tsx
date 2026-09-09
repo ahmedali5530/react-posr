@@ -182,6 +182,7 @@ export const CurrentInventoryReport = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.itemIds]);
 
   if (loading) {

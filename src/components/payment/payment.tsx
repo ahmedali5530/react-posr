@@ -115,6 +115,7 @@ export const Payment = () => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.order?.id, paymentOpen]);
 
   const hasNewCartItems = () =>

@@ -120,6 +120,7 @@ export const DiscountForm = ({
       setConditions(data.conditions ? normalizeBxgyConditions(data.conditions) : undefined);
       setTargets(mergeTargetsFromRecord(data));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const db = useDB();

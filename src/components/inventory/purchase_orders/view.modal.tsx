@@ -48,6 +48,7 @@ export const InventoryPurchaseOrderViewModal = ({open, order, onClose}: Props) =
     };
 
     fetchDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, order?.id]);
 
   const itemsTotal = useMemo(

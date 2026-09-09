@@ -64,6 +64,7 @@ export const ProfitLoss = () => {
 
   useEffect(() => {
     loadProfitLoss();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const {incomeRows, expenseRows, totalIncome, totalExpense, netProfit} = useMemo(() => {

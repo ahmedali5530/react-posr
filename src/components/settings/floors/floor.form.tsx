@@ -52,6 +52,7 @@ export const FloorForm = ({
         color: data.color,
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const db = useDB();

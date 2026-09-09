@@ -37,6 +37,7 @@ export const MenuCategories = () => {
         category: undefined
       }));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categories, state.category]);
 
   const categoryClasses = 'flex-auto whitespace-nowrap !h-[56px] pressable rounded-full px-5';

@@ -70,6 +70,7 @@ export const CashFlow = () => {
 
   useEffect(() => {
     loadCashFlow();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const buckets = useMemo(() => {

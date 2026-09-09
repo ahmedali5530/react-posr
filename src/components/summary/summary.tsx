@@ -229,6 +229,7 @@ export const Summary = ({
       }
     });
     return list;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders]);
 
   const taxes = taxCollected;

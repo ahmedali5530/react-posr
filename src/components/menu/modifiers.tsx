@@ -162,6 +162,7 @@ export const MenuDishModifiers = (props: Props) => {
         );
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.dish, group, state.seat, props.level, props.editing, visibleModifiers]);
 
   const buildModifiersObj = (

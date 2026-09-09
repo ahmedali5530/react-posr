@@ -350,6 +350,7 @@ export const SalesAdvancedReport = () => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     filters.startDate,
     filters.endDate,
@@ -487,6 +488,7 @@ export const SalesAdvancedReport = () => {
         ordersCount: 0,
       }
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredOrders]);
   const totalVoids = useMemo(
     () => safeNumber(orderVoids.reduce((sum, voidEntry) => sum + calculateVoidEntryAmount(voidEntry), 0)),

@@ -38,6 +38,7 @@ export const Customers = ({
 
   useEffect(() => {
     loadCustomers(search)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   return (

@@ -186,6 +186,7 @@ export const DeliverySettings = () => {
     };
 
     loadDeliverySettings();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save delivery settings

@@ -223,6 +223,7 @@ export const JournalEntries = () => {
         </div>
       ),
     }),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [columnHelper, t, db, user, journalHook]);
 
   return (

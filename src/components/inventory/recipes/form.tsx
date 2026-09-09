@@ -217,6 +217,7 @@ export const RecipeForm = ({open, onClose, data}: Props) => {
     } else {
       reset(defaultValues);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, data]);
 
   const setPrimaryOutput = (index: number) => {

@@ -50,6 +50,7 @@ export const CategoryForm = ({
         show_in_menu: data.show_in_menu,
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const db = useDB();

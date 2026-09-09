@@ -132,6 +132,7 @@ export const FloorLayout = () => {
       liveQuery?.kill().catch(() => undefined);
       tablesLiveQuery?.kill().catch(() => undefined);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -152,6 +153,7 @@ export const FloorLayout = () => {
         floor: floors[0]
       }));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [floors, state.floor]);
 
   const tableOrders = (tableId: string) => {

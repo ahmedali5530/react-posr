@@ -43,6 +43,7 @@ export const InventoryIssueReturnViewModal = ({open, issueReturn, onClose}: Prop
     };
 
     fetchDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, issueReturn?.id]);
 
   if (!open) {

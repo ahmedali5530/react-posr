@@ -60,6 +60,7 @@ export const BalanceSheet = () => {
 
   useEffect(() => {
     loadBalanceSheet();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const summary = useMemo(() => {
