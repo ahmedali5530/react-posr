@@ -58,8 +58,8 @@ export interface StaffGamification {
   badge_name?: BadgeName;
   badge_description?: string;
   challenge_name?: string;
-  challenge_progress: number;
-  challenge_target: number;
+  challenge_progress?: number;
+  challenge_target?: number;
   reward_type?: RewardType;
   reward_value?: number;
   est_engagement_boost: number;

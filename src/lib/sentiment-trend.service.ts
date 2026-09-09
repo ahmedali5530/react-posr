@@ -49,7 +49,7 @@ export interface SentimentTrend {
   data_points: number;
   volatility: number;
   correlated_factor?: string;
-  correlation_strength: number;
+  correlation_strength?: number;
   est_revenue_impact: number;
   description: string;
   ai_insight?: string;

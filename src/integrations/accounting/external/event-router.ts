@@ -22,9 +22,9 @@ export type ExternalEventRoutingResult = {
 export const routeExternalAccountingEvent = async (
   event: IntegrationEvent<any>,
   providerId: string,
-  adapter: AccountingRemoteAdapter,
+  _adapter: AccountingRemoteAdapter,
   config: ExternalAccountingConfig,
-  mappingRepo: EntityMappingRepository,
+  _mappingRepo: EntityMappingRepository,
   postingEngine: AccountingPostingEngine,
   enqueueJob: (action: string, payload: Record<string, unknown>, idempotencyKey?: string) => Promise<void>
 ): Promise<ExternalEventRoutingResult> => {

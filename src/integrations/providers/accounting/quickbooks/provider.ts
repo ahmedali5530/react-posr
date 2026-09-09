@@ -302,7 +302,7 @@ export class QuickBooksProvider implements IntegrationProvider {
   // --- Action handlers ---
 
   private async handleSyncSale(config: QuickBooksConfig, request: IntegrationExecutionRequest): Promise<IntegrationExecutionResponse> {
-    const payload = request.payload?.eventPayload ?? request.payload ?? {};
+    const payload: any = request.payload?.eventPayload ?? request.payload ?? {};
     const posrOrderId = String(payload.orderId ?? payload.id ?? '');
     if (!posrOrderId) {
       return { success: false, status: 'failed', providerId: QBO_MANIFEST.id, error: 'Missing order id', retriable: false };
@@ -321,7 +321,7 @@ export class QuickBooksProvider implements IntegrationProvider {
   }
 
   private async handleSyncPayment(config: QuickBooksConfig, request: IntegrationExecutionRequest): Promise<IntegrationExecutionResponse> {
-    const payload = request.payload?.eventPayload ?? request.payload ?? {};
+    const payload: any = request.payload?.eventPayload ?? request.payload ?? {};
     const posrPaymentId = String(payload.paymentId ?? payload.id ?? '');
     if (!posrPaymentId) {
       return { success: false, status: 'failed', providerId: QBO_MANIFEST.id, error: 'Missing payment id', retriable: false };
@@ -339,7 +339,7 @@ export class QuickBooksProvider implements IntegrationProvider {
   }
 
   private async handleSyncCustomer(config: QuickBooksConfig, request: IntegrationExecutionRequest): Promise<IntegrationExecutionResponse> {
-    const payload = request.payload?.eventPayload ?? request.payload ?? {};
+    const payload: any = request.payload?.eventPayload ?? request.payload ?? {};
     const posrCustomerId = String(payload.customerId ?? payload.id ?? '');
     if (!posrCustomerId) {
       return { success: false, status: 'failed', providerId: QBO_MANIFEST.id, error: 'Missing customer id', retriable: false };
@@ -357,7 +357,7 @@ export class QuickBooksProvider implements IntegrationProvider {
   }
 
   private async handleSyncRefund(config: QuickBooksConfig, request: IntegrationExecutionRequest): Promise<IntegrationExecutionResponse> {
-    const payload = request.payload?.eventPayload ?? request.payload ?? {};
+    const payload: any = request.payload?.eventPayload ?? request.payload ?? {};
     const posrRefundId = String(payload.refundId ?? payload.id ?? '');
     if (!posrRefundId) {
       return { success: false, status: 'failed', providerId: QBO_MANIFEST.id, error: 'Missing refund id', retriable: false };
@@ -375,7 +375,7 @@ export class QuickBooksProvider implements IntegrationProvider {
   }
 
   private async handlePostJournal(config: QuickBooksConfig, request: IntegrationExecutionRequest): Promise<IntegrationExecutionResponse> {
-    const payload = request.payload ?? {};
+    const payload: any = request.payload ?? {};
     const id = String(payload.idempotencyKey ?? payload.originEvent ?? payload.originRecordId ?? '');
     if (!id) {
       return { success: false, status: 'failed', providerId: QBO_MANIFEST.id, error: 'Missing journal id', retriable: false };

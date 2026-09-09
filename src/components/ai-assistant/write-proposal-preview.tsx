@@ -21,7 +21,6 @@ type WriteProposalPreviewProps = {
 
 const RecordIssues = ({
   record,
-  t,
 }: {
   record: ImportRecord;
   t: (key: string, options?: Record<string, unknown>) => string;

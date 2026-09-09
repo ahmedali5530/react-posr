@@ -29,7 +29,7 @@ import {
 import { publishSaleCompleted } from "@/integrations/accounting/events/publish.ts";
 import { publishInvoiceCreated } from "@/integrations/events/publish/payments.ts";
 
-type DBLike = {
+type DbLike = {
   query: (sql: string, params?: Record<string, unknown>) => Promise<unknown[][]>;
   create: (table: string, data: Record<string, unknown>) => Promise<unknown>;
   merge: (id: unknown, data: Record<string, unknown>) => Promise<unknown>;
@@ -93,7 +93,7 @@ export function computeOrderGrandTotalFromOrder(order: Order): number {
   });
 }
 
-export async function loadAutoCheckCloseSettings(db: DBLike): Promise<{
+export async function loadAutoCheckCloseSettings(db: DbLike): Promise<{
   setting: Setting | null;
   values: AutoCheckCloseSettings;
 }> {
@@ -110,7 +110,7 @@ export async function loadAutoCheckCloseSettings(db: DBLike): Promise<{
 }
 
 export async function markAutoCheckCloseCycle(
-  db: DBLike,
+  db: DbLike,
   setting: Setting | null,
   cycleKey: string
 ): Promise<void> {
@@ -134,7 +134,7 @@ export async function markAutoCheckCloseCycle(
   }
 }
 
-async function fetchOpenOrders(db: DBLike, window: ClosingCycleWindow): Promise<Order[]> {
+async function fetchOpenOrders(db: DbLike, window: ClosingCycleWindow): Promise<Order[]> {
   const fetchClause = ORDER_FETCHES.join(', ');
 
   const queryOrders = async (includeWindow: boolean) => {
@@ -175,7 +175,7 @@ async function fetchOpenOrders(db: DBLike, window: ClosingCycleWindow): Promise<
   return queryOrders(false);
 }
 
-async function loadOrderForClose(db: DBLike, orderId: unknown): Promise<Order | null> {
+async function loadOrderForClose(db: DbLike, orderId: unknown): Promise<Order | null> {
   const fetchClause = ORDER_FETCHES.join(', ');
   const [order] = await db.query(
     `SELECT * FROM ONLY ${orderId} FETCH ${fetchClause}`
@@ -197,7 +197,7 @@ function getCreatedRecordId(result: unknown): unknown {
 }
 
 async function settleOrder(
-  db: DBLike,
+  db: DbLike,
   order: Order,
   paymentTypeId: unknown,
   grandTotal: number,
@@ -263,7 +263,7 @@ async function settleOrder(
 }
 
 async function printFinalBill(
-  db: DBLike,
+  db: DbLike,
   orderId: string,
   userId?: string
 ): Promise<void> {
@@ -272,7 +272,7 @@ async function printFinalBill(
   ) as unknown as [Order | undefined];
 
   if (order) {
-    const qrcodes = await getFiscalQrcodesForOrderPrint(db, orderId);
+    const qrcodes = await getFiscalQrcodesForOrderPrint(db as any, orderId);
     await requestBillPrint({
       db,
       orderId: String(orderId),
@@ -292,7 +292,7 @@ async function printFinalBill(
 }
 
 export async function closeOpenChecks(options: {
-  db: DBLike;
+  db: DbLike;
   paymentTypeId: unknown;
   printOnClose: boolean;
   userId?: string;
@@ -328,11 +328,11 @@ export async function closeOpenChecks(options: {
       const paymentAmount = Math.max(grandTotal, 0);
 
       if (integrationManager) {
-        const blockBeforePaid = await fiscalShouldBlockBeforePaid(integrationManager, db);
+        const blockBeforePaid = await fiscalShouldBlockBeforePaid(integrationManager, db as any);
         if (blockBeforePaid) {
           const fiscalResult = await runFiscalSettlementForOrder(
             integrationManager,
-            db,
+            db as any,
             fullOrder
           );
           if (fiscalResult.blocked) {
@@ -341,18 +341,18 @@ export async function closeOpenChecks(options: {
         }
       }
 
-      await settleOrder(db, fullOrder, paymentTypeId, paymentAmount, userId);
+      await settleOrder(db as any, fullOrder, paymentTypeId, paymentAmount, userId);
 
       if (integrationManager) {
-        const blockBeforePaid = await fiscalShouldBlockBeforePaid(integrationManager, db);
+        const blockBeforePaid = await fiscalShouldBlockBeforePaid(integrationManager, db as any);
         if (!blockBeforePaid) {
-          const settled = await loadOrderForFiscal(db, String(fullOrder.id));
+          const settled = await loadOrderForFiscal(db as any, String(fullOrder.id));
           if (settled) {
-            await runFiscalSettlementForOrder(integrationManager, db, settled);
+            await runFiscalSettlementForOrder(integrationManager, db as any, settled);
           }
         }
 
-        const saleOrder = await loadOrderForFiscal(db, String(fullOrder.id));
+        const saleOrder = await loadOrderForFiscal(db as any, String(fullOrder.id));
         if (saleOrder) {
           try {
             await publishSaleCompleted(integrationManager, saleOrder);
@@ -382,7 +382,7 @@ export async function closeOpenChecks(options: {
 }
 
 export async function countOpenChecksForWindow(
-  db: DBLike,
+  db: DbLike,
   window: ClosingCycleWindow
 ): Promise<number> {
   const orders = await fetchOpenOrders(db, window);
@@ -390,7 +390,7 @@ export async function countOpenChecksForWindow(
 }
 
 export const getAutoCloseState = async (
-  db: DBLike,
+  db: DbLike,
   now: Date = new Date()
 ): Promise<{config: {enabled: boolean}; state: AutoCloseCycleState}> => {
   return getAutoCloseCycleStateFromDb(db, now);
