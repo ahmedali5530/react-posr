@@ -1,34 +1,34 @@
 {
   "actions": {
-    "repeat": "Repeat",
-    "modify": "Modify",
-    "delete": "Delete",
-    "deleteAll": "Delete All",
-    "search": "Search",
-    "split": "Split"
+    "repeat": "Ponovi",
+    "modify": "Promijeni",
+    "delete": "Izbriši",
+    "deleteAll": "Izbriši sve",
+    "search": "Pretraga",
+    "split": "Podijeli"
   },
   "search": {
-    "placeholderNumber": "Enter dish number",
-    "placeholderBoth": "Search by number or name",
+    "placeholderNumber": "Unesite broj jela",
+    "placeholderBoth": "Pretraga po broju ili nazivu",
     "backspace": "Backspace"
   },
   "header": {
-    "newOrder": "New Order",
-    "orderNumber": "Order# {{number}}",
-    "customer": "Customer",
-    "clear": "Clear",
-    "selectCustomer": "Select a customer",
-    "confirmTitle": "Please confirm",
-    "confirmCartMessage_one": "There is {{count}} item in cart, choose an action",
-    "confirmCartMessage_other": "There are {{count}} items in cart, choose an action",
-    "pax": "{{count}} PAX"
+    "newOrder": "Nova narudžba",
+    "orderNumber": "Narudžba br. {{number}}",
+    "customer": "Kupac",
+    "clear": "Očisti",
+    "selectCustomer": "Odaberite kupca",
+    "confirmTitle": "Molimo potvrdite",
+    "confirmCartMessage_one": "U košarici je {{count}} stavka, odaberite akciju",
+    "confirmCartMessage_other": "U košarici su {{count}} stavke, odaberite akciju",
+    "pax": "{{count}} OSOBA"
   },
   "modifiers": {
-    "modifyTitle": "Modify {{name}}",
-    "cancel": "Cancel",
-    "replacedWarning": "Last modifier is replaced, to replace any other modifier remove it from right sidebar and choose again."
+    "modifyTitle": "Promijeni {{name}}",
+    "cancel": "Odustani",
+    "replacedWarning": "Zadnji modifikator je zamijenjen. Za zamjenu drugog modifikatora uklonite ga iz desne bočne trake i odaberite ponovno."
   },
   "persons": {
-    "chooseCount": "Choose number of persons"
+    "chooseCount": "Odaberite broj osoba"
   }
 }

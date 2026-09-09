@@ -1,34 +1,34 @@
 {
   "actions": {
-    "completeAllOpen": "Complete all open orders",
-    "completedOrders": "Completed Orders",
-    "viewAllDishes": "View all dishes",
-    "recall": "Recall",
-    "ready": "Ready",
-    "reprint": "Re-print"
+    "completeAllOpen": "Zaključi vsa odprta naročila",
+    "completedOrders": "Zaključena naročila",
+    "viewAllDishes": "Prikaži vse jedi",
+    "recall": "Prikliči",
+    "ready": "Pripravljeno",
+    "reprint": "Ponovni izpis"
   },
   "labels": {
-    "avgTime": "Avg time: {{time}}",
-    "avgTimeMins": "{{count}} mins",
-    "addon": "ADDON",
+    "avgTime": "Povp. čas: {{time}}",
+    "avgTimeMins": "{{count}} min",
+    "addon": "DODATEK",
     "original": "ORIGINAL",
-    "completed": "Completed: {{time}}",
-    "items": "Items: {{count}}",
-    "continued": "CONTINUED"
+    "completed": "Zaključeno: {{time}}",
+    "items": "Artikli: {{count}}",
+    "continued": "NADALJEVANJE"
   },
   "announcements": {
-    "newOrder": "New order. {{context}}. {{number}}.",
-    "addon": "Addon. {{context}}. {{number}}.",
-    "itemAdded": "Item added. {{item}}. {{context}}. {{number}}.",
-    "itemRemoved": "Item cancelled. {{item}}. {{context}}. {{number}}.",
-    "itemFallback": "Item"
+    "newOrder": "Novo naročilo. {{context}}. {{number}}.",
+    "addon": "Dodatek. {{context}}. {{number}}.",
+    "itemAdded": "Artikel dodan. {{item}}. {{context}}. {{number}}.",
+    "itemRemoved": "Artikel preklican. {{item}}. {{context}}. {{number}}.",
+    "itemFallback": "Artikel"
   },
   "modal": {
-    "completedOrdersTitle": "{{kitchen}} Completed Orders (Today)",
-    "noCompletedOrders": "No completed orders found for today."
+    "completedOrdersTitle": "{{kitchen}} Zaključena naročila (danes)",
+    "noCompletedOrders": "Za danes ni zaključenih naročil."
   },
   "confirm": {
-    "title": "Confirm",
-    "completeAll": "Complete all open orders in this kitchen?"
+    "title": "Potrdi",
+    "completeAll": "Zaključi vsa odprta naročila v tej kuhinji?"
   }
 }
