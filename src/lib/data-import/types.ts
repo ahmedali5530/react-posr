@@ -2,6 +2,7 @@ import type {CsvImportMode} from "@/utils/csv-import.ts";
 
 export type ImportFieldType =
   | "string"
+  | "string[]"
   | "number"
   | "boolean"
   | "date"

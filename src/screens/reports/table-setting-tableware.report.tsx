@@ -16,7 +16,7 @@ import { Layout } from "@/screens/partials/layout.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUtensils, faRotate, faWeightHanging, faTriangleExclamation,
-  faWineGlass, faHandshake, faNapkin, faTable, faSeedling,
+  faWineGlass, faHandshake, faTable, faSeedling,
   faLayerGroup, faCheckCircle, faLightbulb,
 } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -30,7 +30,7 @@ const RULE_STYLE: Record<string, { bg: string; text: string; icon: any; label: s
   plate_chip_wear:                       { bg: 'bg-rose-50',    text: 'text-rose-700',    icon: faTriangleExclamation, label: 'CHIPS' },
   glassware_mismatch:                    { bg: 'bg-violet-50',  text: 'text-violet-700',  icon: faWineGlass,        label: 'GLASS MISMATCH' },
   tableware_brand_tier_mismatch:         { bg: 'bg-fuchsia-50', text: 'text-fuchsia-700', icon: faHandshake,        label: 'TIER MISMATCH' },
-  napkin_quality_low:                    { bg: 'bg-orange-50',  text: 'text-orange-700',  icon: faNapkin,           label: 'NAPKIN' },
+  napkin_quality_low:                    { bg: 'bg-orange-50',  text: 'text-orange-700',  icon: faUtensils,           label: 'NAPKIN' },
   table_linen_missing:                   { bg: 'bg-sky-50',     text: 'text-sky-700',     icon: faTable,            label: 'NO LINEN' },
   centerpiece_absent:                    { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: faSeedling,         label: 'NO CENTERPIECE' },
   tableware_inconsistency_across_tables: { bg: 'bg-yellow-50',  text: 'text-yellow-700',  icon: faLayerGroup,       label: 'INCONSISTENT' },

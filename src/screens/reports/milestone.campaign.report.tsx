@@ -15,7 +15,7 @@ import { Layout } from "@/screens/partials/layout.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCakeCandles, faRotate, faLightbulb, faCheckCircle,
-  faCalendarHeart, faTrophy, faHashtag, faDollarSign,
+  faCalendarCheck, faTrophy, faHashtag, faDollarSign,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -26,7 +26,7 @@ import {
 
 const RULE_STYLE: Record<string, { bg: string; text: string; icon: any; label: string }> = {
   birthday:        { bg: 'bg-pink-50',     text: 'text-pink-700',     icon: faCakeCandles,    label: 'BIRTHDAY' },
-  anniversary:     { bg: 'bg-violet-50',    text: 'text-violet-700',   icon: faCalendarHeart,  label: 'ANNIVERSARY' },
+  anniversary:     { bg: 'bg-violet-50',    text: 'text-violet-700',   icon: faCalendarCheck,  label: 'ANNIVERSARY' },
   tier_milestone:  { bg: 'bg-amber-50',   text: 'text-amber-700',   icon: faTrophy,         label: 'TIER MILESTONE' },
   visit_count:     { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: faHashtag,        label: 'VISIT COUNT' },
   spend_milestone: { bg: 'bg-blue-50',    text: 'text-blue-700',   icon: faDollarSign,     label: 'SPEND MILESTONE' },
@@ -136,7 +136,7 @@ export function MilestoneCampaignScreen() {
                 <div className="text-2xl font-bold text-pink-700 tabular-nums">{summary.birthdayCount}</div>
               </div>
               <div className="bg-amber-50 rounded-lg border border-amber-200 p-3 text-center">
-                <div className="text-xs text-amber-600 flex items-center justify-center gap-1"><FontAwesomeIcon icon={faCalendarHeart} />Total milestones</div>
+                <div className="text-xs text-amber-600 flex items-center justify-center gap-1"><FontAwesomeIcon icon={faCalendarCheck} />Total milestones</div>
                 <div className="text-2xl font-bold text-amber-700 tabular-nums">{summary.upcomingCount}</div>
               </div>
               <div className="bg-emerald-50 rounded-lg border border-emerald-200 p-3 text-center ring-2 ring-emerald-200">

@@ -45,9 +45,9 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faDatabase, faSeedling, faBitcoinSign, faCube, faMicrochip, faRecycle, faGlobe, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree, faDna, faAtom,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGift, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faDatabase, faSeedling, faBitcoinSign, faCube, faMicrochip, faRecycle, faGlobe, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarDay, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree, faDna, faAtom, faTemperatureHalf, faListOl,
 } from "@fortawesome/free-solid-svg-icons";
-import { withCurrency } from "@/lib/utils.ts";
+import { withCurrency, safeNumber } from "@/lib/utils.ts";
 import {
   REPORTS_FORECAST, REPORTS_MENU_OPTIMIZATION, REPORTS_SENTIMENT,
   REPORTS_WASTE_INTELLIGENCE, REPORTS_SCHEDULING_OPTIMIZATION,
@@ -268,6 +268,17 @@ REPORTS_RECIPE_SCALING,
   REPORTS_PERSONALIZED_NUTRITION_DNA_GENOMIC_DINING,
   REPORTS_NEURO_EMOTION_BIOMETRIC_DINING,
   REPORTS_QUANTUM_COMPUTING_RESTAURANT_OPTIMIZATION,
+  REPORTS_TICKET_COMPLEXITY,
+  REPORTS_KITCHEN_STATION_EFFICIENCY,
+  REPORTS_PAIRING_AFFINITY,
+  REPORTS_WAIT_EXPERIENCE,
+  REPORTS_SERVER_TABLE_ASSIGNMENT,
+  REPORTS_SEASONAL_DEMAND_SHIFT,
+  REPORTS_TABLE_TURNOVER_VELOCITY,
+  REPORTS_PROFITABILITY_DECAY,
+  REPORTS_ORDER_FREQUENCY,
+  REPORTS_ORDER_PATTERN_ANOMALY,
+  REPORTS_KITCHEN_SKILL_GAP,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -289,6 +300,8 @@ interface ExecutiveSummary {
   brief: string;
   priorities: string[];
 }
+
+const fmt$ = (n: number): string => `$${(n || 0).toFixed(2)}`;
 
 // ---------------------------------------------------------------------------
 // Main screen
@@ -2005,16 +2018,16 @@ async function fetchGiftCardFraudSummary(db: any): Promise<MetricCard> {
     );
     const list = Array.isArray(result) ? result.flat() : [];
     const g = list[0];
-    if (!g || g.count === 0) return neutralCard('Gift Card Fraud', faGiftCard, 'text-rose-600', REPORTS_GIFTCARD_FRAUD);
+    if (!g || g.count === 0) return neutralCard('Gift Card Fraud', faGift, 'text-rose-600', REPORTS_GIFTCARD_FRAUD);
     return {
       title: 'Gift Card Fraud',
-      icon: faGiftCard, color: 'text-rose-600',
+      icon: faGift, color: 'text-rose-600',
       primary: `${g.critical} critical`,
       secondary: `${g.count} alerts · ${withCurrency(g.total_loss)} loss`,
       health: g.critical > 0 ? 'critical' : 'warning',
       link: REPORTS_GIFTCARD_FRAUD, linkLabel: 'View alerts',
     };
-  } catch { return neutralCard('Gift Card Fraud', faGiftCard, 'text-rose-600', REPORTS_GIFTCARD_FRAUD); }
+  } catch { return neutralCard('Gift Card Fraud', faGift, 'text-rose-600', REPORTS_GIFTCARD_FRAUD); }
 }
 
 async function fetchRefundAbuseSummary(db: any): Promise<MetricCard> {
@@ -2971,13 +2984,13 @@ async function fetchEventMenuSummary(db: any): Promise<MetricCard> {
     );
     const list = Array.isArray(result) ? result.flat() : [];
     const e = list[0];
-    if (!e || e.count === 0) return neutralCard('Event Menu', faCalendarStar, 'text-rose-600', REPORTS_EVENT_MENU);
+    if (!e || e.count === 0) return neutralCard('Event Menu', faCalendarDay, 'text-rose-600', REPORTS_EVENT_MENU);
     return {
-      title: 'Event Menu', icon: faCalendarStar, color: 'text-rose-600',
+      title: 'Event Menu', icon: faCalendarDay, color: 'text-rose-600',
       primary: `${e.total} events`, secondary: `${e.critical} critical · ${withCurrency(e.profit)} est profit`,
       health: e.critical > 0 ? 'critical' : 'good', link: REPORTS_EVENT_MENU, linkLabel: 'View events',
     };
-  } catch { return neutralCard('Event Menu', faCalendarStar, 'text-rose-600', REPORTS_EVENT_MENU); }
+  } catch { return neutralCard('Event Menu', faCalendarDay, 'text-rose-600', REPORTS_EVENT_MENU); }
 }
 
 async function fetchRetentionSummary(db: any): Promise<MetricCard> {

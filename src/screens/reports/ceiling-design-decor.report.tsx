@@ -235,8 +235,8 @@ export function CeilingDesignDecorScreen() {
                           {alert.perceived_quality_change != null && alert.perceived_quality_change < 0 && (
                             <span className="text-rose-600">{alert.perceived_quality_change}% quality</span>
                           )}
-                          {alert.perceived_design_intentionality_change != null && alert.perceived_design_intentionality_change < 0 && (
-                            <span className="text-rose-600">{alert.perceived_design_intentionality_change}% intentionality</span>
+                          {alert.perceived_design_intentionality_score != null && alert.perceived_design_intentionality_score < 0 && (
+                            <span className="text-rose-600">{alert.perceived_design_intentionality_score}% intentionality</span>
                           )}
                           {alert.noise_level_change_pct != null && alert.noise_level_change_pct > 0 && (
                             <span className="text-rose-600">+{alert.noise_level_change_pct}% noise</span>

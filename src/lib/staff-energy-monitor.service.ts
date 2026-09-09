@@ -358,7 +358,7 @@ export const runStaffEnergyEngine = async (
         try {
           const response = await callOpenAIChat([
             { role: 'system', content: 'You are a restaurant workforce management AI specializing in staff energy and fatigue optimization. Recommend specific break timing and shift management interventions. Respond with a single actionable insight (max 200 chars).' },
-            { role: 'user', content: `Staff: ${a.staff_name} (${a.role ?? 'N/A'}) — ${a.rule_id}. ${a.hours_into_shift ?? 0}h into shift. Energy: ${a.current_energy_score ?? 0}/100 (started ${a.shift_start_energy ?? 0}). Error rate: ${a.current_error_rate ?? 0}/10 (started ${a.start_error_rate ?? 0}). Speed: ${a.current_speed_pct ?? 0}%. Peak: ${a.is_peak_hour ?? false}. Break taken: ${a.has_taken_break ?? 'N/A'}. ${a.description}` },
+            { role: 'user', content: `Staff: ${a.staff_name} (${a.role ?? 'N/A'}) — ${a.rule_id}. ${a.hours_into_shift ?? 0}h into shift. Energy: ${a.current_energy_score ?? 0}/100 (started ${a.shift_start_energy ?? 0}). Error rate: ${a.current_error_rate ?? 0}/10 (started ${a.start_error_rate ?? 0}). Speed: ${a.current_speed_pct ?? 0}%. Peak: ${a.is_peak_hour ?? false}. Break taken: ${(a as any).has_taken_break ?? 'N/A'}. ${a.description}` },
           ], { temperature: 0.2, maxTokens: 120 });
           const text = typeof response === 'string' ? response : (response as any)?.content ?? '';
           a.ai_insight = text.slice(0, 200);

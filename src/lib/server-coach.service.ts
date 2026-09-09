@@ -245,11 +245,11 @@ export const runServerCoachEngine = async (
 
   for (const s of scoredServers) {
     const dims = [
-      { name: 'upsell', score: s.upsell_score },
-      { name: 'accuracy', score: s.accuracy_score },
-      { name: 'speed', score: s.speed_score },
-      { name: 'tip', score: s.tip_score },
-      { name: 'satisfaction', score: s.satisfaction_score },
+      { name: 'upsell', score: s.upsellScore },
+      { name: 'accuracy', score: s.accuracyScore },
+      { name: 'speed', score: s.speedScore },
+      { name: 'tip', score: s.tipScore },
+      { name: 'satisfaction', score: s.satisfactionScore },
     ].sort((a, b) => b.score - a.score);
 
     const topStrength = dims[0];
@@ -282,12 +282,12 @@ export const runServerCoachEngine = async (
         severity: bottomGap.score < 30 ? 'critical' : bottomGap.score < 40 ? 'high' : 'medium',
         server_id: s.server_id,
         server_name: s.server_name,
-        upsell_score: Math.round(s.upsell_score),
-        accuracy_score: Math.round(s.accuracy_score),
-        speed_score: Math.round(s.speed_score),
-        tip_score: Math.round(s.tip_score),
-        satisfaction_score: Math.round(s.satisfaction_score),
-        overall_score: Math.round(s.overall_score),
+        upsell_score: Math.round(s.upsellScore),
+        accuracy_score: Math.round(s.accuracyScore),
+        speed_score: Math.round(s.speedScore),
+        tip_score: Math.round(s.tipScore),
+        satisfaction_score: Math.round(s.satisfactionScore),
+        overall_score: Math.round(s.overallScore),
         top_strength: topStrength.name,
         bottom_gap: bottomGap.name,
         trajectory,
@@ -306,12 +306,12 @@ export const runServerCoachEngine = async (
         severity: 'low',
         server_id: s.server_id,
         server_name: s.server_name,
-        upsell_score: Math.round(s.upsell_score),
-        accuracy_score: Math.round(s.accuracy_score),
-        speed_score: Math.round(s.speed_score),
-        tip_score: Math.round(s.tip_score),
-        satisfaction_score: Math.round(s.satisfaction_score),
-        overall_score: Math.round(s.overall_score),
+        upsell_score: Math.round(s.upsellScore),
+        accuracy_score: Math.round(s.accuracyScore),
+        speed_score: Math.round(s.speedScore),
+        tip_score: Math.round(s.tipScore),
+        satisfaction_score: Math.round(s.satisfactionScore),
+        overall_score: Math.round(s.overallScore),
         top_strength: topStrength.name,
         bottom_gap: bottomGap.name,
         trajectory,
@@ -322,7 +322,7 @@ export const runServerCoachEngine = async (
     }
 
     // --- Rule 3: MENTOR MATCH — high performer, suggest as mentor ---
-    if (s.overall_score >= 80 && topStrength.score >= config.topThreshold) {
+    if (s.overallScore >= 80 && topStrength.score >= config.topThreshold) {
       const mentees = scoredServers.filter(o =>
         o.server_id !== s.server_id &&
         Number(o[(topStrength.name + '_score') as keyof ScoredServer] ?? 0) < config.gapThreshold
@@ -333,12 +333,12 @@ export const runServerCoachEngine = async (
           severity: 'medium',
           server_id: s.server_id,
           server_name: s.server_name,
-          upsell_score: Math.round(s.upsell_score),
-          accuracy_score: Math.round(s.accuracy_score),
-          speed_score: Math.round(s.speed_score),
-          tip_score: Math.round(s.tip_score),
-          satisfaction_score: Math.round(s.satisfaction_score),
-          overall_score: Math.round(s.overall_score),
+          upsell_score: Math.round(s.upsellScore),
+          accuracy_score: Math.round(s.accuracyScore),
+          speed_score: Math.round(s.speedScore),
+          tip_score: Math.round(s.tipScore),
+          satisfaction_score: Math.round(s.satisfactionScore),
+          overall_score: Math.round(s.overallScore),
           top_strength: topStrength.name,
           trajectory,
           description: `${s.server_name} can mentor ${mentees.length} server(s) on ${topStrength.name}`,
@@ -358,12 +358,12 @@ export const runServerCoachEngine = async (
         severity: changePct < -20 ? 'critical' : 'high',
         server_id: s.server_id,
         server_name: s.server_name,
-        upsell_score: Math.round(s.upsell_score),
-        accuracy_score: Math.round(s.accuracy_score),
-        speed_score: Math.round(s.speed_score),
-        tip_score: Math.round(s.tip_score),
-        satisfaction_score: Math.round(s.satisfaction_score),
-        overall_score: Math.round(s.overall_score),
+        upsell_score: Math.round(s.upsellScore),
+        accuracy_score: Math.round(s.accuracyScore),
+        speed_score: Math.round(s.speedScore),
+        tip_score: Math.round(s.tipScore),
+        satisfaction_score: Math.round(s.satisfactionScore),
+        overall_score: Math.round(s.overallScore),
         trajectory,
         bottom_gap: bottomGap.name,
         description: `${s.server_name}: revenue declining ${changePct.toFixed(1)}% (avg ticket ${priorAvgRev.toFixed(2)} → ${recentAvgRev.toFixed(2)}) — investigate`,

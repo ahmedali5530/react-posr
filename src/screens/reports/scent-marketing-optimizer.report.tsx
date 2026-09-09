@@ -15,7 +15,7 @@ import { Layout } from "@/screens/partials/layout.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faSprayCanSparkles, faRotate, faUtensils, faClock, faGaugeHigh,
-  faGaugeLow, faLayerGroup, faAllergies, faCalendarAlt, faChartLine,
+  faGauge, faLayerGroup, faAllergies, faCalendarAlt, faChartLine,
   faCheckCircle, faTriangleExclamation, faLightbulb,
 } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -28,7 +28,7 @@ const RULE_STYLE: Record<string, { bg: string; text: string; icon: any; label: s
   cuisine_scent_mismatch:         { bg: 'bg-amber-50',   text: 'text-amber-700',   icon: faUtensils,           label: 'CUISINE MISMATCH' },
   time_of_day_rotation_needed:    { bg: 'bg-violet-50',  text: 'text-violet-700',  icon: faClock,              label: 'TIME ROTATION' },
   intensity_too_strong:           { bg: 'bg-rose-50',    text: 'text-rose-700',    icon: faGaugeHigh,          label: 'TOO STRONG' },
-  intensity_too_weak:             { bg: 'bg-sky-50',     text: 'text-sky-700',     icon: faGaugeLow,           label: 'TOO WEAK' },
+  intensity_too_weak:             { bg: 'bg-sky-50',     text: 'text-sky-700',     icon: faGauge,           label: 'TOO WEAK' },
   zone_scent_conflict:            { bg: 'bg-orange-50',  text: 'text-orange-700',  icon: faLayerGroup,         label: 'ZONE CONFLICT' },
   allergy_sensitive_alternative:  { bg: 'bg-yellow-50',  text: 'text-yellow-700',  icon: faAllergies,          label: 'ALLERGEN' },
   seasonal_scent_shift:           { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: faCalendarAlt,        label: 'SEASONAL' },

@@ -16,7 +16,7 @@ import { Layout } from "@/screens/partials/layout.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChair, faRotate, faCompressArrowsAlt, faLayerGroup, faPerson,
-  faArrowsUpDown, faClock, faSparkles, faUsers, faAccessibleIcon,
+  faArrowsUpDown, faClock, faWandMagicSparkles, faUsers, faUniversalAccess,
   faCheckCircle, faTriangleExclamation, faLightbulb,
 } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -31,9 +31,9 @@ const RULE_STYLE: Record<string, { bg: string; text: string; icon: any; label: s
   back_support_inadequate:         { bg: 'bg-rose-50',    text: 'text-rose-700',    icon: faPerson,            label: 'BACK SUPPORT' },
   seat_height_wrong:               { bg: 'bg-sky-50',     text: 'text-sky-700',     icon: faArrowsUpDown,      label: 'HEIGHT' },
   furniture_age_excessive:         { bg: 'bg-orange-50',  text: 'text-orange-700',  icon: faClock,             label: 'AGE' },
-  upholstery_stain_wear:           { bg: 'bg-red-50',     text: 'text-red-700',     icon: faSparkles,          label: 'UPHOLSTERY' },
+  upholstery_stain_wear:           { bg: 'bg-red-50',     text: 'text-red-700',     icon: faWandMagicSparkles,          label: 'UPHOLSTERY' },
   seating_capacity_mismatch:       { bg: 'bg-yellow-50',  text: 'text-yellow-700',  icon: faUsers,             label: 'CAPACITY' },
-  accessibility_seating_missing:   { bg: 'bg-fuchsia-50', text: 'text-fuchsia-700', icon: faAccessibleIcon,    label: 'ADA' },
+  accessibility_seating_missing:   { bg: 'bg-fuchsia-50', text: 'text-fuchsia-700', icon: faUniversalAccess,    label: 'ADA' },
 };
 
 const SEVERITY_DOT: Record<string, string> = {
@@ -127,8 +127,8 @@ export function SeatingComfortFurnitureScreen() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <SummaryCard icon={faLayerGroup} label="Zones at risk" value={String(summary.zonesAtRisk)} color="text-rose-600" />
-          <SummaryCard icon={faSparkles} label="Avg upholstery" value={`${summary.avgUpholsteryScore.toFixed(0)}/100`} color={summary.avgUpholsteryScore < 75 ? 'text-rose-600' : 'text-emerald-600'} />
-          <SummaryCard icon={faAccessibleIcon} label="ADA gaps" value={String(summary.adaGaps)} color={summary.adaGaps > 0 ? 'text-fuchsia-600' : 'text-emerald-600'} />
+          <SummaryCard icon={faWandMagicSparkles} label="Avg upholstery" value={`${summary.avgUpholsteryScore.toFixed(0)}/100`} color={summary.avgUpholsteryScore < 75 ? 'text-rose-600' : 'text-emerald-600'} />
+          <SummaryCard icon={faUniversalAccess} label="ADA gaps" value={String(summary.adaGaps)} color={summary.adaGaps > 0 ? 'text-fuchsia-600' : 'text-emerald-600'} />
           <SummaryCard icon={faLightbulb} label="Monthly opportunity" value={fmt$(summary.totalOpportunity)} color="text-amber-600" />
         </div>
 

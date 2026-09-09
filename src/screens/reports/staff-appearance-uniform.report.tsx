@@ -15,7 +15,7 @@ import { DocumentTitle } from "@/components/common/document-title.tsx";
 import { Layout } from "@/screens/partials/layout.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faShirt, faRotate, faLayerGroup, faUserCheck, faSparkles,
+  faShirt, faRotate, faLayerGroup, faUserCheck, faWandMagicSparkles,
   faUserGroup, faHandshake, faGem, faShoePrints, faSnowflake,
   faCheckCircle, faTriangleExclamation, faLightbulb,
 } from "@fortawesome/free-solid-svg-icons";
@@ -28,7 +28,7 @@ import {
 const RULE_STYLE: Record<string, { bg: string; text: string; icon: any; label: string }> = {
   uniform_inconsistency:           { bg: 'bg-amber-50',   text: 'text-amber-700',   icon: faLayerGroup,    label: 'INCONSISTENCY' },
   grooming_standard_breach:        { bg: 'bg-rose-50',    text: 'text-rose-700',    icon: faUserCheck,     label: 'GROOMING' },
-  uniform_cleanliness_issue:       { bg: 'bg-orange-50',  text: 'text-orange-700',  icon: faSparkles,      label: 'CLEANLINESS' },
+  uniform_cleanliness_issue:       { bg: 'bg-orange-50',  text: 'text-orange-700',  icon: faWandMagicSparkles,      label: 'CLEANLINESS' },
   role_differentiation_weak:       { bg: 'bg-violet-50',  text: 'text-violet-700',  icon: faUserGroup,     label: 'ROLE DIFF' },
   uniform_brand_mismatch:          { bg: 'bg-fuchsia-50', text: 'text-fuchsia-700', icon: faHandshake,     label: 'BRAND MISMATCH' },
   accessory_policy_inconsistent:   { bg: 'bg-yellow-50',  text: 'text-yellow-700',  icon: faGem,           label: 'ACCESSORIES' },
@@ -128,7 +128,7 @@ export function StaffAppearanceUniformScreen() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <SummaryCard icon={faUserGroup} label="Roles at risk" value={String(summary.rolesAtRisk)} color="text-rose-600" />
           <SummaryCard icon={faUserCheck} label="Avg grooming" value={`${summary.avgGroomingPct.toFixed(0)}%`} color={summary.avgGroomingPct >= 90 ? 'text-emerald-600' : 'text-rose-600'} />
-          <SummaryCard icon={faSparkles} label="Avg cleanliness" value={`${summary.avgCleanlinessScore.toFixed(0)}/100`} color={summary.avgCleanlinessScore >= 80 ? 'text-emerald-600' : 'text-amber-600'} />
+          <SummaryCard icon={faWandMagicSparkles} label="Avg cleanliness" value={`${summary.avgCleanlinessScore.toFixed(0)}/100`} color={summary.avgCleanlinessScore >= 80 ? 'text-emerald-600' : 'text-amber-600'} />
           <SummaryCard icon={faLightbulb} label="Monthly opportunity" value={fmt$(summary.totalOpportunity)} color="text-amber-600" />
         </div>
 

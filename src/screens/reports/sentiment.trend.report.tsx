@@ -15,7 +15,7 @@ import { Layout } from "@/screens/partials/layout.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChartLine, faRotate, faLightbulb, faCheckCircle,
-  faArrowTrendUp, faArrowTrendDown, faWaveSquare, faSplit, faLink,
+  faArrowTrendUp, faArrowTrendDown, faWaveSquare, faLink,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -28,7 +28,7 @@ const RULE_STYLE: Record<string, { bg: string; text: string; icon: any; label: s
   declining_trend:    { bg: 'bg-rose-50',    text: 'text-rose-700',    icon: faArrowTrendDown, label: 'DECLINING' },
   improving_trend:    { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: faArrowTrendUp,   label: 'IMPROVING' },
   volatile_sentiment: { bg: 'bg-amber-50',   text: 'text-amber-700',   icon: faWaveSquare,     label: 'VOLATILE' },
-  inflection_point:   { bg: 'bg-violet-50',   text: 'text-violet-700',  icon: faSplit,          label: 'INFLECTION' },
+  inflection_point:   { bg: 'bg-violet-50',   text: 'text-violet-700',  icon: faChartLine,          label: 'INFLECTION' },
   correlation_alert:  { bg: 'bg-blue-50',    text: 'text-blue-700',   icon: faLink,           label: 'CORRELATION' },
 };
 

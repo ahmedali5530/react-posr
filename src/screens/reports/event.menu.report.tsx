@@ -13,7 +13,7 @@ import { DocumentTitle } from "@/components/common/document-title.tsx";
 import { Layout } from "@/screens/partials/layout.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faCalendarStar, faRotate, faLightbulb, faCheckCircle,
+  faCalendarDay, faRotate, faLightbulb, faCheckCircle,
   faUtensils, faBullhorn, faUsers, faBoxOpen, faDollarSign,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
@@ -24,11 +24,11 @@ import {
 } from "@/lib/event-menu.service.ts";
 
 const RULE_STYLE: Record<string, { bg: string; text: string; icon: any; label: string }> = {
-  holiday_menu:    { bg: 'bg-rose-50',    text: 'text-rose-700',    icon: faCalendarStar,  label: 'HOLIDAY' },
-  sports_event:    { bg: 'bg-amber-50',   text: 'text-amber-700',   icon: faCalendarStar,  label: 'SPORTS' },
-  local_festival:  { bg: 'bg-violet-50',   text: 'text-violet-700',  icon: faCalendarStar,  label: 'FESTIVAL' },
-  weather_event:   { bg: 'bg-blue-50',    text: 'text-blue-700',   icon: faCalendarStar,  label: 'WEATHER' },
-  cultural_event:  { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: faCalendarStar,  label: 'CULTURAL' },
+  holiday_menu:    { bg: 'bg-rose-50',    text: 'text-rose-700',    icon: faCalendarDay,  label: 'HOLIDAY' },
+  sports_event:    { bg: 'bg-amber-50',   text: 'text-amber-700',   icon: faCalendarDay,  label: 'SPORTS' },
+  local_festival:  { bg: 'bg-violet-50',   text: 'text-violet-700',  icon: faCalendarDay,  label: 'FESTIVAL' },
+  weather_event:   { bg: 'bg-blue-50',    text: 'text-blue-700',   icon: faCalendarDay,  label: 'WEATHER' },
+  cultural_event:  { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: faCalendarDay,  label: 'CULTURAL' },
 };
 
 const SEVERITY_DOT: Record<string, string> = {
@@ -100,7 +100,7 @@ export function EventMenuScreen() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <FontAwesomeIcon icon={faCalendarStar} className="text-rose-600" />
+              <FontAwesomeIcon icon={faCalendarDay} className="text-rose-600" />
               AI Event Menu
             </h1>
             <p className="text-sm text-neutral-500">
@@ -117,7 +117,7 @@ export function EventMenuScreen() {
           <div className="p-12 text-center text-neutral-400">Loading…</div>
         ) : opts.length === 0 ? (
           <div className="bg-white rounded-lg border border-neutral-200 p-12 text-center text-neutral-400">
-            <FontAwesomeIcon icon={faCalendarStar} className="text-5xl mb-4 text-neutral-300" />
+            <FontAwesomeIcon icon={faCalendarDay} className="text-5xl mb-4 text-neutral-300" />
             <p className="text-lg font-medium text-neutral-500">No upcoming events!</p>
             <p className="text-sm mt-1">Click "Scan events" to detect holidays, sports events, and cultural events.</p>
           </div>
@@ -125,7 +125,7 @@ export function EventMenuScreen() {
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="bg-rose-50 rounded-lg border border-rose-200 p-3 text-center">
-                <div className="text-xs text-rose-600 flex items-center justify-center gap-1"><FontAwesomeIcon icon={faCalendarStar} />Events</div>
+                <div className="text-xs text-rose-600 flex items-center justify-center gap-1"><FontAwesomeIcon icon={faCalendarDay} />Events</div>
                 <div className="text-2xl font-bold text-rose-700 tabular-nums">{summary.eventCount}</div>
               </div>
               <div className="bg-rose-50 rounded-lg border border-rose-300 p-3 text-center ring-2 ring-rose-200">

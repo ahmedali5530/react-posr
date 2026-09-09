@@ -158,16 +158,16 @@ export const runNegotiationEngine = async (
     let desc = '';
     let confidence = 0.5;
 
-    if (supplier.total_spend > 5000 && supplier.order_count >= 10) {
+    if (supplier.total_spend > 5000 && (supplier as any).order_count >= 10) {
       // High-volume, frequent orders → VOLUME DISCOUNT
       ruleId = 'volume_discount';
       severity = 'high';
       aiRec = 'negotiate_now';
       confidence = 0.75;
-      leverage = `High volume: ${fmt$(supplier.total_spend)} over ${config.lookbackDays}d across ${supplier.order_count} orders — you're a top customer and have leverage to demand volume pricing.`;
-      script = `"We've been spending ${fmt$(supplier.total_spend)} with you over the last 90 days. That makes us one of your top accounts. I'd like to discuss a volume discount — we're targeting ${fmt$(targetPrice)}/unit, which is ${(config.targetDiscount * 100).toFixed(0)}% off current pricing. In return, we can commit to ${supplier.order_count * 1.2 | 0}+ orders in the next quarter and consolidate more items with you. Can we make this work?"`;
-      desc = `${supplier.supplier_name}: VOLUME DISCOUNT opportunity — ${fmt$(supplier.total_spend)} spend over ${config.lookbackDays}d, ${supplier.order_count} orders. Target ${fmt$(targetPrice)} (-${(config.targetDiscount * 100).toFixed(0)}%). Est savings: ${fmt$(estSavingsAnnual)}/yr.`;
-    } else if (supplier.total_spend > 2000 && supplier.order_count >= 5) {
+      leverage = `High volume: ${fmt$(supplier.total_spend)} over ${config.lookbackDays}d across ${(supplier as any).order_count} orders — you're a top customer and have leverage to demand volume pricing.`;
+      script = `"We've been spending ${fmt$(supplier.total_spend)} with you over the last 90 days. That makes us one of your top accounts. I'd like to discuss a volume discount — we're targeting ${fmt$(targetPrice)}/unit, which is ${(config.targetDiscount * 100).toFixed(0)}% off current pricing. In return, we can commit to ${(supplier as any).order_count * 1.2 | 0}+ orders in the next quarter and consolidate more items with you. Can we make this work?"`;
+      desc = `${supplier.supplier_name}: VOLUME DISCOUNT opportunity — ${fmt$(supplier.total_spend)} spend over ${config.lookbackDays}d, ${(supplier as any).order_count} orders. Target ${fmt$(targetPrice)} (-${(config.targetDiscount * 100).toFixed(0)}%). Est savings: ${fmt$(estSavingsAnnual)}/yr.`;
+    } else if (supplier.total_spend > 2000 && (supplier as any).order_count >= 5) {
       // Mid-volume → PRICE MATCH (get competitor quotes)
       ruleId = 'price_match';
       severity = 'medium';
@@ -185,15 +185,15 @@ export const runNegotiationEngine = async (
       leverage = `Negotiate payment terms: request Net-30 or Net-60 instead of COD to improve cash flow.`;
       script = `"We'd like to discuss extending our payment terms from COD to Net-30. This would help us manage cash flow better and allow us to increase order frequency. In return, we can commit to minimum monthly volume of ${fmt$(supplier.total_spend / 3)}."`;
       desc = `${supplier.supplier_name}: PAYMENT TERMS — request Net-30 for ${fmt$(supplier.total_spend)} account. Cash flow benefit equivalent to ${fmt$(estSavingsMonthly * 0.5)}/mo in working capital.`;
-    } else if (supplier.order_count >= 8) {
+    } else if ((supplier as any).order_count >= 8) {
       // Loyalty bonus — frequent small orders
       ruleId = 'loyalty_bonus';
       severity = 'low';
       aiRec = 'schedule_meeting';
       confidence = 0.50;
-      leverage = `Loyal customer: ${supplier.order_count} orders in ${config.lookbackDays}d — ask for loyalty pricing or free delivery.`;
-      script = `"We've placed ${supplier.order_count} orders with you in the last 90 days. As a loyal customer, we'd like to discuss loyalty pricing — even a 5% discount would make a big difference, or free delivery on orders over ${fmt$(supplier.total_spend / supplier.order_count)}."`;
-      desc = `${supplier.supplier_name}: LOYALTY BONUS — ${supplier.order_count} orders in ${config.lookbackDays}d. Request loyalty pricing or free delivery. Est savings: ${fmt$(estSavingsAnnual)}/yr.`;
+      leverage = `Loyal customer: ${(supplier as any).order_count} orders in ${config.lookbackDays}d — ask for loyalty pricing or free delivery.`;
+      script = `"We've placed ${(supplier as any).order_count} orders with you in the last 90 days. As a loyal customer, we'd like to discuss loyalty pricing — even a 5% discount would make a big difference, or free delivery on orders over ${fmt$(supplier.total_spend / (supplier as any).order_count)}."`;
+      desc = `${supplier.supplier_name}: LOYALTY BONUS — ${(supplier as any).order_count} orders in ${config.lookbackDays}d. Request loyalty pricing or free delivery. Est savings: ${fmt$(estSavingsAnnual)}/yr.`;
     } else {
       // Consolidation opportunity — suggest consolidating with other suppliers
       ruleId = 'consolidation';

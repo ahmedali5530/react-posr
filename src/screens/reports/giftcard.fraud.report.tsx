@@ -14,7 +14,7 @@ import { DocumentTitle } from "@/components/common/document-title.tsx";
 import { Layout } from "@/screens/partials/layout.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faGiftCard, faTriangleExclamation, faRobot, faRotate,
+  faGift, faTriangleExclamation, faRobot, faRotate,
   faLightbulb, faCheckCircle, faXmark, faEye, faUserSecret,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
@@ -32,7 +32,7 @@ import {
 
 const SEVERITY_STYLE: Record<GiftCardFraudSeverity, { bg: string; text: string; border: string; icon: any }> = {
   critical: { bg: 'bg-rose-50',   text: 'text-rose-700',   border: 'border-rose-500',   icon: faTriangleExclamation },
-  warning:  { bg: 'bg-amber-50',   text: 'text-amber-700',  border: 'border-amber-400',  icon: faGiftCard },
+  warning:  { bg: 'bg-amber-50',   text: 'text-amber-700',  border: 'border-amber-400',  icon: faGift },
   info:     { bg: 'bg-blue-50',    text: 'text-blue-700',   border: 'border-blue-400',   icon: faEye },
 };
 
@@ -126,7 +126,7 @@ export function GiftCardFraudScreen() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <FontAwesomeIcon icon={faGiftCard} className="text-rose-600" />
+              <FontAwesomeIcon icon={faGift} className="text-rose-600" />
               Gift Card Fraud Detection
             </h1>
             <p className="text-sm text-neutral-500">

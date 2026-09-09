@@ -15,7 +15,7 @@ import { Layout } from "@/screens/partials/layout.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faShareNodes, faRotate, faLightbulb, faCheckCircle,
-  faImage, faCalendarClock, faChartLine, faHashtag,
+  faImage, faCalendarCheck, faChartLine, faHashtag,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   runSocialEngine, getActivePosts, getSummary, updatePostStatus,
@@ -26,7 +26,7 @@ import {
 const RULE_STYLE: Record<string, { bg: string; text: string; icon: any; label: string }> = {
   menu_highlight:    { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: faImage,         label: 'MENU HIGHLIGHT' },
   review_showcase:   { bg: 'bg-violet-50',   text: 'text-violet-700',  icon: faStar,          label: 'REVIEW SHOWCASE' },
-  event_promotion:   { bg: 'bg-amber-50',   text: 'text-amber-700',   icon: faCalendarClock, label: 'EVENT PROMO' },
+  event_promotion:   { bg: 'bg-amber-50',   text: 'text-amber-700',   icon: faCalendarCheck, label: 'EVENT PROMO' },
   behind_scenes:     { bg: 'bg-rose-50',    text: 'text-rose-700',    icon: faImage,         label: 'BEHIND SCENES' },
   engagement_poll:   { bg: 'bg-blue-50',    text: 'text-blue-700',   icon: faHashtag,       label: 'ENGAGEMENT POLL' },
 };
@@ -179,7 +179,7 @@ export function SocialContentScreen() {
                         <div className="flex items-center gap-3 text-xs">
                           <span className="text-neutral-500">Reach: <strong className="text-emerald-600">{p.est_reach.toLocaleString()}</strong></span>
                           <span className="text-neutral-500">Eng: <strong className="text-violet-600">{(p.est_engagement_rate * 100).toFixed(1)}%</strong></span>
-                          <span className="text-neutral-500"><FontAwesomeIcon icon={faCalendarClock} /> {formatPostTime(p.best_post_time)}</span>
+                          <span className="text-neutral-500"><FontAwesomeIcon icon={faCalendarCheck} /> {formatPostTime(p.best_post_time)}</span>
                         </div>
                       </div>
                       <p className="text-xs text-neutral-500 mt-1">{p.description}</p>
@@ -224,7 +224,7 @@ export function SocialContentScreen() {
                           <FontAwesomeIcon icon={faCheckCircle} className="mr-1" />Posted
                         </button>
                         <button onClick={() => p.id && handleStatus(p.id, 'scheduled')} className="text-xs px-3 py-1.5 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 font-medium">
-                          <FontAwesomeIcon icon={faCalendarClock} className="mr-1" />Schedule
+                          <FontAwesomeIcon icon={faCalendarCheck} className="mr-1" />Schedule
                         </button>
                         <button onClick={() => p.id && handleStatus(p.id, 'declined')} className="text-xs px-3 py-1.5 rounded bg-neutral-100 text-neutral-600 hover:bg-neutral-200">
                           Skip

@@ -16,7 +16,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTag, faTriangleExclamation, faRobot, faRotate,
   faLightbulb, faCheckCircle, faXmark, faEye, faUserSecret,
-  faGiftCard, faUsers, faUserGear, faTicket,
+  faGift, faUsers, faUserGear, faTicket,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -68,7 +68,7 @@ const RULE_ICON: Record<string, any> = {
   rapid_redemption: faTicket,
   self_referral: faUsers,
   points_farming: faTag,
-  gift_card_recycling: faGiftCard,
+  gift_card_recycling: faGift,
   coupon_stacking: faTicket,
   fake_account_farm: faUsers,
   staff_discount_abuse: faUserGear,
