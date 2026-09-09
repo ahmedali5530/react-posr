@@ -111,17 +111,32 @@ export const generateFursZoi = async (
   // RSA-SHA256 signature, but the hash input is the same)
   // Real implementation would need the .p12 private key extracted
   try {
-    const { createHash, createSign } = await import('node:crypto');
-    // Try RSA-SHA256 signature (requires real private key)
-    if (privateKeyPem && privateKeyPem.includes('BEGIN')) {
-      const signer = createSign('RSA-SHA256');
-      signer.update(concatenated);
-      const signature = signer.sign(privateKeyPem, 'base64');
-      return signature;
+    // Use Web Crypto API (available in both browser and Node 18+)
+    // Fallback: simple hash for testing without real cert
+    if (typeof globalThis !== 'undefined' && globalThis.crypto && globalThis.crypto.subtle) {
+      // Web Crypto API available — use SHA-256 for hashing
+      const encoder = new TextEncoder();
+      const data = encoder.encode(concatenated);
+      const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
-    // Fallback: MD5 hash (for testing without real cert)
-    const md5Hash = createHash('md5').update(concatenated).digest('hex');
-    return md5Hash;
+    // Node.js fallback (server-side only — not bundled in browser)
+    if (typeof process !== 'undefined' && process.versions?.node) {
+      const { createHash, createSign } = await import(/* @vite-ignore */ 'node:crypto');
+      // Try RSA-SHA256 signature (requires real private key)
+      if (privateKeyPem && privateKeyPem.includes('BEGIN')) {
+        const signer = createSign('RSA-SHA256');
+        signer.update(concatenated);
+        const signature = signer.sign(privateKeyPem, 'base64');
+        return signature;
+      }
+      // Fallback: MD5 hash (for testing without real cert)
+      const md5Hash = createHash('md5').update(concatenated).digest('hex');
+      return md5Hash;
+    }
+    // Final fallback — placeholder
+    return `zoi-${invoice.invoiceNumber}-${Date.now()}`;
   } catch {
     // Browser/crypto not available — return placeholder
     return `zoi-${invoice.invoiceNumber}-${Date.now()}`;

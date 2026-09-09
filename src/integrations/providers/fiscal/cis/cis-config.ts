@@ -102,19 +102,22 @@ export const generateCisZki = (invoice: {
     invoice.iznosUkupno.toFixed(2),
   ].join('');
 
-  try {
-    const { createHash } = require('node:crypto');
-    return createHash('md5').update(concatenated).digest('hex').toUpperCase();
-  } catch {
-    // Browser fallback — simple hash (not production-valid)
-    let hash = 0;
-    for (let i = 0; i < concatenated.length; i++) {
-      const char = concatenated.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return Math.abs(hash).toString(16).toUpperCase().padStart(32, '0').substring(0, 32);
+  // Simple synchronous hash for browser compatibility
+  // Note: CIS spec requires MD5, but Web Crypto API only supports SHA-1/256/384/512
+  // For production, MD5 should be computed server-side via node:crypto
+  // This implementation provides a consistent 32-char hex hash for demo/testing
+  let hash1 = 0x811c9dc5; // FNV offset basis
+  let hash2 = 0x1000193;  // FNV prime
+  for (let i = 0; i < concatenated.length; i++) {
+    const char = concatenated.charCodeAt(i);
+    hash1 = ((hash1 ^ char) * 0x01000193) >>> 0;
+    hash2 = ((hash2 + char) * 31 + (i + 1)) >>> 0;
   }
+  // Combine two hashes to get 32 hex chars
+  const part1 = hash1.toString(16).padStart(8, '0');
+  const part2 = hash2.toString(16).padStart(8, '0');
+  const combined = (part1 + part2 + part1 + part2).toUpperCase();
+  return combined.substring(0, 32);
 };
 
 /**
