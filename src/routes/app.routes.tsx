@@ -299,6 +299,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_METAVERSE_VIRTUAL_RESTAURANT_DINING,
   REPORTS_PERSONALIZED_NUTRITION_DNA_GENOMIC_DINING,
   REPORTS_NEURO_EMOTION_BIOMETRIC_DINING,
+  REPORTS_QUANTUM_COMPUTING_RESTAURANT_OPTIMIZATION,
   SETTINGS,
   INTEGRATIONS,
   SUMMARY,
@@ -569,6 +570,7 @@ RecipeScalingScreen,
   MetaverseVirtualRestaurantDiningScreen,
   PersonalizedNutritionDnaGenomicDiningScreen,
   NeuroEmotionBiometricDiningScreen,
+  QuantumComputingRestaurantOptimizationScreen,
   DeliveryZoneOptimizerScreen,
   SentimentHeatmapScreen,
   OrderPacingOptimizerScreen,
@@ -845,6 +847,7 @@ export const AppRoutes = () => (
         <Route path={REPORTS_METAVERSE_VIRTUAL_RESTAURANT_DINING} element={<MetaverseVirtualRestaurantDiningScreen/>}/>
         <Route path={REPORTS_PERSONALIZED_NUTRITION_DNA_GENOMIC_DINING} element={<PersonalizedNutritionDnaGenomicDiningScreen/>}/>
         <Route path={REPORTS_NEURO_EMOTION_BIOMETRIC_DINING} element={<NeuroEmotionBiometricDiningScreen/>}/>
+        <Route path={REPORTS_QUANTUM_COMPUTING_RESTAURANT_OPTIMIZATION} element={<QuantumComputingRestaurantOptimizationScreen/>}/>
         <Route path={REPORTS_RECIPE_SCALING} element={<RecipeScalingScreen/>}/>
         <Route path={REPORTS_WINE_PAIRING} element={<WinePairingScreen/>}/>
         <Route path={REPORTS_STAFF_GAMIFICATION} element={<StaffGamificationScreen/>}/>

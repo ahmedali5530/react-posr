@@ -45,7 +45,7 @@ import {
   faArrowTrendUp, faRobot, faRotate, faLightbulb, faTriangleExclamation,
   faUsers, faUserMinus, faPercentage, faStore, faChartBar,
   faDollarSign, faClock, faHandHoldingDollar, faGaugeHigh,
-faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faDatabase, faSeedling, faBitcoinSign, faCube, faMicrochip, faRecycle, faGlobe, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree, faDna,
+faCalendarAlt, faCalendarXmark, faUserSecret, faShieldVirus, faBolt, faUserClock, faFlask, faFireBurner, faHeartCrack, faCreditCard, faTag, faLink, faHourglassHalf, faBullhorn, faClockRotateLeft, faCalendarCheck, faExchangeAlt, faGraduationCap, faFaceSmile, faCartShopping, faFileShield, faGiftCard, faRotateLeft, faRoute, faUserGear, faCalculator, faCashRegister, faCommentDots, faCloudSun, faCrown, faUserPlus, faTruckFast, faArrowsRotate, faUserGraduate, faHandshake, faCalendarPlus, faWater, faMusic, faPlugCircleXmark, faShareNodes, faWrench, faCakeCandles, faChampagneGlasses, faShieldHeart, faGhost, faRepeat, faMicrophoneLines, faTriangleExclamation, faDatabase, faSeedling, faBitcoinSign, faCube, faMicrochip, faRecycle, faGlobe, faTableColumns, faShieldHalved, faBox, faBoxesStacked, faClipboardCheck, faWineGlass, faLeaf, faSliders, faStopwatch, faClipboardList, faFileInvoiceDollar, faPhone, faWandMagicSparkles, faBuilding, faEarListen, faFileInvoice, faMugHot, faFire, faMapLocationDot, faFlaskVial, faScaleBalanced, faTrophy, faBroom, faMagnifyingGlassLocation, faCalendarStar, faHeartCircleCheck, faHandshakeSimple, faComments, faCartPlus, faListCheck, faChartSimple, faPenToSquare, faRocket, faLayerGroup, faWaveSquare, faMagnifyingGlassChart, faScissors, faShuffle, faRightLeft, faFilePen, faChartPie, faBatteryThreeQuarters, faCamera, faCalendarDay, faTrashCan, faWifi, faCarSide, faVolumeHigh, faSprayCanSparkles, faDoorOpen, faShirt, faImage, faQrcode, faUmbrellaBeach, faWind, faSignsPost, faPalette, faSun, faFont, faClone, faBorderStyle, faRestroom, faUpLong, faDisplay, faMobileScreenButton, faDice, faDroplet, faHeartPulse, faWindowMaximize, faBagShopping, faUniversalAccess, faDog, faTree, faDna, faAtom,
 } from "@fortawesome/free-solid-svg-icons";
 import { withCurrency } from "@/lib/utils.ts";
 import {
@@ -267,6 +267,7 @@ REPORTS_RECIPE_SCALING,
   REPORTS_METAVERSE_VIRTUAL_RESTAURANT_DINING,
   REPORTS_PERSONALIZED_NUTRITION_DNA_GENOMIC_DINING,
   REPORTS_NEURO_EMOTION_BIOMETRIC_DINING,
+  REPORTS_QUANTUM_COMPUTING_RESTAURANT_OPTIMIZATION,
 } from "@/routes/posr.ts";
 
 // ---------------------------------------------------------------------------
@@ -349,6 +350,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         metaverseData,
         personalizedNutritionData,
         neuroEmotionData,
+        quantumComputingData,
       ] = await Promise.all([
         fetchForecastSummary(db),
         fetchMenuSummary(db),
@@ -592,6 +594,7 @@ fetchRecipeScaleSummary(db),
         fetchMetaverseSummary(db),
         fetchPersonalizedNutritionSummary(db),
         fetchNeuroEmotionSummary(db),
+        fetchQuantumComputingSummary(db),
       ]);
 
       setMetrics([
@@ -638,6 +641,7 @@ seasonalData, guestPrefData, noShowData, fraudData, foodSafetyData, energyData, 
         metaverseData,
         personalizedNutritionData,
         neuroEmotionData,
+        quantumComputingData,
       ]);
     } catch (err) {
       console.error('[ai-command] loadAllMetrics failed', err);
@@ -6074,6 +6078,33 @@ async function fetchNeuroEmotionSummary(db: any): Promise<MetricCard> {
       health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.nofacial > 0 || f.nomood > 0 ? 'warning' : 'good'), link: REPORTS_NEURO_EMOTION_BIOMETRIC_DINING, linkLabel: 'View neuro-emotion',
     };
   } catch { return neutralCard('Neuro-Emotion', faBrain, 'text-violet-600', REPORTS_NEURO_EMOTION_BIOMETRIC_DINING); }
+}
+
+async function fetchQuantumComputingSummary(db: any): Promise<MetricCard> {
+  try {
+    const result = await db.query(
+      `SELECT count() AS total, math::count(severity = 'critical') AS critical,
+              math::sum(est_monthly_opportunity WHERE est_monthly_opportunity > 0) AS opportunity,
+              math::count(rule_id = 'quantum_strategy_absent') AS nostrategy,
+              math::count(rule_id = 'quantum_menu_engineering_absent') AS nomenu,
+              math::count(rule_id = 'quantum_staff_scheduling_absent') AS noscheduling,
+              math::count(rule_id = 'quantum_delivery_routing_absent') AS norouting,
+              math::count(rule_id = 'quantum_supply_chain_optimization_absent') AS nosupplychain,
+              math::count(rule_id = 'quantum_machine_learning_absent') AS noqml,
+              math::count(rule_id = 'hybrid_classical_quantum_absent') AS nohybrid,
+              math::count(rule_id = 'quantum_readiness_tracking_absent') AS noreadiness
+       FROM quantum_computing_alert WHERE status = 'open' GROUP ALL`
+    );
+    const list = Array.isArray(result) ? result.flat() : [];
+    const f = list[0];
+    if (!f || f.total === 0) return neutralCard('Quantum', faAtom, 'text-violet-600', REPORTS_QUANTUM_COMPUTING_RESTAURANT_OPTIMIZATION);
+    return {
+      title: 'Quantum', icon: faAtom, color: 'text-violet-600',
+      primary: `${f.nostrategy} no strategy · ${f.nomenu} no Q-menu`,
+      secondary: `${f.total} alerts · ${f.noscheduling} no Q-sched · ${f.norouting} no Q-route · ${f.nosupplychain} no Q-supply · ${f.noqml} no QML · ${f.nohybrid} no hybrid · ${f.noreadiness} no readiness`,
+      health: f.critical > 0 ? 'critical' : (f.nostrategy > 0 || f.nomenu > 0 || f.noscheduling > 0 ? 'warning' : 'good'), link: REPORTS_QUANTUM_COMPUTING_RESTAURANT_OPTIMIZATION, linkLabel: 'View quantum',
+    };
+  } catch { return neutralCard('Quantum', faAtom, 'text-violet-600', REPORTS_QUANTUM_COMPUTING_RESTAURANT_OPTIMIZATION); }
 }
 
 function neutralCard(title: string, icon: any, color: string, link: string): MetricCard {

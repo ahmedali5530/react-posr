@@ -1079,3 +1079,7 @@ export const NeuroEmotionBiometricDiningScreen = lazy(() =>
   import('@/screens/reports/neuro-emotion-biometric-dining.report.tsx').then(m => ({default: m.NeuroEmotionBiometricDiningScreen}))
 );
 
+export const QuantumComputingRestaurantOptimizationScreen = lazy(() =>
+  import('@/screens/reports/quantum-computing-restaurant-optimization.report.tsx').then(m => ({default: m.QuantumComputingRestaurantOptimizationScreen}))
+);
+
