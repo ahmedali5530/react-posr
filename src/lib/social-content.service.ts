@@ -201,7 +201,7 @@ export const runSocialEngine = async (
     const topDish = topDishes[0];
     for (const platform of platforms) {
       const limit = PLATFORM_LIMITS[platform];
-      const post = await generateMenuHighlightPost(db, config, platform, topDish, limit, now);
+      const post = await generateMenuHighlightPost(config, platform, topDish, limit, now);
       if (post) posts.push(post);
     }
   }
@@ -212,7 +212,7 @@ export const runSocialEngine = async (
     // Only Instagram + Facebook for review showcases (visual platforms)
     for (const platform of ['instagram', 'facebook'] as Platform[]) {
       const limit = PLATFORM_LIMITS[platform];
-      const post = await generateReviewShowcasePost(db, config, platform, topReview, limit, now);
+      const post = await generateReviewShowcasePost(config, platform, topReview, limit, now);
       if (post) posts.push(post);
     }
   }
@@ -221,7 +221,7 @@ export const runSocialEngine = async (
   // Generate event promo for Instagram + Facebook + Twitter
   for (const platform of ['instagram', 'facebook', 'twitter'] as Platform[]) {
     const limit = PLATFORM_LIMITS[platform];
-    const post = await generateEventPromoPost(db, config, platform, limit, now);
+    const post = await generateEventPromoPost(config, platform, limit, now);
     if (post) posts.push(post);
   }
 
@@ -229,7 +229,7 @@ export const runSocialEngine = async (
   // Only Instagram + TikTok (visual storytelling platforms)
   for (const platform of ['instagram', 'tiktok'] as Platform[]) {
     const limit = PLATFORM_LIMITS[platform];
-    const post = await generateBehindScenesPost(db, config, platform, limit, now);
+    const post = await generateBehindScenesPost(config, platform, limit, now);
     if (post) posts.push(post);
   }
 
@@ -237,7 +237,7 @@ export const runSocialEngine = async (
   // Twitter + Instagram Stories (polls work best here)
   for (const platform of ['twitter', 'instagram'] as Platform[]) {
     const limit = PLATFORM_LIMITS[platform];
-    const post = await generateEngagementPollPost(db, config, platform, limit, now);
+    const post = await generateEngagementPollPost(config, platform, limit, now);
     if (post) posts.push(post);
   }
 
@@ -285,7 +285,6 @@ export const runSocialEngine = async (
 // ---------------------------------------------------------------------------
 
 const generateMenuHighlightPost = async (
-  db: ReturnType<typeof useDB>,
   config: SocialConfig,
   platform: Platform,
   dish: DishData,
@@ -395,7 +394,6 @@ Requirements:
 };
 
 const generateReviewShowcasePost = async (
-  db: ReturnType<typeof useDB>,
   config: SocialConfig,
   platform: Platform,
   review: ReviewData,
@@ -459,7 +457,6 @@ Requirements:
 };
 
 const generateEventPromoPost = async (
-  db: ReturnType<typeof useDB>,
   config: SocialConfig,
   platform: Platform,
   limit: { maxChars: number; maxHashtags: number; contentType: ContentType },
@@ -519,7 +516,6 @@ Include 3-5 hashtags` },
 };
 
 const generateBehindScenesPost = async (
-  db: ReturnType<typeof useDB>,
   config: SocialConfig,
   platform: Platform,
   limit: { maxChars: number; maxHashtags: number; contentType: ContentType },
@@ -572,7 +568,6 @@ Include 3-5 hashtags` },
 };
 
 const generateEngagementPollPost = async (
-  db: ReturnType<typeof useDB>,
   config: SocialConfig,
   platform: Platform,
   limit: { maxChars: number; maxHashtags: number; contentType: ContentType },

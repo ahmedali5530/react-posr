@@ -220,7 +220,7 @@ export function PriceElasticityScreen() {
                           <div className="text-xs text-neutral-500">Current price</div>
                           <div className="text-xl font-bold tabular-nums text-neutral-700">{withCurrency(result.current_price)}</div>
                         </div>
-                        <FontAwesomeIcon icon={faArrowTrendUp} className="text-neutral-400" rotation={result.recommended_price > result.current_price ? 0 : 180} />
+                        <FontAwesomeIcon icon={faArrowTrendUp} className="text-neutral-400" rotation={(result.recommended_price > result.current_price ? 0 : 180) as 0 | 180} />
                         <div>
                           <div className="text-xs text-neutral-500">Recommended</div>
                           <div className={`text-xl font-bold tabular-nums ${actStyle.text}`}>{withCurrency(result.recommended_price)}</div>

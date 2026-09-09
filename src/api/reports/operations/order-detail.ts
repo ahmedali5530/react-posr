@@ -655,8 +655,8 @@ export const getOrderDetail = async (
   ];
 
   const taxes = (order.order_taxes ?? []).map(row => ({
-    taxName: row.tax?.name || "Tax",
-    rate: safeNumber(row.tax?.rate ?? (row as {rate?: number}).rate),
+    taxName: (row.tax as any)?.name || "Tax",
+    rate: safeNumber((row.tax as any)?.rate ?? (row as {rate?: number}).rate),
     amount: safeNumber(row.amount),
   }));
 
@@ -686,7 +686,7 @@ export const getOrderDetail = async (
   const kitchen = kitchenRows.map(row => ({
     itemName: row.order_item?.item?.name || "Item",
     kitchen: (row.kitchen as {name?: string} | undefined)?.name,
-    stage: row.stage_name || (row as {stage?: string}).stage,
+    stage: row.stage_name || (row as any).stage,
     status: row.status,
     activatedAt: row.activated_at,
     completedAt: row.completed_at,

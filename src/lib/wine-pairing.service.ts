@@ -185,7 +185,7 @@ const computePairingScore = (
   } else if (dish.spice >= 4 && wine.tannin >= 3) {
     score -= 20;
     logic.push('tannin amplifies spice heat (bad)');
-  } else if (dish.spice >= 3 && wine.alcohol) {
+  } else if (dish.spice >= 3 && (wine as any).alcohol) {
     score -= 10;
     logic.push('high alcohol amplifies spice');
   }

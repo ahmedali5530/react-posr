@@ -124,7 +124,7 @@ export const OrderBox = ({
   };
 
   const printTempBill = () => {
-    void withFullOrder((full) => requestBillPrint({
+    void withFullOrder((full) => void requestBillPrint({
       db,
       protectAction,
       orderId: full.id.toString(),
@@ -142,7 +142,7 @@ export const OrderBox = ({
   };
 
   const printFinalCopy = () => {
-    void withFullOrder((full) => requestBillPrint({
+    void withFullOrder((full) => void requestBillPrint({
       db,
       protectAction,
       orderId: full.id.toString(),
@@ -166,7 +166,7 @@ export const OrderBox = ({
 
   const printKotCopy = () => {
     void protectAction(() => {
-      void withFullOrder((full) => printDuplicateKotForOrder({
+      void withFullOrder((full) => void printDuplicateKotForOrder({
         db,
         order: full,
         userId: page?.user?.id,

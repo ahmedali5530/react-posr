@@ -43,7 +43,8 @@ export type SuggestedAction =
   | 'prep_priority'
   | 'transfer_busy'
   | 'donate'
-  | 'discard';
+  | 'discard'
+  | 'monitor';
 
 export interface ExpiryTracker {
   id?: string;

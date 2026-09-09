@@ -61,7 +61,9 @@ export interface MenuDescAlert {
   origin_word_count?: number;
   emotional_word_count?: number;
   order_rate_pct?: number;
+  previous_order_rate_pct?: number;
   peer_avg_order_rate?: number;
+  avg_price?: number;
   order_rate_gap?: number;
   predicted_uplift_pct?: number;
   recommended_words?: string;

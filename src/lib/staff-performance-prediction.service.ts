@@ -58,6 +58,7 @@ export interface StaffPerfPredAlert {
   role?: string;
   current_performance_score?: number;
   previous_performance_score?: number;
+  pre_intervention_score?: number;
   predicted_score_next_month?: number;
   performance_trend?: string;
   decline_rate?: number;
@@ -69,6 +70,7 @@ export interface StaffPerfPredAlert {
   upsell_trend?: string;
   shifts_last_14d?: number;
   avg_shifts_per_week?: number;
+  months_employed?: number;
   recommended_intervention?: string;
   est_monthly_opportunity: number;
   description: string;
