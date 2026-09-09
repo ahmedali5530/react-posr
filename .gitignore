@@ -61,3 +61,10 @@ payments/.env
 migrations/scripts/node_modules/
 migrations/scripts/package.json
 migrations/scripts/package-lock.json
+
+# Fiscal certificates (test certs OK to commit, production certs NEVER)
+certs/**/*.p12
+certs/**/*.pfx
+certs/**/*.key
+certs/**/production*
+

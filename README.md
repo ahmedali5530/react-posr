@@ -98,6 +98,8 @@ Traditional restaurant POS software often depends on cloud connectivity and sepa
 - **Payment gateways** — Stripe, PayPal, JazzCash, M-Pesa, Telebirr, Razorpay (sandbox/live, webhooks)
 - **QuickBooks Online** — OAuth; sync sales, payments, customers, refunds; journals for inventory/payroll/waste; import COA / vendors / tax codes
 - **Fiscal (Pakistan)** — **FBR** and **PRA** invoice submission at settlement (API-proxied); receipt logos / QR
+- **Fiscal (Slovenia)** — **FURS** davčno potrjevanje računov (ZOI + EOR via SOAP, .p12 cert, QR); test: `blagajne-test.fu.gov.si:9002`
+- **Fiscal (Croatia)** — **CIS** fiskalizacija (ZKI + JIR via SOAP, FINA cert, QR); test: `cistest.apis-it.hr:8449`
 
 ### Restaurant delivery management
 
@@ -184,7 +186,7 @@ Copied `.env` files include **local-dev** Surreal and JWT values. Change `SURREA
 ## Security Hardening Stack + Feature Enhancements
 
 This fork includes a comprehensive security hardening stack + competitor-driven feature
-enhancements (**327 commits, 269 features, 220 POSR-exclusive differentiators, 232 releases**) that raises the security grade
+enhancements (**331 commits, 269 features, 220 POSR-exclusive differentiators, 236 releases**) that raises the security grade
 from **B− (65%) → A++ (97%)** and adds **269 new features** worth **$18,701+/mo** (Toast equivalent).
 
 **Quality status:** 0 TypeScript errors, 0 ESLint errors/warnings, 0 runtime errors. Codebase passes `bun run lint` and `tsc --noEmit` cleanly.
@@ -197,11 +199,11 @@ from **B− (65%) → A++ (97%)** and adds **269 new features** worth **$18,701+
 | **Payment credential encryption** (4 commits) | AES-256-GCM encryption for Stripe/PayPal/M-Pesa/Telebirr credentials at rest + encrypted `/payments/credentials` endpoint + backfill script |
 | **5-layer RBAC** (20 commits) | SurrealDB `DEFINE TOKEN` + JWT `roles` claim + table-level PERMISSIONS (15 critical tables) + field-level SELECT=NONE (12 sensitive fields) + granular per-role (108 tables) + row-level `branch_id` filtering |
 | **Audit + alerting** (3 commits) | 9 `DEFINE EVENT` hooks on critical tables + server-side permission denial logging + 6 anomaly detection rules + admin alerting UI (panel + sidebar badge + acknowledge workflow) |
-| **Frontend + a11y + i18n** (6 commits) | SPA form writes via encrypted endpoint, admin alerts panel + detail modal + sidebar badge, lock screen fixed (was broken stub), keyboard tab order restored, 10-language i18n (330+ translations) |
-| **Business-logic tests** (4 commits) | Payment drivers (33 tests × 6 gateways), fiscal serialization (66 tests FBR/PRA), sync-manager (49 tests), print helpers (36 tests) — 184 tests total |
+| **Frontend + a11y + i18n** (6 commits) | SPA form writes via encrypted endpoint, admin alerts panel + detail modal + sidebar badge, lock screen fixed (was broken stub), keyboard tab order restored, 12-language i18n (Slovenian + Croatian added, 360+ translations) |
+| **Business-logic tests** (4 commits) | Payment drivers (33 tests × 6 gateways), fiscal serialization (66 tests FBR/PRA/FURS/CIS), sync-manager (49 tests), print helpers (36 tests) — 184 tests total |
 | **Remaining audit fixes** (1 commit) | sync `/stats` auth, tracking `payload.id` validation, printing debug leftover, rate limiting on `/auth/session` + `/auth/db-token` |
 
-### Features (327 commits, 269 features, 220 POSR-exclusive differentiators)
+### Features (331 commits, 269 features, 220 POSR-exclusive differentiators)
 
 | Feature | What it does | Toast equivalent |
 |---|---|---|
