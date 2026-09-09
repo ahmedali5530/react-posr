@@ -1,0 +1,224 @@
+{
+  "language": {
+    "title": "Language",
+    "description": "Choose the display language for this device. Only applies to this device.",
+    "changed": "Language updated"
+  },
+  "direction": {
+    "title": "Text direction",
+    "description": "Choose left-to-right or right-to-left layout for this device.",
+    "ltr": "LTR",
+    "rtl": "RTL"
+  },
+  "touch": {
+    "title": "On screen keyboard",
+    "description": "Enable or disable on screen keyboard. Only applies to this device."
+  },
+  "cache": {
+    "title": "Cache",
+    "description": "Stores data into browser for faster operations.",
+    "reload": "Reload cache",
+    "orderTypes": "Order types",
+    "categories": "Categories",
+    "dishes": "Dishes",
+    "modifierGroups": "Modifier groups",
+    "groupDishes": "Group dishes",
+    "floors": "Floors",
+    "tables": "Tables",
+    "kitchens": "Kitchens",
+    "paymentTypes": "Payment types",
+    "taxes": "Taxes",
+    "reloaded": "Cache reloaded from database",
+    "reloadFailed": "Failed to reload cache"
+  },
+  "serviceCharges": {
+    "title": "Service charges",
+    "updated": "Service charges updated",
+    "saveDescription": "Save service charges"
+  },
+  "printers": {
+    "title": "Default printers",
+    "description": "Assign printers per user or for this terminal. When system printers are enabled, temp, final, refund, and summary use this device’s assignments. Delivery always uses user or global settings.",
+    "loading": "Loading printer settings…",
+    "useSystemPrinters": "Use system printers on this device",
+    "useSystemPrintersDescription": "When enabled, this browser/terminal uses the system printer assignments below instead of the logged-in user’s printers (except delivery).",
+    "systemTitle": "System printers (this device)",
+    "systemDescription": "Stored in this browser only. Ideal for shared terminals so prints go to nearby printers. Delivery is not included — it stays user or global.",
+    "userTitle": "User printers",
+    "userDescription": "Stored per logged-in user. Used when system printers are off, and always for delivery.",
+    "tempPrint": "Printers for temp print",
+    "finalPrint": "Printers for final print",
+    "refundPrint": "Printers for refund print",
+    "deliveryPrint": "Printers for delivery print",
+    "summaryPrint": "Printers for summary print",
+    "selectPrinters": "Select printers…",
+    "saving": "Saving…",
+    "save": "Save printer settings",
+    "saveDescription": "Save printers",
+    "loadFailed": "Failed to load printer settings",
+    "loginRequired": "Please log in to save printer settings.",
+    "saved": "Printer settings saved",
+    "saveFailed": "Failed to save printer settings"
+  },
+  "printOptions": {
+    "title": "Print options",
+    "description": "Set how many physical copies each print type produces, and how many times temp or final bills can be printed per order before manager approval is required.",
+    "copiesTitle": "Copies per print type",
+    "maxAttemptsTitle": "Max print attempts per order",
+    "unlimitedHint": "Set max attempts to 0 for unlimited. When the limit is reached, a manager with Override print limit permission must approve.",
+    "copies": {
+      "temp": "Temp bill copies",
+      "final": "Final bill copies",
+      "refund": "Refund bill copies",
+      "kitchen": "Kitchen / KOT copies",
+      "delivery": "Delivery bill copies",
+      "summary": "Summary copies"
+    },
+    "maxAttempts": {
+      "temp": "Max temp bill prints",
+      "final": "Max final bill prints"
+    },
+    "updated": "Print options updated",
+    "saveDescription": "Save print options"
+  },
+  "menus": {
+    "title": "Menu settings",
+    "activateMenus": "Activate menus",
+    "selectMenus": "Select menus…",
+    "loading": "Loading menu settings…",
+    "saving": "Saving…",
+    "save": "Save menu settings",
+    "saveDescription": "Save menus",
+    "loadFailed": "Failed to load menu settings",
+    "loginRequired": "Please log in to save menu settings.",
+    "saved": "Menu settings saved",
+    "saveFailed": "Failed to save menu settings"
+  },
+  "tableSelection": {
+    "title": "Hide table selection from menu",
+    "description": "Skip table selection and open the menu directly. Only applies to this device. Suitable for takeaway based ordering"
+  },
+  "autoCheckClose": {
+    "title": "Auto check close",
+    "description": "Automatically close open table checks at closing cycle end time. Delivery orders are excluded. A warning appears 1 minute before close.",
+    "printOnClose": "Print final bill on close",
+    "paymentType": "Payment type",
+    "paymentTypeRequired": "Payment type is required when auto close is enabled",
+    "paymentTypeRequiredField": "Payment type is required",
+    "updated": "Auto check close settings updated",
+    "saveDescription": "Save auto check close settings"
+  },
+  "closingCycle": {
+    "title": "Closing cycle",
+    "description": "Configure cycle start and end time. End time can be next day (example: 06:00 to 02:00).",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "updated": "Closing cycle settings updated",
+    "saveDescription": "Save closing cycle settings"
+  },
+  "showInclusivePrices": {
+    "title": "Show inclusive prices",
+    "description": "When enabled, line item amounts on the payment screen, receipts, and item-level reports show the tax-included (gross) price for menu items configured with inclusive tax. The Items/subtotal row stays tax-exclusive, tax is still shown as its own row, and the grand total is unchanged. Exclusive-tax items are not affected. This is display-only and does not change how prices are stored or how tax is calculated.",
+    "updated": "Show inclusive prices settings updated",
+    "saveDescription": "Save show inclusive prices settings"
+  },
+  "currencySymbol": {
+    "title": "Currency symbol",
+    "description": "Control whether the currency symbol appears next to amounts in the app and on printed receipts. Turning these off shows numbers only (e.g. 1,250 instead of Rs 1,250). This is display-only and does not change stored values.",
+    "showInUi": "Show on screen",
+    "showOnReceipts": "Show on receipts",
+    "updated": "Currency symbol settings updated",
+    "saveDescription": "Save currency symbol settings"
+  },
+  "translateReceipts": {
+    "title": "Translate receipts",
+    "description": "When enabled, system labels on printed receipts (bill titles, Invoice#, Table, Tax, Total, kitchen tickets, and summary) use this device's selected language. Custom header and footer text from print settings is not translated.",
+    "updated": "Translate receipts settings updated",
+    "saveDescription": "Save translate receipts settings"
+  },
+  "visibilityConfig": {
+    "title": "Items visibility config",
+    "description": "Update config for this device for which columns for items you want to show or hide. Only applies to this device.",
+    "menu": "Menu",
+    "enableDishSearch": "Enable dish number search on menu",
+    "showDishNumber": "Show dish numbers on menu tiles",
+    "dishSearchType": "Dish search mode",
+    "dishSearchTypeNumber": "Number only",
+    "dishSearchTypeBoth": "Name and number",
+    "cart": "Cart",
+    "showTotalsInCart": "Show totals for items in cart item",
+    "orders": "Orders",
+    "showTotalInOrderCard": "Show totals for items in order card",
+    "showGroupsInOrderCard": "Show groups for items in order card",
+    "showQuantityInOrderCard": "Show quantity for items in order card",
+    "showPriceInOrderCard": "Show price for items in order card",
+    "showModifiersInOrderCard": "Show modifiers for items in order card",
+    "showModifierPriceInOrderCard": "Show modifier price for items in order card",
+    "showTotalInPaymentCard": "Show totals for items in payment box"
+  },
+  "inventory": {
+    "title": "Inventory",
+    "description": "Ledger cutover and optional advanced tracking. Keep batch/expiry off unless you need them.",
+    "ledgerEnabled": "Use inventory ledger (single source of truth)",
+    "ledgerHint": "Enable only after running the ledger backfill and confirming reconciliation.",
+    "costingMethod": "Costing method",
+    "costing": {
+      "average": "Weighted Average",
+      "fifo": "FIFO",
+      "fefo": "FEFO"
+    },
+    "landedCostsSection": "Purchase cost allocation",
+    "enableLandedCosts": "Enable landed costs (shipping, freight, etc.)",
+    "enablePurchaseDiscounts": "Enable purchase discounts in inventory cost",
+    "enablePurchaseTaxes": "Enable purchase taxes in inventory cost",
+    "defaultAllocationMethod": "Default allocation method",
+    "allocation": {
+      "by_value": "By value",
+      "by_quantity": "By quantity",
+      "equal": "Equal"
+    },
+    "defaultPurchaseTaxBehavior": "Default purchase tax behavior",
+    "defaultPurchaseTaxBehaviorHint": "Non-recoverable tax is capitalized into inventory. Recoverable tax is ignored for valuation.",
+    "taxBehavior": {
+      "non_recoverable": "Non-recoverable (capitalize)",
+      "recoverable": "Recoverable (ignore for inventory)"
+    },
+    "enableBatchTracking": "Enable batch tracking",
+    "enableExpiryTracking": "Enable expiry tracking",
+    "enableManufacturingDate": "Enable manufacturing dates",
+    "requireBatchSelection": "Require batch selection on issues",
+    "updated": "Inventory settings updated",
+    "save": "Save",
+    "saveDescription": "Save inventory settings"
+  },
+  "whatsNew": {
+    "title": "What's New",
+    "description": "View release notes and recent updates for this app.",
+    "open": "Open What's New",
+    "dismiss": "Got it",
+    "dialogTitle": "What's New",
+    "previousReleases": "Previous updates",
+    "dateLabel": "Updated {{date}}"
+  },
+  "sessionSecurity": {
+    "title": "Session security",
+    "description": "Automatically lock or log out this user after a period of inactivity. Choose one action.",
+    "idleMinutes": "Idle minutes (e.g. 0.1 ≈ 6 seconds)",
+    "action": "Action",
+    "actionLock": "Lock",
+    "actionLogout": "Logout",
+    "updated": "Session security settings updated",
+    "saveDescription": "Save session security settings",
+    "loginRequired": "You must be logged in to save session security settings"
+  },
+  "autoClockOut": {
+    "title": "Auto clock-out",
+    "description": "Automatically clock out the logged-in user when their shift ends and/or at a fixed daily time. Uses the scheduled shift when available, otherwise the user's assigned shift. Applies to all users.",
+    "onShiftEnd": "Clock out when shift ends",
+    "onDefinedTime": "Clock out at a defined time",
+    "definedTime": "Clock-out time",
+    "triggerRequired": "Enable shift end and/or a defined time when auto clock-out is on",
+    "updated": "Auto clock-out settings updated",
+    "saveDescription": "Save auto clock-out settings"
+  }
+}

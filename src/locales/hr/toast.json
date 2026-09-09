@@ -1,0 +1,156 @@
+{
+  "generic": {
+    "saved": "Saved successfully",
+    "updated": "Updated successfully",
+    "deleted": "Deleted successfully",
+    "created": "Created successfully",
+    "failed": "Operation failed",
+    "error": "An error occurred"
+  },
+  "inventory": {
+    "wasteSaved": "Waste saved",
+    "issueSaved": "Issue saved",
+    "issueReturnSaved": "Issue return saved",
+    "purchaseSaved": "Purchase saved",
+    "purchaseReturnSaved": "Purchase return saved",
+    "purchaseOrderSaved": "Purchase order saved",
+    "itemGroupSaved": "Item group saved",
+    "itemSaved": "Item {{name}} saved",
+    "categorySaved": "Category {{name}} saved",
+    "supplierSaved": "Supplier {{name}} saved",
+    "storeSaved": "Store {{name}} saved",
+    "unableGenerateWasteNumber": "Unable to generate next waste number",
+    "unableGenerateIssueNumber": "Unable to generate next issue number",
+    "unableGenerateIssueReturnNumber": "Unable to generate next issue return number",
+    "unableGenerateInvoiceNumber": "Unable to generate next invoice number",
+    "unableGenerateReturnNumber": "Unable to generate next return number",
+    "unableGeneratePoNumber": "Unable to generate next PO number",
+    "itemsExceedQuantity": "One or more items exceed available quantity"
+  },
+  "delivery": {
+    "settingsSaved": "Delivery settings saved successfully",
+    "settingsLoadFailed": "Failed to load delivery settings",
+    "settingsSaveFailed": "Failed to save delivery settings",
+    "mapAreasSaved": "Map areas saved successfully",
+    "mapAreasSaveFailed": "Failed to save map areas",
+    "mapAreasLoadFailed": "Failed to load map areas",
+    "shapeTooSmall": "Shape is too small. Drag a larger area.",
+    "rectangleTooSmall": "Rectangle is too small. Drag a larger area.",
+    "circleTooSmall": "Circle is too small. Drag a larger radius.",
+    "polygonTooSmall": "Polygon is too small. Drag a larger outline.",
+    "fetchRidersFailed": "Failed to fetch riders",
+    "acceptFailed": "Failed to accept order",
+    "rejectFailed": "Failed to reject order",
+    "sendFailed": "Failed to send order",
+    "attachRiderFailed": "Failed to attach rider"
+  },
+  "reports": {
+    "mapAreasSaveFailed": "Failed to save map areas"
+  },
+  "kitchen": {
+    "recallFailed": "Failed to recall order"
+  },
+  "closing": {
+    "loadFailed": "Failed to load closing",
+    "alreadyClosed": "This cycle is already closed.",
+    "openOrders": "There are open orders. Please close them first.",
+    "completed": "Closing completed successfully!",
+    "savedDraft": "Closing saved as draft successfully!",
+    "saveFailed": "Failed to save closing",
+    "notFound": "No closing found for this cycle.",
+    "reopened": "Closing reopened in edit mode.",
+    "reopenFailed": "Failed to reopen closing",
+    "printFailed": "Failed to print closing"
+  },
+  "summary": {
+    "noProductMix": "No items found for product mix.",
+    "noTimeEntries": "No completed time entries found for this date.",
+    "noServerSales": "No server sales data found for this date."
+  },
+  "clock": {
+    "noActiveEntry": "No active time entry found",
+    "loadEntryFailed": "Failed to load time entry",
+    "loadSaleSummaryFailed": "Failed to load sale summary",
+    "clockedOut": "Clocked out successfully",
+    "clockOutFailed": "Failed to clock out"
+  },
+  "sessionSecurity": {
+    "autoLock": "Locked due to inactivity",
+    "autoLogout": "Logged out due to inactivity"
+  },
+  "autoClockOut": {
+    "warning": "Auto clock-out in {{countdown}}",
+    "clockedOut": "Automatically clocked out",
+    "failed": "Auto clock-out failed"
+  },
+  "tipDistribution": {
+    "selectShiftAndDate": "Please select shift and date",
+    "unableToDeriveRange": "Unable to derive time range from shift",
+    "saved": "Tip distribution saved"
+  },
+  "admin": {
+    "dishSaved": "Dish {{name}} saved",
+    "menuSaved": "Menu {{name}} saved",
+    "categorySaved": "Category {{name}} saved",
+    "couponSaved": "Coupon {{code}} saved",
+    "discountSaved": "Discount {{name}} saved",
+    "extraSaved": "Extra {{name}} saved",
+    "floorSaved": "Floor {{name}} saved",
+    "kitchenSaved": "Kitchen {{name}} saved",
+    "modifierGroupSaved": "Modifier group {{name}} saved",
+    "orderTypeSaved": "Order type {{name}} saved",
+    "paymentTypeSaved": "Payment type {{name}} saved",
+    "printerSaved": "Printer {{name}} saved",
+    "printSettingsSaved": "Print settings saved",
+    "roleSaved": "Role {{name}} saved",
+    "shiftSaved": "Shift {{name}} saved",
+    "tableSaved": "Table {{name}} saved",
+    "taxSaved": "Tax {{name}} saved",
+    "userSaved": "User {{name}} saved",
+    "userAndEmployeeSaved": "User {{name}} and employee record saved",
+    "employeeLinkFailed": "User was saved but employee could not be linked. Create the employee manually in HR.",
+    "workflowSaved": "Workflow {{name}} saved",
+    "tipDistributionSaved": "Tip distribution saved",
+    "categoriesBulkUpdated": "{{count}} categories updated",
+    "dishesBulkUpdated": "{{count}} dishes updated",
+    "tablesBulkUpdated": "{{count}} tables updated",
+    "failedReadPhoto": "Failed to read photo",
+    "noCategoriesSelected": "No categories selected",
+    "noDishesSelected": "No dishes selected",
+    "noTablesSelected": "No tables selected",
+    "noTablesToArrange": "No tables found to arrange",
+    "selectAtLeastOneTable": "Select at least one table",
+    "tablesArranged": "Arranged {{count}} tables inside the grid",
+    "tablesUpdated": "Updated {{count}} tables",
+    "menuNotFound": "Menu not found",
+    "menuItemsSaved": "Menu items saved",
+    "invalidFactor": "Enter a valid factor",
+    "selectCategoriesRequired": "Select at least one category",
+    "menuItemsUpdated": "Updated {{count}} item(s)",
+    "invalidCategories": "Categories are invalid",
+    "passwordRequired": "Password is required for new user",
+    "invalidDishNumber": "Dish number is invalid",
+    "invalidDishNameOrNumber": "Dish name or number is invalid",
+    "ambiguousDishName": "Multiple dishes match this name; use the dish number instead",
+    "invalidIngredient": "Ingredient is invalid",
+    "invalidIngredientType": "Ingredient type cannot be used in dish recipes",
+    "duplicateDishIngredient": "Ingredient is already attached to this dish",
+    "invalidQuantity": "Quantity is invalid",
+    "invalidCost": "Cost is invalid",
+    "invalidModifierGroup": "Modifier group is invalid",
+    "duplicateDishModifierGroup": "Modifier group is already attached to this dish",
+    "invalidPriority": "Priority is invalid",
+    "invalidRequiredModifiers": "Required modifiers value is invalid"
+  },
+  "settingsDelete": {
+    "deactivated": "{{entity}} is in use and was deactivated.",
+    "deleted": "{{entity}} deleted successfully.",
+    "failed": "Failed to delete {{entity}}."
+  },
+  "print": {
+    "tempLimitReached": "Temp bill print limit reached ({{count}}/{{limit}}). Manager approval required.",
+    "finalLimitReached": "Final bill print limit reached ({{count}}/{{limit}}). Manager approval required.",
+    "overrideRequired": "Override print limit",
+    "recordFailed": "Failed to record bill print"
+  }
+}
